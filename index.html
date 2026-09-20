@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nazaria · Sistema de RRHH y Pre-liquidación</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#FDF4F5',
+              100: '#FBE8EB',
+              500: '#E11D48', // Rose / Wine accent
+              600: '#BE123C',
+              700: '#9F1239',
+              900: '#4C0519',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- SheetJS (XLSX Export) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <!-- Supabase JS Client v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="h-full flex flex-col text-slate-100 bg-slate-950 font-sans antialiased selection:bg-rose-500 selection:text-white">
+
+  <!-- =========================================================================
+       BARRA SUPERIOR DE NAVEGACIÓN
+       ========================================================================= -->
+  <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      
+      <!-- Logo e Identidad -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-600 to-amber-600 flex items-center justify-center shadow-lg shadow-rose-950/40 text-white font-bold tracking-wider text-sm">
+          N
+        </div>
+        <div>
+          <span class="text-sm font-bold tracking-widest uppercase text-white block">NAZARIA</span>
+          <span class="text-xs text-slate-400 font-medium">RRHH & Pre-liquidación</span>
+        </div>
+      </div>
+
+      <!-- Píldoras de Estado y Navegación -->
+      <div class="flex items-center gap-3">
+        <!-- Indicador de Terminal Activa -->
+        <div id="badge-active-terminal" class="hidden items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="active-terminal-name">Terminal</span>
+        </div>
+
+        <!-- Indicador de Modo Base de Datos -->
+        <div id="badge-db-status" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20" title="Estado de la base de datos">
+          <i data-lucide="database" class="w-3.5 h-3.5"></i>
+          <span id="db-status-text">Modo Local Demo</span>
+        </div>
+
+        <!-- Botón Cambiar Terminal / Salir -->
+        <button id="btn-logout" onclick="window.app.logout()" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          <span>Salir</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       CONTENEDOR PRINCIPAL DINÁMICO
+       ========================================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col">
+
+    <!-- =======================================================================
+         VISTA 1: SELECTOR DE TERMINAL / LOGIN
+         ======================================================================= -->
+    <section id="view-login" class="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full py-8 fade-in">
+      <div class="text-center mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Acceso a Terminales</h1>
+        <p class="text-slate-400 text-sm mt-2">Selecciona la sucursal del local o ingresa al panel de administración.</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 w-full">
+        <!-- Terminal TOM -->
+        <button onclick="window.app.promptPin('TOM')" class="group p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-800/80 transition text-left flex items-center justify-between shadow-sm hover:shadow-rose-950/20">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-slate-800 group-hover:bg-rose-950/50 group-hover:text-rose-400 flex items-center justify-center text-slate-300 transition">
+              <i data-lucide="store" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-white group-hover:text-rose-400 transition">Tortugas Open Mall (TOM)</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Terminal de local · Maschwitz & Shopping</p>
+            </div>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-mono">PIN: 1111</span>
+        </button>
+
+        <!-- Terminal Maschwitz -->
+        <button onclick="window.app.promptPin('MASCHWITZ')" class="group p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-800/80 transition text-left flex items-center justify-between shadow-sm hover:shadow-rose-950/20">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-slate-800 group-hover:bg-rose-950/50 group-hover:text-rose-400 flex items-center justify-center text-slate-300 transition">
+              <i data-lucide="store" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-white group-hover:text-rose-400 transition">Maschwitz Mall</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Terminal de local · Maschwitz</p>
+            </div>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-mono">PIN: 2222</span>
+        </button>
+
+        <!-- Terminal Administración -->
+        <button onclick="window.app.promptPin('ADMIN')" class="group p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800/90 border border-slate-700 hover:border-amber-500/50 transition text-left flex items-center justify-between shadow-md">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+              <i data-lucide="shield-check" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-amber-200">Panel de Administración</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Control de Vacaciones, Auditoría y Reportes para Contador</p>
+            </div>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono">PIN: 9999</span>
+        </button>
+      </div>
+
+      <!-- Quick note -->
+      <div class="mt-8 text-center text-xs text-slate-500">
+        <p>Sistema optimizado para pantallas de PC en sucursales.</p>
+        <p class="mt-1">Nazaria Retail · Gestión Operativa</p>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         VISTA 2: TERMINAL DE LOCAL (ENCARGADA)
+         ======================================================================= -->
+    <section id="view-store" class="hidden flex-1 flex-col gap-6 fade-in">
+      
+      <!-- Encabezado de Local y Selector de Período -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 text-xs font-bold rounded-md bg-rose-500/20 text-rose-400 border border-rose-500/30">TERMINAL DE LOCAL</span>
+            <h2 id="store-title" class="text-xl font-bold text-white">Tortugas Open Mall (TOM)</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Carga diaria de licencias y cierre mensual para sueldos.</p>
+        </div>
+
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+            <i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i>
+            <span class="text-slate-400">Período:</span>
+            <span id="store-period-label" class="font-bold text-white font-mono">2026-10</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selector de Pestañas de la Encargada -->
+      <div class="flex border-b border-slate-800 gap-6">
+        <button id="tab-btn-store-novedades" onclick="window.app.switchStoreTab('novedades')" class="pb-3 text-sm font-semibold text-rose-500 border-b-2 border-rose-500 flex items-center gap-2 transition">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          <span>1. Novedades y Licencias (Día a Día)</span>
+        </button>
+        <button id="tab-btn-store-cierre" onclick="window.app.switchStoreTab('cierre')" class="pb-3 text-sm font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-2 transition">
+          <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+          <span>2. Cierre Mensual para Sueldos</span>
+        </button>
+      </div>
+
+      <!-- SUBPESTAÑA STORE: NOVEDADES DIARIAS -->
+      <div id="subview-store-novedades" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Formulario de Carga Rápida de Novedad -->
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4">
+          <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+            <div class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            </div>
+            <h3 class="font-semibold text-white text-sm">Registrar Novedad / Licencia</h3>
+          </div>
+
+          <form id="form-novedad" onsubmit="window.app.handleSaveNovedad(event)" class="flex flex-col gap-3">
+            <!-- Colaboradora -->
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Colaboradora *</label>
+              <select id="nov-colaboradora" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-rose-500 transition">
+                <option value="">-- Seleccionar colaboradora --</option>
+              </select>
+            </div>
+
+            <!-- Tipo de Novedad -->
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Tipo de Novedad *</label>
+              <select id="nov-tipo" required onchange="window.app.handleTipoNovedadChange()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-rose-500 transition">
+                <option value="Licencia Médica">Licencia Médica (Requiere Comprobante)</option>
+                <option value="Falta Injustificada">Falta Injustificada (Descuenta sueldo y presentismo)</option>
+                <option value="Franco Compensatorio">Franco Compensatorio</option>
+                <option value="Vacaciones">Vacaciones (Días de Ley)</option>
+                <option value="Examen">Día de Examen / Estudio</option>
+                <option value="Llegada Tarde">Llegada Tarde / Retiro Anticipado</option>
+                <option value="Otro">Otro Permiso</option>
+              </select>
+            </div>
+
+            <!-- Rango de Fechas -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Fecha Inicio *</label>
+                <input type="date" id="nov-fecha-inicio" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-rose-500 font-mono transition">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Fecha Fin *</label>
+                <input type="date" id="nov-fecha-fin" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-rose-500 font-mono transition">
+              </div>
+            </div>
+
+            <!-- Días Computados -->
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Cantidad de Días (o fracción de horas) *</label>
+              <input type="number" step="0.5" min="0.5" id="nov-dias" value="1" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-rose-500 font-mono transition">
+            </div>
+
+            <!-- Dropzone para Certificado / Comprobante -->
+            <div>
+              <label class="flex items-center justify-between text-xs font-medium text-slate-300 mb-1">
+                <span>Comprobante / Foto del Certificado</span>
+                <span id="nov-file-required-badge" class="text-[10px] text-rose-400 font-semibold">* OBLIGATORIO PARA MÉDICA</span>
+              </label>
+
+              <div id="dropzone-certificado" class="dropzone rounded-xl p-4 text-center cursor-pointer bg-slate-950 hover:bg-slate-900 transition flex flex-col items-center justify-center min-h-[110px]" onclick="document.getElementById('nov-file-input').click()">
+                <input type="file" id="nov-file-input" accept="image/*,application/pdf" class="hidden" onchange="window.app.handleFileSelect(event)">
+                
+                <div id="dropzone-empty" class="flex flex-col items-center gap-1.5">
+                  <i data-lucide="upload-cloud" class="w-7 h-7 text-slate-500"></i>
+                  <p class="text-xs text-slate-300 font-medium">Arrastra la foto aquí o <span class="text-rose-400 underline">haz clic</span></p>
+                  <p class="text-[10px] text-slate-500">JPG, PNG o PDF (se comprime automáticamente)</p>
+                </div>
+
+                <div id="dropzone-preview" class="hidden flex-col items-center gap-2 w-full">
+                  <img id="preview-img" src="" alt="Comprobante" class="max-h-24 max-w-full rounded-lg object-contain border border-slate-700">
+                  <div class="flex items-center gap-2">
+                    <span id="preview-filename" class="text-xs font-mono text-slate-300 truncate max-w-[180px]">archivo.jpg</span>
+                    <button type="button" onclick="window.app.clearFile(event)" class="text-rose-400 hover:text-rose-300 p-1">
+                      <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Observaciones / Diagnóstico</label>
+              <textarea id="nov-obs" rows="2" placeholder="Ej: Reposo 48hs por gripe, certificado firmado por Dr. López..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500 transition resize-none"></textarea>
+            </div>
+
+            <button type="submit" id="btn-save-novedad" class="w-full mt-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-lg shadow-rose-950/40 flex items-center justify-center gap-2">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>Guardar Novedad</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Lista de Novedades Cargadas en el Mes -->
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+            <div>
+              <h3 class="font-semibold text-white text-sm">Historial de Novedades del Mes</h3>
+              <p class="text-xs text-slate-400">Registros de ausencias y certificados de esta sucursal.</p>
+            </div>
+            <span id="count-novedades-store" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 font-mono text-slate-300">0 registros</span>
+          </div>
+
+          <div class="flex-1 overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs table-compact">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                  <th class="py-2">Colaboradora</th>
+                  <th class="py-2">Tipo</th>
+                  <th class="py-2">Fechas</th>
+                  <th class="py-2">Días</th>
+                  <th class="py-2">Comprobante</th>
+                  <th class="py-2 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-novedades-store" class="divide-y divide-slate-800/60">
+                <!-- Inyección dinámica -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SUBPESTAÑA STORE: CIERRE MENSUAL PARA SUELDOS -->
+      <div id="subview-store-cierre" class="hidden flex-col gap-6">
+        
+        <!-- Banner Informativo de Estado de Cierre -->
+        <div id="store-cierre-status-banner" class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-amber-300 text-sm">Cierre Mensual en Carga (Borrador)</h4>
+              <p class="text-xs text-slate-300 mt-0.5">Ingresa las horas extras, feriados trabajados y adelantos de caja de cada colaboradora antes de enviar.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="window.app.saveCierreStore(false)" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i>
+              <span>Guardar Borrador</span>
+            </button>
+            <button onclick="window.app.submitCierreStore()" id="btn-submit-cierre-store" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5 shadow-lg shadow-emerald-950/40">
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              <span>Enviar Cierre a Administración</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla Grilla de Cierre Mensual -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="font-semibold text-white text-sm">Planilla de Pre-liquidación por Colaboradora</h3>
+              <p class="text-xs text-slate-400">Las ausencias y licencias se calculan automáticamente desde la pestaña de novedades.</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs table-compact">
+              <thead>
+                <tr class="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                  <th class="py-3 px-3">Colaboradora</th>
+                  <th class="py-3 px-2 text-center w-20">Hs Norm.</th>
+                  <th class="py-3 px-2 text-center w-24">Hs Ext 50%</th>
+                  <th class="py-3 px-2 text-center w-24">Hs Ext 100%</th>
+                  <th class="py-3 px-2 text-center w-20">Feriados</th>
+                  <th class="py-3 px-2 text-center w-20">Faltas Inj.</th>
+                  <th class="py-3 px-2 text-center w-20">Lic. Médica</th>
+                  <th class="py-3 px-2 text-center w-28">Adelanto Caja ($)</th>
+                  <th class="py-3 px-3">Observaciones de Liquidación</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-cierre-store" class="divide-y divide-slate-800/80">
+                <!-- Inyección dinámica -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Barra de Totales Rápidos -->
+          <div class="mt-4 p-4 rounded-xl bg-slate-950 border border-slate-800/80 flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+            <span class="text-slate-400 font-sans font-semibold">TOTALES SUCURSAL:</span>
+            <div class="flex items-center gap-6">
+              <div><span class="text-slate-500">Hs 50%:</span> <span id="tot-hs50" class="font-bold text-white">0</span></div>
+              <div><span class="text-slate-500">Hs 100%:</span> <span id="tot-hs100" class="font-bold text-white">0</span></div>
+              <div><span class="text-slate-500">Feriados:</span> <span id="tot-feriados" class="font-bold text-white">0</span></div>
+              <div><span class="text-slate-500">Adelantos:</span> <span id="tot-adelantos" class="font-bold text-emerald-400">$0</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- =======================================================================
+         VISTA 3: PANEL DE ADMINISTRACIÓN (DUEÑO / RRHH)
+         ======================================================================= -->
+    <section id="view-admin" class="hidden flex-1 flex-col gap-6 fade-in">
+      
+      <!-- Barra Superior de Administración -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 text-xs font-bold rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30">PANEL CENTRAL</span>
+            <h2 class="text-xl font-bold text-white">Consolidado General de RRHH</h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Gestión integral de pre-liquidación, saldos de vacaciones LCT y exportaciones.</p>
+        </div>
+
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <!-- Selector de Período -->
+          <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+            <span class="text-xs text-slate-400">Mes:</span>
+            <select id="admin-period-select" onchange="window.app.handleAdminPeriodChange()" class="bg-transparent text-sm font-bold text-white font-mono focus:outline-none cursor-pointer">
+              <option value="2026-10">2026-10 (Octubre)</option>
+              <option value="2026-09">2026-09 (Septiembre)</option>
+              <option value="2026-08">2026-08 (Agosto)</option>
+            </select>
+          </div>
+
+          <!-- Botón Exportar Excel para Liquidador -->
+          <button onclick="window.app.exportToExcel()" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-2 shadow-lg shadow-emerald-950/40">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            <span>Exportar Excel para Contador</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tarjetas KPI de Estado -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- KPI TOM -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400 font-medium">Sucursal TOM</span>
+            <h4 id="kpi-tom-status" class="text-sm font-bold mt-1 text-amber-400">En Carga (Borrador)</h4>
+            <span class="text-[10px] text-slate-500 mt-0.5 block">4 colaboradoras</span>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400">
+            <i data-lucide="store" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- KPI Maschwitz -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400 font-medium">Sucursal Maschwitz</span>
+            <h4 id="kpi-maschwitz-status" class="text-sm font-bold mt-1 text-slate-400">Pendiente</h4>
+            <span class="text-[10px] text-slate-500 mt-0.5 block">4 colaboradoras</span>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400">
+            <i data-lucide="store" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- KPI Novedades del Mes -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400 font-medium">Novedades Registradas</span>
+            <h4 id="kpi-total-novedades" class="text-lg font-bold mt-1 text-white font-mono">0</h4>
+            <span class="text-[10px] text-slate-500 mt-0.5 block">Médicas, faltas y francos</span>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
+            <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- KPI Total Colaboradoras -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400 font-medium">Nómina Activa</span>
+            <h4 id="kpi-total-empleadas" class="text-lg font-bold mt-1 text-white font-mono">8</h4>
+            <span class="text-[10px] text-slate-500 mt-0.5 block">Total 2 sucursales</span>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navegación de Pestañas de Administración -->
+      <div class="flex border-b border-slate-800 gap-6 overflow-x-auto">
+        <button id="tab-btn-admin-cierres" onclick="window.app.switchAdminTab('cierres')" class="pb-3 text-sm font-semibold text-rose-500 border-b-2 border-rose-500 flex items-center gap-2 whitespace-nowrap transition">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+          <span>Pre-liquidación Consolidada</span>
+        </button>
+        <button id="tab-btn-admin-vacaciones" onclick="window.app.switchAdminTab('vacaciones')" class="pb-3 text-sm font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition">
+          <i data-lucide="palmtree" class="w-4 h-4"></i>
+          <span>Control Vacaciones LCT</span>
+        </button>
+        <button id="tab-btn-admin-novedades" onclick="window.app.switchAdminTab('novedades')" class="pb-3 text-sm font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          <span>Auditoría de Certificados</span>
+        </button>
+        <button id="tab-btn-admin-colaboradoras" onclick="window.app.switchAdminTab('colaboradoras')" class="pb-3 text-sm font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Equipo y Nómina</span>
+        </button>
+        <button id="tab-btn-admin-config" onclick="window.app.switchAdminTab('config')" class="pb-3 text-sm font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span>Configuración Supabase</span>
+        </button>
+      </div>
+
+      <!-- SUBPESTAÑA ADMIN: PRE-LIQUIDACIÓN CONSOLIDADA -->
+      <div id="subview-admin-cierres" class="flex flex-col gap-4">
+        
+        <!-- Acciones del Cierre -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-slate-400">Filtrar por local:</span>
+            <select id="admin-sucursal-filter" onchange="window.app.renderAdminCierres()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white">
+              <option value="ALL">Todas las sucursales</option>
+              <option value="TOM">Tortugas Open Mall</option>
+              <option value="MASCHWITZ">Maschwitz Mall</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="window.app.reopenPeriodo()" id="btn-reabrir-periodo" class="px-3.5 py-1.5 rounded-xl text-xs font-medium text-amber-400 hover:bg-amber-500/10 border border-amber-500/30 transition flex items-center gap-1.5">
+              <i data-lucide="unlock" class="w-3.5 h-3.5"></i>
+              <span>Reabrir Período para Correcciones</span>
+            </button>
+
+            <button onclick="window.app.approveAndFreezePeriodo()" id="btn-congelar-periodo" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition flex items-center gap-1.5 shadow-lg shadow-rose-950/40">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+              <span>Aprobar y Congelar Histórico</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla de Pre-liquidación -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs table-compact">
+            <thead>
+              <tr class="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                <th class="py-3 px-3">Colaboradora</th>
+                <th class="py-3 px-2">Sucursal</th>
+                <th class="py-3 px-2">DNI / CUIL</th>
+                <th class="py-3 px-2 text-center">Hs Norm</th>
+                <th class="py-3 px-2 text-center">Extras 50%</th>
+                <th class="py-3 px-2 text-center">Extras 100%</th>
+                <th class="py-3 px-2 text-center">Feriados</th>
+                <th class="py-3 px-2 text-center">Faltas</th>
+                <th class="py-3 px-2 text-center">Lic. Méd</th>
+                <th class="py-3 px-2 text-center">Vacaciones</th>
+                <th class="py-3 px-2 text-right">Adelantos</th>
+                <th class="py-3 px-3">Observaciones Liquidador</th>
+                <th class="py-3 px-2 text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-admin-cierres" class="divide-y divide-slate-800/80">
+              <!-- Inyección dinámica -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- SUBPESTAÑA ADMIN: CONTROL DE VACACIONES LCT -->
+      <div id="subview-admin-vacaciones" class="hidden flex-col gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-4">
+            <div>
+              <h3 class="font-bold text-white text-base">Control de Saldos de Vacaciones (LCT 20.744)</h3>
+              <p class="text-xs text-slate-400 mt-1">La antigüedad se determina al 31 de diciembre del año fiscal. Días corridos de ley: &lt;5 años: 14d | 5-10 años: 21d | 10-20 años: 28d.</p>
+            </div>
+            <button onclick="window.app.exportVacacionesExcel()" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Descargar Reporte Vacaciones</span>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs table-compact">
+              <thead>
+                <tr class="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                  <th class="py-3 px-3">Colaboradora</th>
+                  <th class="py-3 px-2">Sucursal</th>
+                  <th class="py-3 px-2">Fecha Ingreso</th>
+                  <th class="py-3 px-2">Antigüedad (al 31/12)</th>
+                  <th class="py-3 px-2 text-center">Días de Ley</th>
+                  <th class="py-3 px-2 text-center">Días Gozados</th>
+                  <th class="py-3 px-2 text-center">Saldo Pendiente</th>
+                  <th class="py-3 px-3">Estado del Saldo</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-vacaciones" class="divide-y divide-slate-800/80">
+                <!-- Inyección dinámica -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBPESTAÑA ADMIN: AUDITORÍA DE CERTIFICADOS -->
+      <div id="subview-admin-novedades" class="hidden flex-col gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col">
+          <div class="border-b border-slate-800 pb-3 mb-4">
+            <h3 class="font-bold text-white text-base">Auditoría de Certificados Médicos y Novedades</h3>
+            <p class="text-xs text-slate-400 mt-1">Historial completo con acceso directo a las fotos de certificados cargadas por las encargadas.</p>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs table-compact">
+              <thead>
+                <tr class="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                  <th class="py-3 px-3">Fecha Carga</th>
+                  <th class="py-3 px-2">Sucursal</th>
+                  <th class="py-3 px-3">Colaboradora</th>
+                  <th class="py-3 px-2">Tipo Novedad</th>
+                  <th class="py-3 px-2">Período Afectado</th>
+                  <th class="py-3 px-2 text-center">Días</th>
+                  <th class="py-3 px-3">Observaciones</th>
+                  <th class="py-3 px-2 text-center">Comprobante</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-novedades-feed" class="divide-y divide-slate-800/80">
+                <!-- Inyección dinámica -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBPESTAÑA ADMIN: GESTIÓN DE COLABORADORAS -->
+      <div id="subview-admin-colaboradoras" class="hidden flex-col gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+            <div>
+              <h3 class="font-bold text-white text-base">Nómina de Colaboradoras</h3>
+              <p class="text-xs text-slate-400 mt-1">Altas, bajas y asignación de sucursal para el cálculo de sueldos y vacaciones.</p>
+            </div>
+            <button onclick="window.app.openAddColaboradoraModal()" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition flex items-center gap-1.5 shadow-lg shadow-rose-950/40">
+              <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+              <span>Nueva Colaboradora</span>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs table-compact">
+              <thead>
+                <tr class="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                  <th class="py-3 px-3">Nombre Completo</th>
+                  <th class="py-3 px-2">Sucursal</th>
+                  <th class="py-3 px-2">DNI</th>
+                  <th class="py-3 px-2">CUIL</th>
+                  <th class="py-3 px-2">Fecha Ingreso</th>
+                  <th class="py-3 px-2">Categoría CCT</th>
+                  <th class="py-3 px-2 text-center">Estado</th>
+                  <th class="py-3 px-2 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-colaboradoras" class="divide-y divide-slate-800/80">
+                <!-- Inyección dinámica -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBPESTAÑA ADMIN: CONFIGURACIÓN SUPABASE -->
+      <div id="subview-admin-config" class="hidden flex-col gap-4 max-w-2xl">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-4">
+          <div class="border-b border-slate-800 pb-3">
+            <h3 class="font-bold text-white text-base">Conexión a Supabase (PostgreSQL en la Nube)</h3>
+            <p class="text-xs text-slate-400 mt-1">Conecta tu proyecto gratuito de Supabase para sincronizar todas las PCs de los locales en tiempo real.</p>
+          </div>
+
+          <form onsubmit="window.app.saveSupabaseConfig(event)" class="flex flex-col gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Project URL de Supabase</label>
+              <input type="text" id="cfg-supabase-url" placeholder="https://tu-proyecto.supabase.co" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-rose-500">
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Project Anon Key (Public API Key)</label>
+              <input type="text" id="cfg-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-rose-500">
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 flex items-start gap-2.5">
+              <i data-lucide="info" class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5"></i>
+              <div>
+                <p class="font-semibold text-white">¿Aún no creaste el proyecto en Supabase?</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                  1. Entra a <a href="https://supabase.com" target="_blank" class="text-rose-400 underline">supabase.com</a> y crea un proyecto gratis.<br>
+                  2. En el SQL Editor, pega y corre el script <span class="font-mono text-slate-300">schema.sql</span> que te dejamos en la carpeta del proyecto.<br>
+                  3. En Settings > API, copia tu URL y tu anon key y pégalas aquí.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
+              <button type="submit" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition shadow-lg shadow-rose-950/40 flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>Guardar y Probar Conexión</span>
+              </button>
+              <button type="button" onclick="window.app.resetToDemoData()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+                Restablecer Datos de Demostración
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- =========================================================================
+       MODAL DE PIN PARA ACCESO
+       ========================================================================= -->
+  <div id="modal-pin" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop fade-in">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center">
+      <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center mb-3">
+        <i data-lucide="key-round" class="w-6 h-6"></i>
+      </div>
+      <h3 id="modal-pin-title" class="font-bold text-white text-base">Ingresar PIN</h3>
+      <p id="modal-pin-desc" class="text-xs text-slate-400 text-center mt-1 mb-4">Ingresa el código de 4 dígitos de la terminal</p>
+
+      <input type="password" id="input-pin" maxlength="6" class="w-36 text-center tracking-[0.5em] font-mono font-bold text-2xl bg-slate-950 border border-slate-700 rounded-xl py-2 px-3 text-white focus:outline-none focus:border-rose-500 mb-4" placeholder="••••" autofocus>
+
+      <div class="grid grid-cols-3 gap-2 w-full max-w-[220px] mb-4">
+        <button onclick="window.app.pressPinKey('1')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-base transition">1</button>
+        <button onclick="window.app.pressPinKey('2')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-base transition">2</button>
+        <button onclick="window.app.pressPinKey('3')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-base transition">3</button>
+        <button onclick="window.app.pressPinKey('4')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-base transition">4</button>
+        <button onclick="window.app.pressPinKey('5')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-base transition">5</button>
+        <button onclick="window.app.pressPinKey('6')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-base transition">6</button>
+        <button onclick="window.app.pressPinKey('7')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-base transition">7</button>
+        <button onclick="window.app.pressPinKey('8')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-base transition">8</button>
+        <button onclick="window.app.pressPinKey('9')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-base transition">9</button>
+        <button onclick="window.app.pressPinKey('C')" class="py-2.5 rounded-xl bg-slate-800/60 hover:bg-slate-700 text-rose-400 font-mono font-bold text-sm transition">C</button>
+        <button onclick="window.app.pressPinKey('0')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-mono font-bold text-base transition">0</button>
+        <button onclick="window.app.submitPin()" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-sm transition">OK</button>
+      </div>
+
+      <div class="flex items-center gap-2 w-full">
+        <button onclick="window.app.closePinModal()" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL DE VISUALIZACIÓN DE COMPROBANTE MÉDICO (ZOOM)
+       ========================================================================= -->
+  <div id="modal-viewer" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop fade-in">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-2xl w-full shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="file-check" class="w-4 h-4 text-emerald-400"></i>
+          <h3 id="viewer-title" class="font-bold text-white text-sm">Comprobante de Licencia</h3>
+        </div>
+        <button onclick="window.app.closeViewerModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-auto flex items-center justify-center p-2 bg-slate-950 rounded-xl min-h-[300px]">
+        <img id="viewer-img" src="" alt="Certificado" class="max-h-[65vh] max-w-full rounded-lg object-contain">
+      </div>
+
+      <div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-800">
+        <span id="viewer-details" class="text-xs text-slate-400 font-mono">Detalles</span>
+        <a id="viewer-download-btn" href="" target="_blank" download class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition flex items-center gap-1.5">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          <span>Abrir Original</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL NUEVA COLABORADORA
+       ========================================================================= -->
+  <div id="modal-colaboradora" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop fade-in">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+        <h3 class="font-bold text-white text-base">Nueva Colaboradora</h3>
+        <button onclick="window.app.closeColaboradoraModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form onsubmit="window.app.handleSaveColaboradora(event)" class="flex flex-col gap-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Nombre Completo *</label>
+          <input type="text" id="colab-nombre" placeholder="Apellido, Nombre" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">DNI *</label>
+            <input type="text" id="colab-dni" placeholder="38112233" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-rose-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">CUIL</label>
+            <input type="text" id="colab-cuil" placeholder="27-38112233-8" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-rose-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Sucursal *</label>
+            <select id="colab-sucursal" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500">
+              <option value="TOM">Tortugas Open Mall</option>
+              <option value="MASCHWITZ">Maschwitz Mall</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Fecha Ingreso *</label>
+            <input type="date" id="colab-fecha-ingreso" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-rose-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Categoría CCT 130/75</label>
+          <input type="text" id="colab-categoria" value="Vendedora B" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="window.app.closeColaboradoraModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white shadow-lg shadow-rose-950/40">Guardar Colaboradora</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Scripts de la Aplicación -->
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
