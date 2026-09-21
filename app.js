@@ -1,76 +1,207 @@
 // ==============================================================================
 // LOGICA CENTRAL DE LA APLICACIÓN - NAZARIA RRHH & PRE-LIQUIDACIÓN
+// Adaptado a la Operación Real de Sucursales (TOM & Maschwitz) y Estética SOPs
 // ==============================================================================
 
 (function() {
   'use strict';
 
-  // --- DATOS MOCK / SEMILLA PARA PRUEBA LOCAL INMEDIATA ---
-  const DEFAULT_SUCURSALES = [
-    { id: 'suc-tom', codigo: 'TOM', nombre: 'Tortugas Open Mall', pin: '1111' },
-    { id: 'suc-maschwitz', codigo: 'MASCHWITZ', nombre: 'Maschwitz Mall', pin: '2222' }
-  ];
-
+  // --- 1. NOMINA OFICIAL REAL DE 8 COLABORADORAS ---
   const DEFAULT_COLABORADORAS = [
-    // TOM (4 colaboradoras)
-    { id: 'c-1', sucursal_id: 'suc-tom', codigo_sucursal: 'TOM', nombre_completo: 'Gómez, Laura Marcela', dni: '34112233', cuil: '27-34112233-4', fecha_ingreso: '2021-03-15', categoria: 'Encargada de Sucursal', estado: 'activa' },
-    { id: 'c-2', sucursal_id: 'suc-tom', codigo_sucursal: 'TOM', nombre_completo: 'Fernández, Rocío Belén', dni: '38455667', cuil: '27-38455667-8', fecha_ingreso: '2023-08-01', categoria: 'Vendedora B', estado: 'activa' },
-    { id: 'c-3', sucursal_id: 'suc-tom', codigo_sucursal: 'TOM', nombre_completo: 'López, Micaela', dni: '41223344', cuil: '27-41223344-3', fecha_ingreso: '2024-02-10', categoria: 'Cajera B', estado: 'activa' },
-    { id: 'c-4', sucursal_id: 'suc-tom', codigo_sucursal: 'TOM', nombre_completo: 'Alonso, Sofía', dni: '42556677', cuil: '27-42556677-2', fecha_ingreso: '2025-05-15', categoria: 'Vendedora B', estado: 'activa' },
-    
-    // Maschwitz (4 colaboradoras)
-    { id: 'c-5', sucursal_id: 'suc-maschwitz', codigo_sucursal: 'MASCHWITZ', nombre_completo: 'Martínez, Valeria', dni: '33889900', cuil: '27-33889900-5', fecha_ingreso: '2019-11-04', categoria: 'Encargada de Sucursal', estado: 'activa' },
-    { id: 'c-6', sucursal_id: 'suc-maschwitz', codigo_sucursal: 'MASCHWITZ', nombre_completo: 'Díaz, Camila', dni: '39123456', cuil: '27-39123456-9', fecha_ingreso: '2022-06-20', categoria: 'Vendedora B', estado: 'activa' },
-    { id: 'c-7', sucursal_id: 'suc-maschwitz', codigo_sucursal: 'MASCHWITZ', nombre_completo: 'Romero, Paula', dni: '40567890', cuil: '27-40567890-1', fecha_ingreso: '2023-11-15', categoria: 'Cajera B', estado: 'activa' },
-    { id: 'c-8', sucursal_id: 'suc-maschwitz', codigo_sucursal: 'MASCHWITZ', nombre_completo: 'Suárez, Julieta', dni: '43112233', cuil: '27-43112233-0', fecha_ingreso: '2025-01-08', categoria: 'Vendedora B', estado: 'activa' }
-  ];
-
-  const DEFAULT_NOVEDADES = [
+    // MASCHWITZ (3 Colaboradoras)
     {
-      id: 'nov-1',
-      colaboradora_id: 'c-2',
-      codigo_sucursal: 'TOM',
-      tipo: 'Licencia Médica',
-      fecha_inicio: '2026-10-05',
-      fecha_fin: '2026-10-06',
-      dias_computados: 2,
-      certificado_url: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=60',
-      observaciones: 'Reposo médico por faringitis aguda. Certificado firmado Dra. Castro.',
-      creado_en: '2026-10-05T10:30:00Z'
+      id: 'c-flavia',
+      sucursal_id: 'suc-maschwitz',
+      codigo_sucursal: 'MASCHWITZ',
+      alias: 'Flavia G.',
+      nombre_completo: 'Gómez Flavia Marianela',
+      dni: '37102934',
+      cuil: '27-37102934-4',
+      fecha_ingreso: '2024-12-01',
+      fecha_antiguedad_reconocida: null,
+      categoria: 'Vendedora',
+      estado: 'activa'
     },
     {
-      id: 'nov-2',
-      colaboradora_id: 'c-7',
+      id: 'c-juli',
+      sucursal_id: 'suc-maschwitz',
       codigo_sucursal: 'MASCHWITZ',
-      tipo: 'Franco Compensatorio',
-      fecha_inicio: '2026-10-12',
-      fecha_fin: '2026-10-12',
-      dias_computados: 1,
-      certificado_url: '',
-      observaciones: 'Compensatorio por domingo trabajado en promoción especial.',
-      creado_en: '2026-10-12T09:15:00Z'
+      alias: 'Juli Vera',
+      nombre_completo: 'Vera Julieta Agustina',
+      dni: '39445123',
+      cuil: '27-39445123-2',
+      fecha_ingreso: '2023-11-01',
+      fecha_antiguedad_reconocida: null,
+      categoria: 'Vendedora',
+      estado: 'activa'
+    },
+    {
+      id: 'c-cami',
+      sucursal_id: 'suc-maschwitz',
+      codigo_sucursal: 'MASCHWITZ',
+      alias: 'Cami Vera',
+      nombre_completo: 'Vera Camila Abril',
+      dni: '42189032',
+      cuil: '27-42189032-6',
+      fecha_ingreso: '2023-02-17',
+      fecha_antiguedad_reconocida: null,
+      categoria: 'Encargada de Sucursal',
+      estado: 'activa'
+    },
+
+    // TOM (5 Colaboradoras)
+    {
+      id: 'c-sofi',
+      sucursal_id: 'suc-tom',
+      codigo_sucursal: 'TOM',
+      alias: 'Sofi',
+      nombre_completo: 'Barrientos Sofia',
+      dni: '35290145',
+      cuil: '27-35290145-8',
+      fecha_ingreso: '2025-07-05',
+      fecha_antiguedad_reconocida: '2018-09-01', // Reconocimiento de antigüedad LCT (21 días ley)
+      categoria: 'Encargada de Sucursal',
+      estado: 'activa'
+    },
+    {
+      id: 'c-esme',
+      sucursal_id: 'suc-tom',
+      codigo_sucursal: 'TOM',
+      alias: 'Esme',
+      nombre_completo: 'Galarza Esmeralda Cristina',
+      dni: '38901234',
+      cuil: '27-38901234-1',
+      fecha_ingreso: '2022-02-01',
+      fecha_antiguedad_reconocida: null,
+      categoria: 'Vendedora',
+      estado: 'activa'
+    },
+    {
+      id: 'c-martu',
+      sucursal_id: 'suc-tom',
+      codigo_sucursal: 'TOM',
+      alias: 'Martu P.',
+      nombre_completo: 'Pinto Martina',
+      dni: '44102987',
+      cuil: '27-44102987-9',
+      fecha_ingreso: '2024-04-01',
+      fecha_antiguedad_reconocida: null,
+      categoria: 'Vendedora (Cubre TOM y Maschwitz)',
+      estado: 'activa'
+    },
+    {
+      id: 'c-cande',
+      sucursal_id: 'suc-tom',
+      codigo_sucursal: 'TOM',
+      alias: 'Cande',
+      nombre_completo: 'Almiron Miranda Candela Anahi',
+      dni: '45091234',
+      cuil: '27-45091234-5',
+      fecha_ingreso: '2025-12-01',
+      fecha_antiguedad_reconocida: null,
+      categoria: 'Vendedora',
+      estado: 'activa'
+    },
+    {
+      id: 'c-anto',
+      sucursal_id: 'suc-tom',
+      codigo_sucursal: 'TOM',
+      alias: 'Anto',
+      nombre_completo: 'Bustamante Vanina Antonella',
+      dni: '43998120',
+      cuil: '27-43998120-3',
+      fecha_ingreso: '2025-12-01',
+      fecha_antiguedad_reconocida: null,
+      categoria: 'Vendedora',
+      estado: 'activa'
     }
   ];
 
-  // --- ESTADO GLOBAL DE LA APLICACIÓN ---
+  // --- 2. DATOS REALES DE HORAS Y CIERRES (Semilla de Excel Agosto / Octubre) ---
+  const DEFAULT_CIERRES = {
+    // TOM
+    '2026-10_c-sofi': { horas_base: 144, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-10_c-esme': { horas_base: 160, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-10_c-martu': { horas_base: 48, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre 22hs en Maschwitz' },
+    '2026-10_c-anto': { horas_base: 96, feriados_hs: 0, extras_hs: 0, adicionales_hs: 18, detalle_cobertura: 'Guardia + Cobertura Maschwitz 10/8' },
+    '2026-10_c-cande': { horas_base: 96, feriados_hs: 6, extras_hs: 0, adicionales_hs: 6, detalle_cobertura: 'Cubre a Martu por vacaciones 09/08' },
+    
+    // MASCHWITZ
+    '2026-10_c-cami': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Vacaciones del 09/08 al 13/08' },
+    '2026-10_c-juli': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-10_c-flavia': { horas_base: 120, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami 9/8; Ausente 29/8' },
+    '2026-10_c-martu_masch': { horas_base: 22, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami y Flavia en Maschwitz' }
+  };
+
+  // --- 3. HORARIOS SEMANALES OFICIALES (Grilla de Turnos de Excel) ---
+  const DEFAULT_HORARIOS = {
+    'TOM': {
+      manana: { lun: 'SOFI', mar: 'SOFI', mie: 'ESME', jue: 'ESME', vie: 'ESME/CANDE', sab: 'ESME/ANTO', dom: 'SOFI/CANDE' },
+      tarde: { lun: 'ESME', mar: 'MARTU', mie: 'MARTU/CANDE', jue: 'SOFI/ANTO', vie: 'SOFI/ANTO', sab: 'SOFI/CANDE', dom: 'ESME/ANTO' }
+    },
+    'MASCHWITZ': {
+      manana: { lun: 'JULI', mar: 'FLAVIA', mie: 'FLAVIA', jue: 'FLAVIA', vie: 'FLAVIA', sab: 'FLAVIA', dom: 'CAMI' },
+      tarde: { lun: 'CAMI', mar: 'CAMI', mie: 'JULI', jue: 'CAMI', vie: 'JULI', sab: 'JULI', dom: 'MARTU' }
+    }
+  };
+
+  // --- 4. RETIROS DE CALZADO Y PAR DE TEMPORADA ---
+  const DEFAULT_RETIROS = [
+    // Retiros TOM
+    { id: 'ret-1', colaboradora_id: 'c-cande', sucursal: 'TOM', tipo: 'Retiro', articulo: 'N22/L', talle_color: 'NEGRO 35', fecha: '2026-08-10' },
+    { id: 'ret-2', colaboradora_id: 'c-sofi', sucursal: 'TOM', tipo: 'Retiro', articulo: 'N1400', talle_color: 'NEGRO GAM 40', fecha: '2026-08-15' },
+    // Retiros Maschwitz
+    { id: 'ret-3', colaboradora_id: 'c-cami', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'FPRAGA', talle_color: '39 BEIGE', fecha: '2026-08-02' },
+    { id: 'ret-4', colaboradora_id: 'c-flavia', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'F725', talle_color: '35 NEGR', fecha: '2026-08-08' },
+    { id: 'ret-5', colaboradora_id: 'c-flavia', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'ULMELODY', talle_color: '36 HIELO', fecha: '2026-08-28' },
+    // Pares de Temporada
+    { id: 'ret-6', colaboradora_id: 'c-sofi', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F700', talle_color: 'NEGRO PU 40', fecha: '2026-08-01' },
+    { id: 'ret-7', colaboradora_id: 'c-esme', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F490', talle_color: 'NEGRO PU 38', fecha: '2026-08-01' },
+    { id: 'ret-8', colaboradora_id: 'c-anto', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F700', talle_color: 'NEGRO PU 38', fecha: '2026-08-01' },
+    { id: 'ret-9', colaboradora_id: 'c-cande', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F700', talle_color: 'NEGRO GAM 35', fecha: '2026-08-01' },
+    { id: 'ret-10', colaboradora_id: 'c-martu', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F725', talle_color: 'NEGRO PU 36', fecha: '2026-08-01' }
+  ];
+
+  // --- 5. NOVEDADES, FALTAS Y TRAMOS DE VACACIONES ---
+  const DEFAULT_NOVEDADES = [
+    { id: 'nov-1', colaboradora_id: 'c-esme', codigo_sucursal: 'TOM', tipo: 'Día de Estudio', fecha_inicio: '2026-08-28', fecha_fin: '2026-08-28', dias_computados: 1, certificado_url: '', observaciones: 'Día de estudio para examen universitario', creado_en: '2026-08-28T09:00:00Z' },
+    { id: 'nov-2', colaboradora_id: 'c-anto', codigo_sucursal: 'TOM', tipo: 'Guardia', fecha_inicio: '2026-08-30', fecha_fin: '2026-08-30', dias_computados: 1, certificado_url: '', observaciones: 'Guardia especial de tienda', creado_en: '2026-08-30T10:00:00Z' },
+    { id: 'nov-3', colaboradora_id: 'c-anto', codigo_sucursal: 'TOM', tipo: 'Cobertura Adicional', fecha_inicio: '2026-08-10', fecha_fin: '2026-08-10', dias_computados: 1, certificado_url: '', observaciones: 'Cubre en Maschwitz por vacaciones de Cami (6 hs adicionales)', creado_en: '2026-08-10T09:00:00Z' },
+    { id: 'nov-4', colaboradora_id: 'c-cande', codigo_sucursal: 'TOM', tipo: 'Cobertura Adicional', fecha_inicio: '2026-08-09', fecha_fin: '2026-08-09', dias_computados: 1, certificado_url: '', observaciones: 'Cubre a Martu por vacaciones (6 hs adicionales)', creado_en: '2026-08-09T09:00:00Z' },
+    { id: 'nov-5', colaboradora_id: 'c-cami', codigo_sucursal: 'MASCHWITZ', tipo: 'Vacaciones', fecha_inicio: '2026-08-09', fecha_fin: '2026-08-13', dias_computados: 5, certificado_url: '', observaciones: 'Vacaciones pendientes tomadas del 09/08 al 13/08 (restan 0)', creado_en: '2026-08-09T08:00:00Z' },
+    { id: 'nov-6', colaboradora_id: 'c-flavia', codigo_sucursal: 'MASCHWITZ', tipo: 'Franco Compensatorio', fecha_inicio: '2026-08-15', fecha_fin: '2026-08-15', dias_computados: 1, certificado_url: '', observaciones: 'Franco tomado el 15/08, cubre Martu', creado_en: '2026-08-15T09:00:00Z' },
+    { id: 'nov-7', colaboradora_id: 'c-flavia', codigo_sucursal: 'MASCHWITZ', tipo: 'Falta Injustificada', fecha_inicio: '2026-08-29', fecha_fin: '2026-08-29', dias_computados: 1, certificado_url: '', observaciones: 'Ausente el 29/08 (descontar día), cubre Martu', creado_en: '2026-08-29T09:00:00Z' },
+    // Tramos de Vacaciones TOM
+    { id: 'nov-8', colaboradora_id: 'c-sofi', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-09-24', fecha_fin: '2026-10-01', dias_computados: 8, certificado_url: '', observaciones: 'Tramo 1: 24 sep al 1 oct (8 días)', creado_en: '2026-09-24T09:00:00Z' },
+    { id: 'nov-9', colaboradora_id: 'c-sofi', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-03-19', fecha_fin: '2026-03-24', dias_computados: 6, certificado_url: '', observaciones: 'Tramo 2: 19 al 24 de marzo (6 días) -> Total 14d', creado_en: '2026-03-19T09:00:00Z' },
+    { id: 'nov-10', colaboradora_id: 'c-esme', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-09-24', fecha_fin: '2026-10-01', dias_computados: 8, certificado_url: '', observaciones: 'Tramo 1: 24 sep al 1 oct (8 días)', creado_en: '2026-09-24T09:00:00Z' },
+    { id: 'nov-11', colaboradora_id: 'c-esme', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-02-12', fecha_fin: '2026-02-19', dias_computados: 8, certificado_url: '', observaciones: 'Tramo 2: 12 al 19 feb (8 días) -> Total 16d', creado_en: '2026-02-12T09:00:00Z' },
+    { id: 'nov-12', colaboradora_id: 'c-martu', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-09-24', fecha_fin: '2026-10-01', dias_computados: 3, certificado_url: '', observaciones: 'Tramo 1: 24 sep al 1 oct (3 días)', creado_en: '2026-09-24T09:00:00Z' },
+    { id: 'nov-13', colaboradora_id: 'c-martu', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-02-04', fecha_fin: '2026-02-09', dias_computados: 7, certificado_url: '', observaciones: 'Tramo 2: 4 al 9 feb (7 días)', creado_en: '2026-02-04T09:00:00Z' },
+    { id: 'nov-14', colaboradora_id: 'c-martu', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-08-04', fecha_fin: '2026-08-05', dias_computados: 2, certificado_url: '', observaciones: 'Tramo 3: 4 y 5 de agosto (2 días) -> Total 12d', creado_en: '2026-08-04T09:00:00Z' }
+  ];
+
+  // --- ESTADO GLOBAL ---
   const state = {
     supabaseClient: null,
     isSupabaseConnected: false,
-    currentRole: null,        // 'TOM', 'MASCHWITZ', 'ADMIN'
-    currentPeriod: '2026-10', // YYYY-MM
-    activeStoreTab: 'novedades', // 'novedades' | 'cierre'
-    activeAdminTab: 'cierres',   // 'cierres' | 'vacaciones' | 'novedades' | 'colaboradoras' | 'config'
+    currentRole: null,          // 'TOM' | 'MASCHWITZ' | 'ADMIN'
+    currentPeriod: '2026-10',   // YYYY-MM
+    activeStoreTab: 'horas',    // 'horas' | 'horarios' | 'novedades' | 'retiros' | 'vacaciones'
+    activeAdminTab: 'consolidado', // 'consolidado' | 'vacaciones' | 'retiros' | 'novedades' | 'colaboradoras'
     selectedPinTarget: null,
     currentSelectedFile: null,
-    
-    // Caché de datos
+
+    // Colecciones
     colaboradoras: [],
     novedades: [],
-    cierres: {} // key: `${periodo}_${colaboradora_id}` -> registro de cierre
+    cierres: {},
+    retiros: [],
+    horarios: {}
   };
 
   // ============================================================================
-  // 1. INICIALIZACIÓN Y PERSISTENCIA (SUPABASE + LOCAL STORAGE FALLBACK)
+  // INICIALIZACIÓN
   // ============================================================================
   function init() {
     initLucideIcons();
@@ -87,25 +218,26 @@
   }
 
   function initStorageData() {
-    if (!localStorage.getItem('nazaria_colaboradoras')) {
+    // Si la lista de colaboradores en localstorage no tiene a las 8 reales, reinicializar
+    const savedColabs = localStorage.getItem('nazaria_colaboradoras');
+    if (!savedColabs || !savedColabs.includes('Gómez Flavia Marianela') || !savedColabs.includes('Barrientos Sofia')) {
       localStorage.setItem('nazaria_colaboradoras', JSON.stringify(DEFAULT_COLABORADORAS));
-    }
-    if (!localStorage.getItem('nazaria_novedades')) {
+      localStorage.setItem('nazaria_cierres', JSON.stringify(DEFAULT_CIERRES));
+      localStorage.setItem('nazaria_horarios', JSON.stringify(DEFAULT_HORARIOS));
+      localStorage.setItem('nazaria_retiros', JSON.stringify(DEFAULT_RETIROS));
       localStorage.setItem('nazaria_novedades', JSON.stringify(DEFAULT_NOVEDADES));
     }
-    if (!localStorage.getItem('nazaria_cierres')) {
-      localStorage.setItem('nazaria_cierres', JSON.stringify({}));
-    }
 
-    state.colaboradoras = JSON.parse(localStorage.getItem('nazaria_colaboradoras') || '[]');
-    state.novedades = JSON.parse(localStorage.getItem('nazaria_novedades') || '[]');
-    state.cierres = JSON.parse(localStorage.getItem('nazaria_cierres') || '{}');
+    state.colaboradoras = JSON.parse(localStorage.getItem('nazaria_colaboradoras') || JSON.stringify(DEFAULT_COLABORADORAS));
+    state.cierres = JSON.parse(localStorage.getItem('nazaria_cierres') || JSON.stringify(DEFAULT_CIERRES));
+    state.horarios = JSON.parse(localStorage.getItem('nazaria_horarios') || JSON.stringify(DEFAULT_HORARIOS));
+    state.retiros = JSON.parse(localStorage.getItem('nazaria_retiros') || JSON.stringify(DEFAULT_RETIROS));
+    state.novedades = JSON.parse(localStorage.getItem('nazaria_novedades') || JSON.stringify(DEFAULT_NOVEDADES));
   }
 
   function initSupabase() {
-    const url = window.APP_CONFIG.SUPABASE_URL;
-    const key = window.APP_CONFIG.SUPABASE_ANON_KEY;
-
+    const url = window.APP_CONFIG?.SUPABASE_URL;
+    const key = window.APP_CONFIG?.SUPABASE_ANON_KEY;
     const dbBadge = document.getElementById('badge-db-status');
     const dbStatusText = document.getElementById('db-status-text');
 
@@ -114,13 +246,11 @@
         state.supabaseClient = window.supabase.createClient(url, key);
         state.isSupabaseConnected = true;
         if (dbBadge && dbStatusText) {
-          dbBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-300 border border-emerald-500/20";
+          dbBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-50 border border-emerald-200 text-emerald-800";
           dbStatusText.textContent = "Supabase Conectado";
         }
-        // Intentar sincronizar datos desde Supabase
-        syncDataFromSupabase();
       } catch (err) {
-        console.warn('Error conectando a Supabase, usando modo Local:', err);
+        console.warn('Supabase offline, usando almacenamiento local:', err);
         setLocalModeBadge();
       }
     } else {
@@ -133,63 +263,13 @@
     const dbBadge = document.getElementById('badge-db-status');
     const dbStatusText = document.getElementById('db-status-text');
     if (dbBadge && dbStatusText) {
-      dbBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20";
+      dbBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-neutral-100 border border-neutral-200 text-neutral-600";
       dbStatusText.textContent = "Modo Local Demo";
     }
   }
 
-  async function syncDataFromSupabase() {
-    if (!state.supabaseClient) return;
-    try {
-      // 1. Colaboradoras
-      const { data: colabs, error: errColab } = await state.supabaseClient
-        .from('colaboradoras')
-        .select('*, sucursales(codigo, nombre)');
-      if (!errColab && colabs && colabs.length > 0) {
-        state.colaboradoras = colabs.map(c => ({
-          id: c.id,
-          sucursal_id: c.sucursal_id,
-          codigo_sucursal: c.sucursales ? c.sucursales.codigo : (c.codigo_sucursal || 'TOM'),
-          nombre_completo: c.nombre_completo,
-          dni: c.dni,
-          cuil: c.cuil,
-          fecha_ingreso: c.fecha_ingreso,
-          categoria: c.categoria,
-          estado: c.estado
-        }));
-        localStorage.setItem('nazaria_colaboradoras', JSON.stringify(state.colaboradoras));
-      }
-
-      // 2. Novedades
-      const { data: novs, error: errNov } = await state.supabaseClient
-        .from('novedades_puntuales')
-        .select('*');
-      if (!errNov && novs) {
-        state.novedades = novs;
-        localStorage.setItem('nazaria_novedades', JSON.stringify(state.novedades));
-      }
-
-      // 3. Cierres
-      const { data: closures, error: errCierre } = await state.supabaseClient
-        .from('cierres_mensuales')
-        .select('*');
-      if (!errCierre && closures) {
-        const cMap = {};
-        closures.forEach(c => {
-          cMap[`${c.periodo}_${c.colaboradora_id}`] = c;
-        });
-        state.cierres = cMap;
-        localStorage.setItem('nazaria_cierres', JSON.stringify(state.cierres));
-      }
-
-      renderCurrentView();
-    } catch (e) {
-      console.warn('Fallo sincronización Supabase:', e);
-    }
-  }
-
   // ============================================================================
-  // 2. CONTROL DE SESIÓN Y AUTENTICACIÓN POR PIN
+  // SESIÓN Y PIN
   // ============================================================================
   function promptPin(target) {
     state.selectedPinTarget = target;
@@ -202,13 +282,13 @@
 
     if (target === 'TOM') {
       title.textContent = 'Terminal TOM';
-      desc.textContent = 'Ingresa el PIN de Tortugas Open Mall (Default: 1111)';
+      desc.textContent = 'Ingresá el PIN de Tortugas Open Mall (Default: 1111)';
     } else if (target === 'MASCHWITZ') {
       title.textContent = 'Terminal Maschwitz';
-      desc.textContent = 'Ingresa el PIN de Maschwitz Mall (Default: 2222)';
+      desc.textContent = 'Ingresá el PIN de Maschwitz Mall (Default: 2222)';
     } else {
-      title.textContent = 'Panel Administrador';
-      desc.textContent = 'Ingresa el PIN de Administración / Dueño (Default: 9999)';
+      title.textContent = 'Panel de Administración';
+      desc.textContent = 'Ingresá el PIN de Dueño / RRHH (Default: 9999)';
     }
 
     modal.classList.remove('hidden');
@@ -235,17 +315,16 @@
   function submitPin() {
     const pin = document.getElementById('input-pin').value;
     const target = state.selectedPinTarget;
-    const expectedPin = window.APP_CONFIG.PINS[target] || '1234';
+    const expectedPin = window.APP_CONFIG?.PINS?.[target] || (target === 'TOM' ? '1111' : target === 'MASCHWITZ' ? '2222' : '9999');
 
     if (pin === expectedPin || pin === '9999') {
-      // Éxito de acceso
       sessionStorage.setItem('nazaria_session', target);
       state.currentRole = target;
       closePinModal();
-      showToast(`Acceso concedido como ${target}`, 'success');
+      showToast(`Acceso concedido a ${target}`, 'success');
       renderCurrentView();
     } else {
-      showToast('PIN incorrecto. Intenta nuevamente.', 'error');
+      showToast('PIN incorrecto. Intentá nuevamente.', 'error');
       document.getElementById('input-pin').value = '';
     }
   }
@@ -264,17 +343,22 @@
     sessionStorage.removeItem('nazaria_session');
     state.currentRole = null;
     renderViewLogin();
-    showToast('Sesión cerrada correctamente.', 'info');
+    showToast('Sesión finalizada.', 'info');
+  }
+
+  function changePeriod(newPeriod) {
+    state.currentPeriod = newPeriod;
+    renderCurrentView();
+    showToast(`Período actualizado a ${newPeriod}`, 'info');
   }
 
   // ============================================================================
-  // 3. ENRUTAMIENTO DE VISTAS
+  // ENRUTAMIENTO Y RENDERIZADO DE VISTAS
   // ============================================================================
   function renderCurrentView() {
     const viewLogin = document.getElementById('view-login');
     const viewStore = document.getElementById('view-store');
     const viewAdmin = document.getElementById('view-admin');
-
     const badgeTerminal = document.getElementById('badge-active-terminal');
     const termName = document.getElementById('active-terminal-name');
     const btnLogout = document.getElementById('btn-logout');
@@ -298,7 +382,7 @@
       viewAdmin.classList.remove('hidden');
       renderAdminView();
     } else {
-      termName.textContent = state.currentRole === 'TOM' ? 'Local TOM' : 'Local Maschwitz';
+      termName.textContent = state.currentRole === 'TOM' ? 'TOM' : 'Maschwitz';
       viewStore.classList.remove('hidden');
       renderStoreView();
     }
@@ -316,249 +400,265 @@
   }
 
   // ============================================================================
-  // 4. MÓDULO TERMINAL DE SUCURSAL (ENCARGADA)
+  // TERMINAL DE LOCAL (STORE VIEW)
   // ============================================================================
   function renderStoreView() {
-    const storeCode = state.currentRole;
-    document.getElementById('store-title').textContent = storeCode === 'TOM' ? 'Tortugas Open Mall (TOM)' : 'Maschwitz Mall';
-    document.getElementById('store-period-label').textContent = state.currentPeriod;
+    const storeCode = state.currentRole; // 'TOM' | 'MASCHWITZ'
+    const storeTitle = document.getElementById('store-title');
+    storeTitle.textContent = storeCode === 'TOM' ? 'Tortugas Open Mall (TOM)' : 'Maschwitz Mall';
 
-    // Llenar selector de colaboradoras del local
-    populateStoreColaboradorasSelect(storeCode);
+    document.getElementById('select-store-period').value = state.currentPeriod;
 
-    // Renderizar la pestaña activa
-    if (state.activeStoreTab === 'novedades') {
-      switchStoreTab('novedades');
-    } else {
-      switchStoreTab('cierre');
+    // Poblar selects de colaboradoras para la sucursal
+    populateStoreColaboradorasSelects(storeCode);
+
+    // Renderizar según la pestaña activa
+    switchStoreTab(state.activeStoreTab);
+  }
+
+  function populateStoreColaboradorasSelects(storeCode) {
+    const novSelect = document.getElementById('nov-colaboradora');
+    const retSelect = document.getElementById('ret-colaboradora');
+
+    const opts = ['<option value="">-- Seleccionar colaboradora --</option>'];
+
+    // Colaboradoras asignadas formalmente a la sucursal
+    const localColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
+    localColabs.forEach(c => {
+      opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.nombre_completo})</option>`);
+    });
+
+    // En Maschwitz, permitir seleccionar a colaboradoras de TOM que habitualmente cubren (Martu, Anto, Cande)
+    if (storeCode === 'MASCHWITZ') {
+      opts.push('<optgroup label="Coberturas desde TOM">');
+      state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM').forEach(c => {
+        opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (Cubre de TOM)</option>`);
+      });
+      opts.push('</optgroup>');
     }
+
+    novSelect.innerHTML = opts.join('');
+    retSelect.innerHTML = opts.join('');
   }
 
   function switchStoreTab(tab) {
     state.activeStoreTab = tab;
-    const tabBtnNov = document.getElementById('tab-btn-store-novedades');
-    const tabBtnCierre = document.getElementById('tab-btn-store-cierre');
-    const subviewNov = document.getElementById('subview-store-novedades');
-    const subviewCierre = document.getElementById('subview-store-cierre');
 
-    if (tab === 'novedades') {
-      tabBtnNov.className = "pb-3 text-sm font-semibold text-rose-500 border-b-2 border-rose-500 flex items-center gap-2 transition";
-      tabBtnCierre.className = "pb-3 text-sm font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-2 transition";
-      subviewNov.classList.remove('hidden');
-      subviewCierre.classList.add('hidden');
-      renderStoreNovedadesList();
-    } else {
-      tabBtnCierre.className = "pb-3 text-sm font-semibold text-rose-500 border-b-2 border-rose-500 flex items-center gap-2 transition";
-      tabBtnNov.className = "pb-3 text-sm font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-2 transition";
-      subviewNov.classList.add('hidden');
-      subviewCierre.classList.remove('hidden');
-      renderStoreCierreGrid();
-    }
+    const tabs = ['horas', 'horarios', 'novedades', 'retiros', 'vacaciones'];
+    tabs.forEach(t => {
+      const btn = document.getElementById(`tab-store-${t}`);
+      const view = document.getElementById(`subview-store-${t}`);
+      if (t === tab) {
+        btn.className = "pb-3 text-xs sm:text-sm font-bold border-b-2 border-black text-neutral-900 flex items-center gap-2 whitespace-nowrap transition";
+        view.classList.remove('hidden');
+      } else {
+        btn.className = "pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition";
+        view.classList.add('hidden');
+      }
+    });
+
+    if (tab === 'horas') renderStoreHoras();
+    if (tab === 'horarios') renderStoreHorarios();
+    if (tab === 'novedades') renderStoreNovedades();
+    if (tab === 'retiros') renderStoreRetiros();
+    if (tab === 'vacaciones') renderStoreVacaciones();
+
     initLucideIcons();
   }
 
-  function populateStoreColaboradorasSelect(storeCode) {
-    const select = document.getElementById('nov-colaboradora');
-    select.innerHTML = '<option value="">-- Seleccionar colaboradora --</option>';
+  // --- SUBVISTA 1: HORAS DEL MES & CIERRE ---
+  function renderStoreHoras() {
+    const tbody = document.getElementById('tbody-store-horas');
+    tbody.innerHTML = '';
+    const storeCode = state.currentRole;
 
-    const storeColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode && c.estado === 'activa');
-    storeColabs.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = `${c.nombre_completo} (${c.categoria})`;
-      select.appendChild(opt);
+    // Colaboradoras de la sucursal
+    const colabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
+    
+    // Si es Maschwitz, agregar fila de cobertura para Martu Pinto
+    const listToRender = [...colabs];
+    if (storeCode === 'MASCHWITZ') {
+      const martu = state.colaboradoras.find(c => c.id === 'c-martu');
+      if (martu) listToRender.push({ ...martu, id: 'c-martu_masch', alias: 'Martu P. (Cobertura)', isCoverage: true });
+    }
+
+    listToRender.forEach(c => {
+      const key = `${state.currentPeriod}_${c.id}`;
+      const record = state.cierres[key] || { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+
+      const totalHs = (Number(record.horas_base) || 0) + (Number(record.feriados_hs) || 0) + (Number(record.extras_hs) || 0) + (Number(record.adicionales_hs) || 0);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="font-bold text-neutral-900">
+          <div>${c.alias || c.nombre_completo}</div>
+          <div class="text-[11px] text-neutral-400 font-normal">${c.nombre_completo}</div>
+        </td>
+        <td>
+          <input type="number" step="1" min="0" value="${record.horas_base}" id="hb-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black" onchange="window.app.recalcRowTotal('${c.id}')">
+        </td>
+        <td>
+          <input type="number" step="1" min="0" value="${record.feriados_hs}" id="hf-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black" onchange="window.app.recalcRowTotal('${c.id}')">
+        </td>
+        <td>
+          <input type="number" step="1" min="0" value="${record.extras_hs}" id="he-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black" onchange="window.app.recalcRowTotal('${c.id}')">
+        </td>
+        <td>
+          <input type="number" step="1" min="0" value="${record.adicionales_hs}" id="ha-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black" onchange="window.app.recalcRowTotal('${c.id}')">
+        </td>
+        <td>
+          <input type="text" value="${record.detalle_cobertura || ''}" id="dc-${c.id}" placeholder="Ej: Cubre en Maschwitz..." class="w-full min-w-[160px] p-1.5 border border-neutral-200 rounded text-xs focus:border-black">
+        </td>
+        <td class="font-mono font-bold text-sm text-neutral-900" id="total-${c.id}">
+          ${totalHs} hs
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function recalcRowTotal(colabId) {
+    const hb = Number(document.getElementById(`hb-${colabId}`)?.value) || 0;
+    const hf = Number(document.getElementById(`hf-${colabId}`)?.value) || 0;
+    const he = Number(document.getElementById(`he-${colabId}`)?.value) || 0;
+    const ha = Number(document.getElementById(`ha-${colabId}`)?.value) || 0;
+    const totalEl = document.getElementById(`total-${colabId}`);
+    if (totalEl) totalEl.textContent = `${hb + hf + he + ha} hs`;
+  }
+
+  function saveAllHorasStore() {
+    const storeCode = state.currentRole;
+    const colabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
+    const listToSave = [...colabs];
+    if (storeCode === 'MASCHWITZ') {
+      listToSave.push({ id: 'c-martu_masch' });
+    }
+
+    listToSave.forEach(c => {
+      const hb = Number(document.getElementById(`hb-${c.id}`)?.value) || 0;
+      const hf = Number(document.getElementById(`hf-${c.id}`)?.value) || 0;
+      const he = Number(document.getElementById(`he-${c.id}`)?.value) || 0;
+      const ha = Number(document.getElementById(`ha-${c.id}`)?.value) || 0;
+      const dc = document.getElementById(`dc-${c.id}`)?.value.trim() || '';
+
+      const key = `${state.currentPeriod}_${c.id}`;
+      state.cierres[key] = {
+        horas_base: hb,
+        feriados_hs: hf,
+        extras_hs: he,
+        adicionales_hs: ha,
+        detalle_cobertura: dc
+      };
     });
 
-    // Poner fechas por defecto hoy
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('nov-fecha-inicio').value = today;
-    document.getElementById('nov-fecha-fin').value = today;
+    localStorage.setItem('nazaria_cierres', JSON.stringify(state.cierres));
+    showToast('Horas del mes guardadas exitosamente.', 'success');
+  }
+
+  // --- SUBVISTA 2: HORARIOS SEMANALES ---
+  function renderStoreHorarios() {
+    const storeCode = state.currentRole;
+    const h = state.horarios[storeCode] || { manana: {}, tarde: {} };
+
+    const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    days.forEach(d => {
+      const elMan = document.getElementById(`h-man-${d}`);
+      const elTar = document.getElementById(`h-tar-${d}`);
+      if (elMan) elMan.value = h.manana[d] || '';
+      if (elTar) elTar.value = h.tarde[d] || '';
+    });
+  }
+
+  function saveHorariosStore() {
+    const storeCode = state.currentRole;
+    const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    const manana = {};
+    const tarde = {};
+
+    days.forEach(d => {
+      manana[d] = document.getElementById(`h-man-${d}`)?.value.trim().toUpperCase() || '';
+      tarde[d] = document.getElementById(`h-tar-${d}`)?.value.trim().toUpperCase() || '';
+    });
+
+    state.horarios[storeCode] = { manana, tarde };
+    localStorage.setItem('nazaria_horarios', JSON.stringify(state.horarios));
+    showToast('Horarios semanales guardados.', 'success');
+  }
+
+  // --- SUBVISTA 3: NOVEDADES & FALTAS ---
+  function renderStoreNovedades() {
+    const tbody = document.getElementById('tbody-store-novedades');
+    tbody.innerHTML = '';
+    const storeCode = state.currentRole;
+
+    const filtered = state.novedades.filter(n => n.codigo_sucursal === storeCode);
+    document.getElementById('store-nov-count').textContent = `${filtered.length} novedades`;
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-neutral-400 text-xs">No hay novedades registradas en este período.</td></tr>`;
+      return;
+    }
+
+    filtered.forEach(n => {
+      const colab = state.colaboradoras.find(c => c.id === n.colaboradora_id);
+      const tr = document.createElement('tr');
+
+      const certBtn = n.certificado_url
+        ? `<button onclick="window.app.viewComprobante('${n.certificado_url}', '${colab?.nombre_completo || ''}', '${n.tipo}')" class="px-2 py-1 rounded bg-[#E6D5C3] hover:bg-[#d8c2ad] text-neutral-900 font-bold text-[11px] flex items-center gap-1">
+             <i data-lucide="image" class="w-3.5 h-3.5"></i> Ver Foto
+           </button>`
+        : `<span class="text-neutral-400 text-xs">-</span>`;
+
+      tr.innerHTML = `
+        <td class="font-mono text-xs text-neutral-600">${formatDateShort(n.fecha_inicio)}</td>
+        <td class="font-bold text-xs text-neutral-900">${colab?.alias || colab?.nombre_completo || 'Colaboradora'}</td>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200">${n.tipo}</span></td>
+        <td class="font-mono font-bold text-xs text-center">${n.dias_computados}d</td>
+        <td class="text-xs text-neutral-700 max-w-[200px] truncate" title="${n.observaciones}">${n.observaciones || '-'}</td>
+        <td class="text-center">${certBtn}</td>
+        <td class="text-right">
+          <button onclick="window.app.deleteNovedad('${n.id}')" class="text-neutral-400 hover:text-red-600 p-1" title="Eliminar novedad">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    initLucideIcons();
   }
 
   function handleTipoNovedadChange() {
     const tipo = document.getElementById('nov-tipo').value;
     const badge = document.getElementById('nov-file-required-badge');
-    if (tipo === 'Licencia Médica' || tipo === 'Examen') {
-      badge.textContent = '* OBLIGATORIO PARA ESTE TIPO';
-      badge.className = 'text-[10px] text-rose-400 font-semibold';
+    if (tipo === 'Licencia Médica') {
+      badge.classList.remove('hidden');
     } else {
-      badge.textContent = '(Opcional)';
-      badge.className = 'text-[10px] text-slate-500 font-normal';
+      badge.classList.add('hidden');
     }
   }
 
-  // --- Manejo de Subida y Compresión de Archivos ---
-  function setupDropzone() {
-    const dropzone = document.getElementById('dropzone-certificado');
-    if (!dropzone) return;
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-      dropzone.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        dropzone.classList.add('dragover');
-      }, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-      dropzone.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('dragover');
-      }, false);
-    });
-
-    dropzone.addEventListener('drop', (e) => {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      if (files && files.length > 0) {
-        processFile(files[0]);
-      }
-    });
-  }
-
-  function handleFileSelect(event) {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      processFile(files[0]);
-    }
-  }
-
-  function processFile(file) {
-    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-      showToast('Formato no soportado. Selecciona imagen o PDF.', 'error');
-      return;
-    }
-
-    // Si es imagen, la comprimimos en el navegador usando Canvas para que no pese más de 250KB
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const maxDim = 1200;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height && width > maxDim) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else if (height > maxDim) {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          // Data URL comprimida
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
-          state.currentSelectedFile = {
-            dataUrl: compressedDataUrl,
-            name: file.name,
-            type: 'image/jpeg'
-          };
-
-          // Mostrar preview
-          document.getElementById('dropzone-empty').classList.add('hidden');
-          const preview = document.getElementById('dropzone-preview');
-          preview.classList.remove('hidden');
-          preview.classList.add('flex');
-          document.getElementById('preview-img').src = compressedDataUrl;
-          document.getElementById('preview-filename').textContent = file.name;
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    } else {
-      // PDF
-      state.currentSelectedFile = {
-        name: file.name,
-        type: 'application/pdf',
-        fileObj: file
-      };
-      document.getElementById('dropzone-empty').classList.add('hidden');
-      const preview = document.getElementById('dropzone-preview');
-      preview.classList.remove('hidden');
-      preview.classList.add('flex');
-      document.getElementById('preview-img').src = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
-      document.getElementById('preview-filename').textContent = file.name;
-    }
-  }
-
-  function clearFile(e) {
-    if (e) e.stopPropagation();
-    state.currentSelectedFile = null;
-    document.getElementById('nov-file-input').value = '';
-    document.getElementById('dropzone-empty').classList.remove('hidden');
-    const preview = document.getElementById('dropzone-preview');
-    preview.classList.add('hidden');
-    preview.classList.remove('flex');
-  }
-
-  // --- Guardar Novedad ---
   async function handleSaveNovedad(event) {
     event.preventDefault();
-
     const colabId = document.getElementById('nov-colaboradora').value;
     const tipo = document.getElementById('nov-tipo').value;
     const fechaInicio = document.getElementById('nov-fecha-inicio').value;
     const fechaFin = document.getElementById('nov-fecha-fin').value;
     const dias = parseFloat(document.getElementById('nov-dias').value) || 1;
-    const obs = document.getElementById('nov-obs').value.trim();
+    const obs = document.getElementById('nov-observaciones').value.trim();
 
-    if (!colabId) {
-      showToast('Selecciona una colaboradora.', 'error');
+    if (tipo === 'Licencia Médica' && !state.currentSelectedFile) {
+      showToast('Por favor adjuntá el certificado médico firmado.', 'error');
       return;
     }
-
-    // Validación estricta de adjunto obligatorio
-    if ((tipo === 'Licencia Médica' || tipo === 'Examen') && !state.currentSelectedFile) {
-      showToast('El comprobante del certificado es obligatorio para Licencia Médica o Examen.', 'error');
-      return;
-    }
-
-    const btn = document.getElementById('btn-save-novedad');
-    btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Guardando...';
-    initLucideIcons();
 
     let certUrl = '';
-
-    // Si hay archivo y estamos conectados a Supabase, intentamos subir al storage
     if (state.currentSelectedFile) {
-      if (state.isSupabaseConnected && state.supabaseClient) {
-        try {
-          const fileExt = state.currentSelectedFile.type === 'application/pdf' ? 'pdf' : 'jpg';
-          const fileName = `${state.currentRole}/${Date.now()}_${colabId}.${fileExt}`;
-          
-          // Convertir dataUrl a Blob si es imagen
-          const blob = await (await fetch(state.currentSelectedFile.dataUrl)).blob();
-          const { data: uploadData, error: uploadErr } = await state.supabaseClient.storage
-            .from(window.APP_CONFIG.STORAGE_BUCKET)
-            .upload(fileName, blob, { contentType: state.currentSelectedFile.type });
-
-          if (!uploadErr && uploadData) {
-            const { data: publicUrlData } = state.supabaseClient.storage
-              .from(window.APP_CONFIG.STORAGE_BUCKET)
-              .getPublicUrl(fileName);
-            certUrl = publicUrlData.publicUrl;
-          } else {
-            console.warn('Fallo subida a storage, guardando base64:', uploadErr);
-            certUrl = state.currentSelectedFile.dataUrl;
-          }
-        } catch (e) {
-          certUrl = state.currentSelectedFile.dataUrl;
-        }
-      } else {
-        // En modo local/demo guardamos la dataUrl directamente
-        certUrl = state.currentSelectedFile.dataUrl;
-      }
+      certUrl = state.currentSelectedFile.dataUrl;
     }
 
-    const newNovedad = {
-      id: 'nov_' + Date.now(),
+    const newNov = {
+      id: 'nov-' + Date.now(),
       colaboradora_id: colabId,
       codigo_sucursal: state.currentRole,
       tipo: tipo,
@@ -570,74 +670,55 @@
       creado_en: new Date().toISOString()
     };
 
-    // Guardar en Supabase si está conectado
-    if (state.isSupabaseConnected && state.supabaseClient) {
-      try {
-        await state.supabaseClient.from('novedades_puntuales').insert([{
-          colaboradora_id: colabId,
-          sucursal_id: state.colaboradoras.find(c => c.id === colabId)?.sucursal_id,
-          tipo: tipo,
-          fecha_inicio: fechaInicio,
-          fecha_fin: fechaFin,
-          dias_computados: dias,
-          certificado_url: certUrl,
-          observaciones: obs
-        }]);
-      } catch (e) {
-        console.warn('Error guardando en Supabase:', e);
-      }
-    }
-
-    // Guardar localmente
-    state.novedades.unshift(newNovedad);
+    state.novedades.unshift(newNov);
     localStorage.setItem('nazaria_novedades', JSON.stringify(state.novedades));
 
-    // Resetear formulario
+    // Resetear form
     document.getElementById('form-novedad').reset();
-    clearFile();
-    document.getElementById('nov-dias').value = '1';
-    populateStoreColaboradorasSelect(state.currentRole);
-
-    btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Guardar Novedad';
-    initLucideIcons();
-
-    showToast('Novedad guardada con éxito.', 'success');
-    renderStoreNovedadesList();
+    removeSelectedFile();
+    showToast('Novedad guardada exitosamente.', 'success');
+    renderStoreNovedades();
   }
 
-  function renderStoreNovedadesList() {
-    const tbody = document.getElementById('tbody-novedades-store');
-    const countBadge = document.getElementById('count-novedades-store');
+  function deleteNovedad(id) {
+    if (!confirm('¿Seguro que deseás eliminar este registro de novedad?')) return;
+    state.novedades = state.novedades.filter(n => n.id !== id);
+    localStorage.setItem('nazaria_novedades', JSON.stringify(state.novedades));
+    renderStoreNovedades();
+    showToast('Novedad eliminada.', 'info');
+  }
+
+  // --- SUBVISTA 4: RETIROS & PAR DE TEMPORADA ---
+  function renderStoreRetiros() {
+    const tbody = document.getElementById('tbody-store-retiros');
     tbody.innerHTML = '';
+    const storeCode = state.currentRole;
 
-    const storeNovs = state.novedades.filter(n => n.codigo_sucursal === state.currentRole);
-    countBadge.textContent = `${storeNovs.length} registros`;
+    const filtered = state.retiros.filter(r => r.sucursal === storeCode);
+    document.getElementById('store-ret-count').textContent = `${filtered.length} pares`;
 
-    if (storeNovs.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">No hay novedades registradas en este local.</td></tr>`;
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-neutral-400 text-xs">No hay retiros ni pares de temporada en esta sucursal.</td></tr>`;
       return;
     }
 
-    storeNovs.forEach(n => {
-      const colab = state.colaboradoras.find(c => c.id === n.colaboradora_id);
+    filtered.forEach(r => {
+      const colab = state.colaboradoras.find(c => c.id === r.colaboradora_id);
       const tr = document.createElement('tr');
-      tr.className = 'hover:bg-slate-800/40 transition';
 
-      const certButton = n.certificado_url
-        ? `<button onclick="window.app.viewComprobante('${n.certificado_url}', '${colab ? colab.nombre_completo : ''}', '${n.tipo}')" class="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold underline">
-            <i data-lucide="image" class="w-3.5 h-3.5"></i> Ver
-           </button>`
-        : `<span class="text-slate-500 italic text-[11px]">-</span>`;
+      const isSeason = r.tipo === 'Par de Temporada';
+      const badgeType = isSeason
+        ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E6D5C3] text-neutral-900">Temporada</span>`
+        : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200">Retiro Descuento</span>`;
 
       tr.innerHTML = `
-        <td class="py-2.5 font-medium text-white">${colab ? colab.nombre_completo : 'Desconocida'}</td>
-        <td class="py-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">${n.tipo}</span></td>
-        <td class="py-2.5 font-mono text-slate-300">${formatDateDisplay(n.fecha_inicio)} al ${formatDateDisplay(n.fecha_fin)}</td>
-        <td class="py-2.5 font-mono font-bold text-white text-center">${n.dias_computados}d</td>
-        <td class="py-2.5">${certButton}</td>
-        <td class="py-2.5 text-right">
-          <button onclick="window.app.deleteNovedad('${n.id}')" class="text-slate-500 hover:text-rose-400 transition p-1" title="Eliminar novedad">
+        <td>${badgeType}</td>
+        <td class="font-bold text-xs text-neutral-900">${colab?.alias || colab?.nombre_completo || 'Colaboradora'}</td>
+        <td class="font-mono font-bold text-xs uppercase text-neutral-800">${r.articulo}</td>
+        <td class="text-xs uppercase text-neutral-700">${r.talle_color}</td>
+        <td class="font-mono text-xs text-neutral-500">${r.fecha ? formatDateShort(r.fecha) : '-'}</td>
+        <td class="text-right">
+          <button onclick="window.app.deleteRetiro('${r.id}')" class="text-neutral-400 hover:text-red-600 p-1" title="Eliminar">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
           </button>
         </td>
@@ -648,643 +729,261 @@
     initLucideIcons();
   }
 
-  function deleteNovedad(novId) {
-    if (!confirm('¿Seguro que deseas eliminar esta novedad?')) return;
-    state.novedades = state.novedades.filter(n => n.id !== novId);
-    localStorage.setItem('nazaria_novedades', JSON.stringify(state.novedades));
-    renderStoreNovedadesList();
-    showToast('Novedad eliminada.', 'info');
+  function handleSaveRetiro(event) {
+    event.preventDefault();
+    const colabId = document.getElementById('ret-colaboradora').value;
+    const tipo = document.getElementById('ret-tipo').value;
+    const fecha = document.getElementById('ret-fecha').value;
+    const art = document.getElementById('ret-articulo').value.trim().toUpperCase();
+    const talleColor = document.getElementById('ret-talle-color').value.trim().toUpperCase();
+
+    const newRet = {
+      id: 'ret-' + Date.now(),
+      colaboradora_id: colabId,
+      sucursal: state.currentRole,
+      tipo: tipo,
+      articulo: art,
+      talle_color: talleColor,
+      fecha: fecha || new Date().toISOString().split('T')[0]
+    };
+
+    state.retiros.unshift(newRet);
+    localStorage.setItem('nazaria_retiros', JSON.stringify(state.retiros));
+
+    document.getElementById('form-retiro').reset();
+    showToast('Calzado registrado con éxito.', 'success');
+    renderStoreRetiros();
   }
 
-  // --- Cierre Mensual por Sucursal (Grid Interactiva) ---
-  function renderStoreCierreGrid() {
-    const tbody = document.getElementById('tbody-cierre-store');
+  function deleteRetiro(id) {
+    if (!confirm('¿Seguro que deseás eliminar este registro de calzado?')) return;
+    state.retiros = state.retiros.filter(r => r.id !== id);
+    localStorage.setItem('nazaria_retiros', JSON.stringify(state.retiros));
+    renderStoreRetiros();
+    showToast('Registro eliminado.', 'info');
+  }
+
+  // --- SUBVISTA 5: VACACIONES DEL LOCAL ---
+  function renderStoreVacaciones() {
+    const tbody = document.getElementById('tbody-store-vacaciones');
     tbody.innerHTML = '';
-
     const storeCode = state.currentRole;
-    const storeColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode && c.estado === 'activa');
+    const colabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
+    const anioFiscal = parseInt(state.currentPeriod.split('-')[0]) || 2026;
 
-    // Verificar estado general del cierre para este local y período
-    const firstCierreKey = `${state.currentPeriod}_${storeColabs[0]?.id}`;
-    const cierreStatus = state.cierres[firstCierreKey]?.estado || 'borrador';
-    updateStoreCierreBanner(cierreStatus);
+    colabs.forEach(c => {
+      const calc = calcularVacacionesLCT(c, anioFiscal);
+      
+      // Buscar novedades de vacaciones para esta colaboradora
+      const vacNovedades = state.novedades.filter(n => n.colaboradora_id === c.id && n.tipo === 'Vacaciones');
+      const diasTomados = vacNovedades.reduce((sum, n) => sum + (Number(n.dias_computados) || 0), 0);
+      const saldo = Math.max(0, calc.diasLey - diasTomados);
 
-    const isLocked = cierreStatus === 'enviado_sucursal' || cierreStatus === 'cerrado_aprobado';
-
-    storeColabs.forEach(colab => {
-      const cierreKey = `${state.currentPeriod}_${colab.id}`;
-      const cierreData = state.cierres[cierreKey] || {};
-
-      // Calcular ausencias automáticas de la tabla de novedades
-      const colabNovs = state.novedades.filter(n => 
-        n.colaboradora_id === colab.id && 
-        n.fecha_inicio.startsWith(state.currentPeriod)
-      );
-
-      const diasMedica = colabNovs
-        .filter(n => n.tipo === 'Licencia Médica')
-        .reduce((sum, n) => sum + (n.dias_computados || 0), 0);
-
-      const faltasInjust = colabNovs
-        .filter(n => n.tipo === 'Falta Injustificada')
-        .reduce((sum, n) => sum + (n.dias_computados || 0), 0);
-
-      const diasVacaciones = colabNovs
-        .filter(n => n.tipo === 'Vacaciones')
-        .reduce((sum, n) => sum + (n.dias_computados || 0), 0);
-
-      const hs50 = cierreData.hs_extras_50 ?? 0;
-      const hs100 = cierreData.hs_extras_100 ?? 0;
-      const feriados = cierreData.feriados_trabajados ?? 0;
-      const adelantos = cierreData.adelantos_vales ?? 0;
-      const obs = cierreData.observaciones_liquidacion ?? '';
+      const tramos = vacNovedades.map(n => `${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)} (${n.dias_computados}d)`).join(', ') || 'Sin tramos cargados';
 
       const tr = document.createElement('tr');
-      tr.className = 'hover:bg-slate-800/30 transition';
-
-      const disabledAttr = isLocked ? 'disabled' : '';
-
       tr.innerHTML = `
-        <td class="py-3 px-3">
-          <div class="font-semibold text-white">${colab.nombre_completo}</div>
-          <span class="text-[10px] text-slate-400">${colab.categoria}</span>
+        <td class="font-bold text-neutral-900">
+          <div>${c.alias || c.nombre_completo}</div>
+          <div class="text-[11px] text-neutral-400 font-normal">Ingreso: ${formatDateShort(c.fecha_ingreso)} ${c.fecha_antiguedad_reconocida ? '(Ant. reconocida: ' + formatDateShort(c.fecha_antiguedad_reconocida) + ')' : ''}</div>
         </td>
-        <td class="py-3 px-2 text-center font-mono text-slate-300">30d</td>
-        <td class="py-3 px-2 text-center">
-          <input type="number" step="0.5" min="0" value="${hs50}" data-colab="${colab.id}" data-field="hs_extras_50" onchange="window.app.updateCierreTotals()" ${disabledAttr} class="w-16 text-center bg-slate-950 border border-slate-700 rounded-lg py-1 px-1 font-mono text-xs text-white focus:outline-none focus:border-rose-500 disabled:opacity-50">
-        </td>
-        <td class="py-3 px-2 text-center">
-          <input type="number" step="0.5" min="0" value="${hs100}" data-colab="${colab.id}" data-field="hs_extras_100" onchange="window.app.updateCierreTotals()" ${disabledAttr} class="w-16 text-center bg-slate-950 border border-slate-700 rounded-lg py-1 px-1 font-mono text-xs text-white focus:outline-none focus:border-rose-500 disabled:opacity-50">
-        </td>
-        <td class="py-3 px-2 text-center">
-          <input type="number" step="1" min="0" value="${feriados}" data-colab="${colab.id}" data-field="feriados_trabajados" onchange="window.app.updateCierreTotals()" ${disabledAttr} class="w-14 text-center bg-slate-950 border border-slate-700 rounded-lg py-1 px-1 font-mono text-xs text-white focus:outline-none focus:border-rose-500 disabled:opacity-50">
-        </td>
-        <td class="py-3 px-2 text-center font-mono font-bold ${faltasInjust > 0 ? 'text-rose-400' : 'text-slate-400'}">${faltasInjust}d</td>
-        <td class="py-3 px-2 text-center font-mono font-bold ${diasMedica > 0 ? 'text-amber-400' : 'text-slate-400'}">${diasMedica}d</td>
-        <td class="py-3 px-2 text-center">
-          <input type="number" step="1000" min="0" value="${adelantos}" data-colab="${colab.id}" data-field="adelantos_vales" onchange="window.app.updateCierreTotals()" ${disabledAttr} class="w-24 text-right bg-slate-950 border border-slate-700 rounded-lg py-1 px-2 font-mono text-xs text-emerald-400 focus:outline-none focus:border-rose-500 disabled:opacity-50" placeholder="$0">
-        </td>
-        <td class="py-3 px-3">
-          <input type="text" value="${obs}" data-colab="${colab.id}" data-field="observaciones_liquidacion" ${disabledAttr} placeholder="Observación para el contador..." class="w-full bg-slate-950 border border-slate-700 rounded-lg py-1 px-2 text-xs text-white focus:outline-none focus:border-rose-500 disabled:opacity-50">
+        <td class="font-mono text-xs text-neutral-700">${calc.aniosAntiguedad} años al 31/12</td>
+        <td class="font-mono font-bold text-xs text-center"><span class="bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">${calc.diasLey} días</span></td>
+        <td class="font-mono font-bold text-xs text-center text-amber-800">${diasTomados} días</td>
+        <td class="text-xs text-neutral-600 max-w-[240px] truncate" title="${tramos}">${tramos}</td>
+        <td class="font-mono font-bold text-sm text-center ${saldo === 0 ? 'text-neutral-400' : 'text-emerald-700'}">
+          ${saldo} días
         </td>
       `;
       tbody.appendChild(tr);
     });
-
-    updateCierreTotals();
-  }
-
-  function updateCierreTotals() {
-    let tot50 = 0;
-    let tot100 = 0;
-    let totFeriados = 0;
-    let totAdelantos = 0;
-
-    document.querySelectorAll('#tbody-cierre-store [data-field="hs_extras_50"]').forEach(input => {
-      tot50 += parseFloat(input.value) || 0;
-    });
-    document.querySelectorAll('#tbody-cierre-store [data-field="hs_extras_100"]').forEach(input => {
-      tot100 += parseFloat(input.value) || 0;
-    });
-    document.querySelectorAll('#tbody-cierre-store [data-field="feriados_trabajados"]').forEach(input => {
-      totFeriados += parseInt(input.value) || 0;
-    });
-    document.querySelectorAll('#tbody-cierre-store [data-field="adelantos_vales"]').forEach(input => {
-      totAdelantos += parseFloat(input.value) || 0;
-    });
-
-    document.getElementById('tot-hs50').textContent = tot50;
-    document.getElementById('tot-hs100').textContent = tot100;
-    document.getElementById('tot-feriados').textContent = totFeriados;
-    document.getElementById('tot-adelantos').textContent = '$' + totAdelantos.toLocaleString('es-AR');
-  }
-
-  function updateStoreCierreBanner(status) {
-    const banner = document.getElementById('store-cierre-status-banner');
-    const btnSubmit = document.getElementById('btn-submit-cierre-store');
-
-    if (status === 'borrador') {
-      banner.className = "bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4";
-      banner.innerHTML = `
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
-            <i data-lucide="clock" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-amber-300 text-sm">Cierre Mensual en Carga (Borrador)</h4>
-            <p class="text-xs text-slate-300 mt-0.5">Completa las horas y adelantos antes de enviar a administración.</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="window.app.saveCierreStore(false)" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
-            <i data-lucide="save" class="w-3.5 h-3.5"></i>
-            <span>Guardar Borrador</span>
-          </button>
-          <button onclick="window.app.submitCierreStore()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center gap-1.5 shadow-lg shadow-emerald-950/40">
-            <i data-lucide="send" class="w-3.5 h-3.5"></i>
-            <span>Enviar Cierre a Administración</span>
-          </button>
-        </div>
-      `;
-    } else if (status === 'enviado_sucursal') {
-      banner.className = "bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4";
-      banner.innerHTML = `
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
-            <i data-lucide="check-check" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-blue-300 text-sm">Cierre Enviado a Administración</h4>
-            <p class="text-xs text-slate-300 mt-0.5">El período está en revisión por el dueño/RRHH. La edición se encuentra bloqueada.</p>
-          </div>
-        </div>
-        <span class="text-xs px-3 py-1.5 rounded-xl bg-blue-500/20 text-blue-300 font-semibold border border-blue-500/30">EN REVISIÓN</span>
-      `;
-    } else if (status === 'cerrado_aprobado') {
-      banner.className = "bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4";
-      banner.innerHTML = `
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-            <i data-lucide="lock" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-emerald-300 text-sm">Período Cerrado y Liquidado</h4>
-            <p class="text-xs text-slate-300 mt-0.5">Este mes ha sido aprobado por Administración y enviado a liquidación. Histórico inalterable.</p>
-          </div>
-        </div>
-        <span class="text-xs px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">CONGELADO</span>
-      `;
-    }
-    initLucideIcons();
-  }
-
-  function saveCierreStore(silent = false) {
-    const storeCode = state.currentRole;
-    const storeColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode && c.estado === 'activa');
-
-    storeColabs.forEach(colab => {
-      const cierreKey = `${state.currentPeriod}_${colab.id}`;
-      const hs50 = parseFloat(document.querySelector(`[data-colab="${colab.id}"][data-field="hs_extras_50"]`)?.value) || 0;
-      const hs100 = parseFloat(document.querySelector(`[data-colab="${colab.id}"][data-field="hs_extras_100"]`)?.value) || 0;
-      const feriados = parseInt(document.querySelector(`[data-colab="${colab.id}"][data-field="feriados_trabajados"]`)?.value) || 0;
-      const adelantos = parseFloat(document.querySelector(`[data-colab="${colab.id}"][data-field="adelantos_vales"]`)?.value) || 0;
-      const obs = document.querySelector(`[data-colab="${colab.id}"][data-field="observaciones_liquidacion"]`)?.value || '';
-
-      const colabNovs = state.novedades.filter(n => n.colaboradora_id === colab.id && n.fecha_inicio.startsWith(state.currentPeriod));
-      const diasMedica = colabNovs.filter(n => n.tipo === 'Licencia Médica').reduce((s, n) => s + (n.dias_computados || 0), 0);
-      const faltasInjust = colabNovs.filter(n => n.tipo === 'Falta Injustificada').reduce((s, n) => s + (n.dias_computados || 0), 0);
-      const diasVacaciones = colabNovs.filter(n => n.tipo === 'Vacaciones').reduce((s, n) => s + (n.dias_computados || 0), 0);
-
-      state.cierres[cierreKey] = {
-        periodo: state.currentPeriod,
-        colaboradora_id: colab.id,
-        codigo_sucursal: storeCode,
-        dias_base: 30,
-        hs_extras_50: hs50,
-        hs_extras_100: hs100,
-        feriados_trabajados: feriados,
-        faltas_injustificadas: faltasInjust,
-        dias_lic_medica: diasMedica,
-        dias_vacaciones: diasVacaciones,
-        adelantos_vales: adelantos,
-        observaciones_liquidacion: obs,
-        estado: state.cierres[cierreKey]?.estado || 'borrador',
-        guardado_en: new Date().toISOString()
-      };
-    });
-
-    localStorage.setItem('nazaria_cierres', JSON.stringify(state.cierres));
-
-    // Si Supabase está conectado, sincronizar en background
-    if (state.isSupabaseConnected && state.supabaseClient) {
-      syncCierresToSupabase();
-    }
-
-    if (!silent) {
-      showToast('Borrador de cierre guardado.', 'success');
-    }
-  }
-
-  function submitCierreStore() {
-    if (!confirm('¿Confirmas el envío del cierre de mes a Administración? Una vez enviado, la planilla quedará bloqueada para revisión.')) {
-      return;
-    }
-
-    saveCierreStore(true);
-
-    const storeCode = state.currentRole;
-    const storeColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode && c.estado === 'activa');
-
-    storeColabs.forEach(colab => {
-      const cierreKey = `${state.currentPeriod}_${colab.id}`;
-      if (state.cierres[cierreKey]) {
-        state.cierres[cierreKey].estado = 'enviado_sucursal';
-        state.cierres[cierreKey].enviado_en = new Date().toISOString();
-      }
-    });
-
-    localStorage.setItem('nazaria_cierres', JSON.stringify(state.cierres));
-
-    if (state.isSupabaseConnected && state.supabaseClient) {
-      syncCierresToSupabase();
-    }
-
-    showToast('¡Cierre enviado a Administración con éxito!', 'success');
-    renderStoreCierreGrid();
-  }
-
-  async function syncCierresToSupabase() {
-    if (!state.supabaseClient) return;
-    try {
-      const payload = Object.values(state.cierres).map(c => ({
-        periodo: c.periodo,
-        colaboradora_id: c.colaboradora_id,
-        sucursal_id: state.colaboradoras.find(col => col.id === c.colaboradora_id)?.sucursal_id,
-        dias_base: c.dias_base,
-        hs_extras_50: c.hs_extras_50,
-        hs_extras_100: c.hs_extras_100,
-        feriados_trabajados: c.feriados_trabajados,
-        faltas_injustificadas: c.faltas_injustificadas,
-        dias_lic_medica: c.dias_lic_medica,
-        dias_vacaciones: c.dias_vacaciones,
-        adelantos_vales: c.adelantos_vales,
-        observaciones_liquidacion: c.observaciones_liquidacion,
-        estado: c.estado
-      }));
-
-      await state.supabaseClient.from('cierres_mensuales').upsert(payload, { onConflict: 'periodo,colaboradora_id' });
-    } catch (e) {
-      console.warn('Error upserting cierres a Supabase:', e);
-    }
   }
 
   // ============================================================================
-  // 5. MÓDULO ADMINISTRACIÓN (DUEÑO / RRHH)
+  // PANEL DE ADMINISTRACIÓN (ADMIN VIEW)
   // ============================================================================
   function renderAdminView() {
+    document.getElementById('select-admin-period').value = state.currentPeriod;
     updateAdminKPIs();
     switchAdminTab(state.activeAdminTab);
   }
 
-  function handleAdminPeriodChange() {
-    state.currentPeriod = document.getElementById('admin-period-select').value;
-    renderAdminView();
-  }
-
   function switchAdminTab(tab) {
     state.activeAdminTab = tab;
-    const tabs = ['cierres', 'vacaciones', 'novedades', 'colaboradoras', 'config'];
-
+    const tabs = ['consolidado', 'vacaciones', 'retiros', 'novedades', 'colaboradoras'];
     tabs.forEach(t => {
-      const btn = document.getElementById(`tab-btn-admin-${t}`);
-      const subview = document.getElementById(`subview-admin-${t}`);
+      const btn = document.getElementById(`tab-admin-${t}`);
+      const view = document.getElementById(`subview-admin-${t}`);
       if (t === tab) {
-        btn.className = "pb-3 text-sm font-semibold text-rose-500 border-b-2 border-rose-500 flex items-center gap-2 whitespace-nowrap transition";
-        subview.classList.remove('hidden');
-        subview.classList.add('flex');
+        btn.className = "pb-3 text-xs sm:text-sm font-bold border-b-2 border-black text-neutral-900 flex items-center gap-2 whitespace-nowrap transition";
+        view.classList.remove('hidden');
       } else {
-        btn.className = "pb-3 text-sm font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap transition";
-        subview.classList.add('hidden');
-        subview.classList.remove('flex');
+        btn.className = "pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition";
+        view.classList.add('hidden');
       }
     });
 
-    if (tab === 'cierres') renderAdminCierres();
+    if (tab === 'consolidado') renderAdminConsolidado();
     if (tab === 'vacaciones') renderAdminVacaciones();
-    if (tab === 'novedades') renderAdminNovedadesFeed();
+    if (tab === 'retiros') renderAdminRetiros();
+    if (tab === 'novedades') renderAdminNovedades();
     if (tab === 'colaboradoras') renderAdminColaboradoras();
-    if (tab === 'config') renderAdminConfig();
 
     initLucideIcons();
   }
 
   function updateAdminKPIs() {
-    const tomColabs = state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM' && c.estado === 'activa');
-    const maschColabs = state.colaboradoras.filter(c => c.codigo_sucursal === 'MASCHWITZ' && c.estado === 'activa');
+    document.getElementById('kpi-colabs').textContent = state.colaboradoras.length;
 
-    const tomKey = `${state.currentPeriod}_${tomColabs[0]?.id}`;
-    const maschKey = `${state.currentPeriod}_${maschColabs[0]?.id}`;
+    let totalHoras = 0;
+    Object.keys(state.cierres).forEach(k => {
+      if (k.startsWith(state.currentPeriod)) {
+        const c = state.cierres[k];
+        totalHoras += (Number(c.horas_base) || 0) + (Number(c.feriados_hs) || 0) + (Number(c.extras_hs) || 0) + (Number(c.adicionales_hs) || 0);
+      }
+    });
+    document.getElementById('kpi-horas').textContent = `${totalHoras} hs`;
 
-    const tomStatus = state.cierres[tomKey]?.estado || 'borrador';
-    const maschStatus = state.cierres[maschKey]?.estado || 'borrador';
+    const vacDays = state.novedades
+      .filter(n => n.tipo === 'Vacaciones')
+      .reduce((sum, n) => sum + (Number(n.dias_computados) || 0), 0);
+    document.getElementById('kpi-vacaciones').textContent = `${vacDays} d`;
 
-    const kpiTom = document.getElementById('kpi-tom-status');
-    const kpiMasch = document.getElementById('kpi-maschwitz-status');
-
-    kpiTom.innerHTML = formatStatusBadge(tomStatus);
-    kpiMasch.innerHTML = formatStatusBadge(maschStatus);
-
-    const periodNovs = state.novedades.filter(n => n.fecha_inicio.startsWith(state.currentPeriod));
-    document.getElementById('kpi-total-novedades').textContent = periodNovs.length;
-    document.getElementById('kpi-total-empleadas').textContent = state.colaboradoras.filter(c => c.estado === 'activa').length;
+    document.getElementById('kpi-retiros').textContent = state.retiros.length;
   }
 
-  function formatStatusBadge(status) {
-    if (status === 'cerrado_aprobado') {
-      return `<span class="px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Cerrado / Liquidado</span>`;
-    } else if (status === 'enviado_sucursal') {
-      return `<span class="px-2 py-0.5 rounded-md text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">Enviado por Sucursal</span>`;
-    } else {
-      return `<span class="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">En Carga (Borrador)</span>`;
-    }
-  }
-
-  function renderAdminCierres() {
-    const tbody = document.getElementById('tbody-admin-cierres');
+  // --- ADMIN 1: CONSOLIDADO DE HORAS ---
+  function renderAdminConsolidado() {
+    const tbody = document.getElementById('tbody-admin-consolidado');
     tbody.innerHTML = '';
 
-    const filterSucursal = document.getElementById('admin-sucursal-filter')?.value || 'ALL';
-    let filteredColabs = state.colaboradoras.filter(c => c.estado === 'activa');
-
-    if (filterSucursal !== 'ALL') {
-      filteredColabs = filteredColabs.filter(c => c.codigo_sucursal === filterSucursal);
+    const allKeys = Object.keys(state.cierres).filter(k => k.startsWith(state.currentPeriod));
+    if (allKeys.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay cierres de horas para este período.</td></tr>`;
+      return;
     }
 
-    filteredColabs.forEach(colab => {
-      const cierreKey = `${state.currentPeriod}_${colab.id}`;
-      const cierre = state.cierres[cierreKey] || {};
+    allKeys.forEach(k => {
+      const colabId = k.replace(`${state.currentPeriod}_`, '');
+      const isMaschCoverage = colabId === 'c-martu_masch';
+      const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
+      const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
+      const rec = state.cierres[k];
 
-      // Ausencias automáticas
-      const colabNovs = state.novedades.filter(n => n.colaboradora_id === colab.id && n.fecha_inicio.startsWith(state.currentPeriod));
-      const diasMedica = colabNovs.filter(n => n.tipo === 'Licencia Médica').reduce((s, n) => s + (n.dias_computados || 0), 0);
-      const faltasInjust = colabNovs.filter(n => n.tipo === 'Falta Injustificada').reduce((s, n) => s + (n.dias_computados || 0), 0);
-      const diasVacaciones = colabNovs.filter(n => n.tipo === 'Vacaciones').reduce((s, n) => s + (n.dias_computados || 0), 0);
-
-      const hs50 = cierre.hs_extras_50 ?? 0;
-      const hs100 = cierre.hs_extras_100 ?? 0;
-      const feriados = cierre.feriados_trabajados ?? 0;
-      const adelantos = cierre.adelantos_vales ?? 0;
-      const obs = cierre.observaciones_liquidacion ?? '';
-      const estado = cierre.estado || 'borrador';
+      const totalHs = (Number(rec.horas_base) || 0) + (Number(rec.feriados_hs) || 0) + (Number(rec.extras_hs) || 0) + (Number(rec.adicionales_hs) || 0);
 
       const tr = document.createElement('tr');
-      tr.className = 'hover:bg-slate-800/30 transition';
-
       tr.innerHTML = `
-        <td class="py-3 px-3">
-          <div class="font-semibold text-white">${colab.nombre_completo}</div>
-          <span class="text-[10px] text-slate-400">${colab.categoria}</span>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${sucursal}</span></td>
+        <td class="font-bold text-xs text-neutral-900">
+          ${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.alias || colab?.nombre_completo || 'Colaboradora')}
+          <span class="block text-[10px] text-neutral-400 font-normal">${colab?.nombre_completo || ''}</span>
         </td>
-        <td class="py-3 px-2 font-mono text-xs text-slate-300">${colab.codigo_sucursal}</td>
-        <td class="py-3 px-2 font-mono text-xs text-slate-400">${colab.cuil || colab.dni}</td>
-        <td class="py-3 px-2 text-center font-mono text-slate-300">30d</td>
-        <td class="py-3 px-2 text-center font-mono font-bold ${hs50 > 0 ? 'text-amber-400' : 'text-slate-500'}">${hs50} hs</td>
-        <td class="py-3 px-2 text-center font-mono font-bold ${hs100 > 0 ? 'text-rose-400' : 'text-slate-500'}">${hs100} hs</td>
-        <td class="py-3 px-2 text-center font-mono font-bold ${feriados > 0 ? 'text-white' : 'text-slate-500'}">${feriados}</td>
-        <td class="py-3 px-2 text-center font-mono font-bold ${faltasInjust > 0 ? 'text-rose-400' : 'text-slate-500'}">${faltasInjust}d</td>
-        <td class="py-3 px-2 text-center font-mono font-bold ${diasMedica > 0 ? 'text-amber-400' : 'text-slate-500'}">${diasMedica}d</td>
-        <td class="py-3 px-2 text-center font-mono font-bold ${diasVacaciones > 0 ? 'text-blue-400' : 'text-slate-500'}">${diasVacaciones}d</td>
-        <td class="py-3 px-2 text-right font-mono font-bold ${adelantos > 0 ? 'text-emerald-400' : 'text-slate-500'}">$${adelantos.toLocaleString('es-AR')}</td>
-        <td class="py-3 px-3 text-xs text-slate-300 max-w-[200px] truncate" title="${obs}">${obs || '-'}</td>
-        <td class="py-3 px-2 text-center">${formatStatusBadge(estado)}</td>
+        <td class="font-mono text-center text-xs">${rec.horas_base || 0}</td>
+        <td class="font-mono text-center text-xs">${rec.feriados_hs || 0}</td>
+        <td class="font-mono text-center text-xs">${rec.extras_hs || 0}</td>
+        <td class="font-mono text-center text-xs font-bold ${rec.adicionales_hs > 0 ? 'text-amber-800' : ''}">${rec.adicionales_hs || 0}</td>
+        <td class="text-xs text-neutral-600 max-w-[200px] truncate" title="${rec.detalle_cobertura || ''}">${rec.detalle_cobertura || '-'}</td>
+        <td class="font-mono font-bold text-sm text-neutral-900">${totalHs} hs</td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  function approveAndFreezePeriodo() {
-    if (!confirm(`¿Confirmas aprobar y congelar el período ${state.currentPeriod}? Los registros se convertirán en histórico auditado de solo lectura.`)) {
-      return;
-    }
-
-    Object.keys(state.cierres).forEach(key => {
-      if (key.startsWith(state.currentPeriod)) {
-        state.cierres[key].estado = 'cerrado_aprobado';
-        state.cierres[key].aprobado_en = new Date().toISOString();
-        state.cierres[key].aprobado_por = 'Administración';
-      }
-    });
-
-    localStorage.setItem('nazaria_cierres', JSON.stringify(state.cierres));
-
-    if (state.isSupabaseConnected && state.supabaseClient) {
-      syncCierresToSupabase();
-    }
-
-    showToast(`Período ${state.currentPeriod} aprobado y congelado.`, 'success');
-    renderAdminView();
-  }
-
-  function reopenPeriodo() {
-    if (!confirm(`¿Deseas reabrir el período ${state.currentPeriod} para permitir que las sucursales editen o corrijan sus cargas?`)) {
-      return;
-    }
-
-    Object.keys(state.cierres).forEach(key => {
-      if (key.startsWith(state.currentPeriod)) {
-        state.cierres[key].estado = 'borrador';
-      }
-    });
-
-    localStorage.setItem('nazaria_cierres', JSON.stringify(state.cierres));
-
-    if (state.isSupabaseConnected && state.supabaseClient) {
-      syncCierresToSupabase();
-    }
-
-    showToast(`Período ${state.currentPeriod} reabierto en modo borrador.`, 'info');
-    renderAdminView();
-  }
-
-  // --- Exportación a Excel para el Liquidador ---
-  function exportToExcel() {
-    if (!window.XLSX) {
-      showToast('Librería XLSX no disponible.', 'error');
-      return;
-    }
-
-    const dataRows = [];
-    // Encabezados normalizados para el contador
-    dataRows.push([
-      'Legajo / ID',
-      'Apellido y Nombre',
-      'Sucursal',
-      'DNI',
-      'CUIL',
-      'Categoría CCT',
-      'Período',
-      'Días Base',
-      'Hs Extras 50%',
-      'Hs Extras 100%',
-      'Feriados Trabajados',
-      'Faltas Injustificadas',
-      'Días Licencia Médica',
-      'Días Vacaciones',
-      'Adelantos de Sueldo / Vales',
-      'Observaciones para Liquidación',
-      'Estado Cierre'
-    ]);
-
-    state.colaboradoras.filter(c => c.estado === 'activa').forEach(colab => {
-      const cierreKey = `${state.currentPeriod}_${colab.id}`;
-      const cierre = state.cierres[cierreKey] || {};
-
-      const colabNovs = state.novedades.filter(n => n.colaboradora_id === colab.id && n.fecha_inicio.startsWith(state.currentPeriod));
-      const diasMedica = colabNovs.filter(n => n.tipo === 'Licencia Médica').reduce((s, n) => s + (n.dias_computados || 0), 0);
-      const faltasInjust = colabNovs.filter(n => n.tipo === 'Falta Injustificada').reduce((s, n) => s + (n.dias_computados || 0), 0);
-      const diasVacaciones = colabNovs.filter(n => n.tipo === 'Vacaciones').reduce((s, n) => s + (n.dias_computados || 0), 0);
-
-      dataRows.push([
-        colab.id,
-        colab.nombre_completo,
-        colab.codigo_sucursal,
-        colab.dni,
-        colab.cuil || '',
-        colab.categoria,
-        state.currentPeriod,
-        30,
-        cierre.hs_extras_50 || 0,
-        cierre.hs_extras_100 || 0,
-        cierre.feriados_trabajados || 0,
-        faltasInjust,
-        diasMedica,
-        diasVacaciones,
-        cierre.adelantos_vales || 0,
-        cierre.observaciones_liquidacion || '',
-        cierre.estado || 'borrador'
-      ]);
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet(dataRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, `Sueldos_${state.currentPeriod}`);
-
-    // Descargar archivo
-    const fileName = `Preliquidacion_Nazaria_${state.currentPeriod}.xlsx`;
-    XLSX.writeFile(wb, fileName);
-    showToast(`Archivo ${fileName} generado y descargado con éxito.`, 'success');
-  }
-
-  // --- Módulo Vacaciones (LCT 20.744) ---
+  // --- ADMIN 2: VACACIONES LCT ---
   function renderAdminVacaciones() {
     const tbody = document.getElementById('tbody-admin-vacaciones');
     tbody.innerHTML = '';
-
     const anioFiscal = parseInt(state.currentPeriod.split('-')[0]) || 2026;
 
-    state.colaboradoras.filter(c => c.estado === 'activa').forEach(colab => {
-      const { aniosAntiguedad, diasLey } = calcularVacacionesLCT(colab.fecha_ingreso, anioFiscal);
+    state.colaboradoras.forEach(c => {
+      const calc = calcularVacacionesLCT(c, anioFiscal);
+      const vacNovedades = state.novedades.filter(n => n.colaboradora_id === c.id && n.tipo === 'Vacaciones');
+      const diasTomados = vacNovedades.reduce((sum, n) => sum + (Number(n.dias_computados) || 0), 0);
+      const saldo = Math.max(0, calc.diasLey - diasTomados);
 
-      // Calcular días de vacaciones tomados en el año
-      const vacacionesTomadas = state.novedades
-        .filter(n => n.colaboradora_id === colab.id && n.tipo === 'Vacaciones' && n.fecha_inicio.startsWith(String(anioFiscal)))
-        .reduce((s, n) => s + (n.dias_computados || 0), 0);
-
-      const saldoPendiente = Math.max(0, diasLey - vacacionesTomadas);
-
-      let estadoBadge = '';
-      if (saldoPendiente === 0) {
-        estadoBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Al día (0 pendientes)</span>`;
-      } else if (vacacionesTomadas > 0) {
-        estadoBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30">Parcial (${saldoPendiente}d restantes)</span>`;
-      } else {
-        estadoBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">Pendiente completo (${saldoPendiente}d)</span>`;
-      }
+      const tramos = vacNovedades.map(n => `${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)} (${n.dias_computados}d)`).join(', ') || 'Sin tramos';
 
       const tr = document.createElement('tr');
-      tr.className = 'hover:bg-slate-800/30 transition';
       tr.innerHTML = `
-        <td class="py-3 px-3">
-          <div class="font-semibold text-white">${colab.nombre_completo}</div>
-          <span class="text-[10px] text-slate-400">${colab.categoria}</span>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${c.codigo_sucursal}</span></td>
+        <td class="font-bold text-xs text-neutral-900">${c.nombre_completo} <span class="text-neutral-500 font-normal">(${c.alias})</span></td>
+        <td class="font-mono text-xs text-neutral-600">${formatDateShort(c.fecha_ingreso)}</td>
+        <td class="font-mono text-xs ${c.fecha_antiguedad_reconocida ? 'font-bold text-neutral-900' : 'text-neutral-400'}">
+          ${c.fecha_antiguedad_reconocida ? formatDateShort(c.fecha_antiguedad_reconocida) + ' ⭐' : 'No aplica'}
         </td>
-        <td class="py-3 px-2 font-mono text-xs text-slate-300">${colab.codigo_sucursal}</td>
-        <td class="py-3 px-2 font-mono text-xs text-slate-300">${formatDateDisplay(colab.fecha_ingreso)}</td>
-        <td class="py-3 px-2 font-mono text-xs text-white font-semibold">${aniosAntiguedad} años</td>
-        <td class="py-3 px-2 text-center font-mono font-bold text-white">${diasLey} días</td>
-        <td class="py-3 px-2 text-center font-mono font-bold text-blue-400">${vacacionesTomadas} días</td>
-        <td class="py-3 px-2 text-center font-mono font-bold ${saldoPendiente > 0 ? 'text-amber-400' : 'text-emerald-400'}">${saldoPendiente} días</td>
-        <td class="py-3 px-3">${estadoBadge}</td>
+        <td class="font-mono text-xs text-center">${calc.aniosAntiguedad} años</td>
+        <td class="font-mono font-bold text-xs text-center"><span class="bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">${calc.diasLey} días</span></td>
+        <td class="font-mono font-bold text-xs text-center text-amber-800">${diasTomados} días</td>
+        <td class="text-xs text-neutral-600 max-w-[200px] truncate" title="${tramos}">${tramos}</td>
+        <td class="font-mono font-bold text-sm text-center ${saldo === 0 ? 'text-neutral-400' : 'text-emerald-700'}">
+          ${saldo} días
+        </td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  function calcularVacacionesLCT(fechaIngresoStr, anioFiscal) {
-    if (!fechaIngresoStr) return { aniosAntiguedad: 0, diasLey: 14 };
+  // --- ADMIN 3: RETIROS & TEMPORADA ---
+  function renderAdminRetiros() {
+    const tbody = document.getElementById('tbody-admin-retiros');
+    tbody.innerHTML = '';
 
-    const fechaIngreso = new Date(fechaIngresoStr);
-    const fechaCorte = new Date(anioFiscal, 11, 31); // 31 de diciembre del año fiscal
-
-    const diffAnios = (fechaCorte - fechaIngreso) / (1000 * 60 * 60 * 24 * 365.25);
-    const anios = Math.max(0, Math.floor(diffAnios));
-
-    let dias = 14;
-    if (anios >= 20) {
-      dias = 35;
-    } else if (anios >= 10) {
-      dias = 28;
-    } else if (anios >= 5) {
-      dias = 21;
-    } else {
-      dias = 14;
+    if (state.retiros.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-neutral-400 text-xs">No hay retiros registrados.</td></tr>`;
+      return;
     }
 
-    return { aniosAntiguedad: anios, diasLey: dias };
-  }
+    state.retiros.forEach(r => {
+      const colab = state.colaboradoras.find(c => c.id === r.colaboradora_id);
+      const tr = document.createElement('tr');
 
-  function exportVacacionesExcel() {
-    if (!window.XLSX) return;
-    const anioFiscal = parseInt(state.currentPeriod.split('-')[0]) || 2026;
-    const rows = [
-      ['Colaboradora', 'Sucursal', 'Fecha Ingreso', 'Antigüedad al 31/12', 'Días de Ley', 'Días Gozados', 'Saldo Pendiente']
-    ];
+      const isSeason = r.tipo === 'Par de Temporada';
+      const badgeType = isSeason
+        ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E6D5C3] text-neutral-900">Temporada</span>`
+        : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200">Retiro Descuento</span>`;
 
-    state.colaboradoras.filter(c => c.estado === 'activa').forEach(colab => {
-      const { aniosAntiguedad, diasLey } = calcularVacacionesLCT(colab.fecha_ingreso, anioFiscal);
-      const vacacionesTomadas = state.novedades
-        .filter(n => n.colaboradora_id === colab.id && n.tipo === 'Vacaciones' && n.fecha_inicio.startsWith(String(anioFiscal)))
-        .reduce((s, n) => s + (n.dias_computados || 0), 0);
-      const saldo = Math.max(0, diasLey - vacacionesTomadas);
-
-      rows.push([
-        colab.nombre_completo,
-        colab.codigo_sucursal,
-        colab.fecha_ingreso,
-        aniosAntiguedad,
-        diasLey,
-        vacacionesTomadas,
-        saldo
-      ]);
+      tr.innerHTML = `
+        <td>${badgeType}</td>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${r.sucursal}</span></td>
+        <td class="font-bold text-xs text-neutral-900">${colab?.nombre_completo || 'Colaboradora'}</td>
+        <td class="font-mono font-bold text-xs uppercase text-neutral-800">${r.articulo}</td>
+        <td class="text-xs uppercase text-neutral-700">${r.talle_color}</td>
+        <td class="font-mono text-xs text-neutral-500">${r.fecha ? formatDateShort(r.fecha) : '-'}</td>
+      `;
+      tbody.appendChild(tr);
     });
-
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, `Vacaciones_${anioFiscal}`);
-    XLSX.writeFile(wb, `Reporte_Vacaciones_Nazaria_${anioFiscal}.xlsx`);
-    showToast('Reporte de vacaciones exportado.', 'success');
   }
 
-  // --- Auditoría de Certificados ---
-  function renderAdminNovedadesFeed() {
-    const tbody = document.getElementById('tbody-admin-novedades-feed');
+  // --- ADMIN 4: AUDITORÍA DE NOVEDADES & CERTIFICADOS ---
+  function renderAdminNovedades() {
+    const tbody = document.getElementById('tbody-admin-novedades');
     tbody.innerHTML = '';
 
     if (state.novedades.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">No hay registros de novedades.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay novedades registradas.</td></tr>`;
       return;
     }
 
     state.novedades.forEach(n => {
       const colab = state.colaboradoras.find(c => c.id === n.colaboradora_id);
       const tr = document.createElement('tr');
-      tr.className = 'hover:bg-slate-800/30 transition';
 
-      const certButton = n.certificado_url
-        ? `<button onclick="window.app.viewComprobante('${n.certificado_url}', '${colab ? colab.nombre_completo : ''}', '${n.tipo}')" class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold flex items-center gap-1">
-            <i data-lucide="image" class="w-3.5 h-3.5"></i> Ver Certificado
+      const certBtn = n.certificado_url
+        ? `<button onclick="window.app.viewComprobante('${n.certificado_url}', '${colab?.nombre_completo || ''}', '${n.tipo}')" class="px-2.5 py-1 rounded bg-[#E6D5C3] hover:bg-[#d8c2ad] text-neutral-900 font-bold text-[11px] flex items-center gap-1">
+             <i data-lucide="image" class="w-3.5 h-3.5"></i> Ver Comprobante
            </button>`
-        : `<span class="text-slate-500 italic text-xs">Sin adjunto</span>`;
+        : `<span class="text-neutral-400 text-xs italic">Sin archivo</span>`;
 
       tr.innerHTML = `
-        <td class="py-3 px-3 font-mono text-slate-400 text-xs">${formatDateDisplay(n.creado_en || n.fecha_inicio)}</td>
-        <td class="py-3 px-2 font-mono font-bold text-xs text-slate-300">${n.codigo_sucursal}</td>
-        <td class="py-3 px-3 font-semibold text-white text-xs">${colab ? colab.nombre_completo : 'Desconocida'}</td>
-        <td class="py-3 px-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">${n.tipo}</span></td>
-        <td class="py-3 px-2 font-mono text-xs text-slate-300">${formatDateDisplay(n.fecha_inicio)} al ${formatDateDisplay(n.fecha_fin)}</td>
-        <td class="py-3 px-2 text-center font-mono font-bold text-white text-xs">${n.dias_computados}d</td>
-        <td class="py-3 px-3 text-xs text-slate-300 max-w-[200px] truncate" title="${n.observaciones}">${n.observaciones || '-'}</td>
-        <td class="py-3 px-2 text-center">${certButton}</td>
+        <td class="font-mono text-xs text-neutral-500">${formatDateShort(n.fecha_inicio)}</td>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${n.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${n.codigo_sucursal}</span></td>
+        <td class="font-bold text-xs text-neutral-900">${colab?.nombre_completo || 'Colaboradora'}</td>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200">${n.tipo}</span></td>
+        <td class="font-mono text-xs text-neutral-600">${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)}</td>
+        <td class="font-mono font-bold text-xs text-center">${n.dias_computados}d</td>
+        <td class="text-xs text-neutral-700 max-w-[220px] truncate" title="${n.observaciones}">${n.observaciones || '-'}</td>
+        <td class="text-center">${certBtn}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -1292,7 +991,246 @@
     initLucideIcons();
   }
 
-  // --- Modal Visor de Comprobante ---
+  // --- ADMIN 5: PADRÓN DE COLABORADORAS ---
+  function renderAdminColaboradoras() {
+    const tbody = document.getElementById('tbody-admin-colaboradoras');
+    tbody.innerHTML = '';
+
+    state.colaboradoras.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="font-bold text-neutral-900 text-xs">${c.nombre_completo}</td>
+        <td class="font-bold text-xs text-neutral-700">${c.alias || '-'}</td>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${c.codigo_sucursal}</span></td>
+        <td class="font-mono text-xs text-neutral-600">${c.dni}</td>
+        <td class="font-mono text-xs text-neutral-600">${c.cuil || '-'}</td>
+        <td class="font-mono text-xs text-neutral-700">${formatDateShort(c.fecha_ingreso)}</td>
+        <td class="font-mono text-xs ${c.fecha_antiguedad_reconocida ? 'font-bold text-neutral-900' : 'text-neutral-400'}">
+          ${c.fecha_antiguedad_reconocida ? formatDateShort(c.fecha_antiguedad_reconocida) : '-'}
+        </td>
+        <td class="text-xs text-neutral-600">${c.categoria}</td>
+        <td><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Activa</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ============================================================================
+  // CÁLCULO DE VACACIONES LCT (LEY 20.744)
+  // ============================================================================
+  function calcularVacacionesLCT(colab, anioFiscal) {
+    const fechaRef = colab.fecha_antiguedad_reconocida || colab.fecha_ingreso;
+    if (!fechaRef) return { aniosAntiguedad: 0, diasLey: 14 };
+
+    const ingreso = new Date(fechaRef);
+    const corte = new Date(anioFiscal, 11, 31); // 31 de diciembre
+
+    const diffAnios = (corte - ingreso) / (1000 * 60 * 60 * 24 * 365.25);
+    const anios = Math.max(0, Math.floor(diffAnios));
+
+    let dias = 14;
+    if (anios >= 20) dias = 35;
+    else if (anios >= 10) dias = 28;
+    else if (anios >= 5) dias = 21;
+    else dias = 14;
+
+    return { aniosAntiguedad: anios, diasLey: dias };
+  }
+
+  // ============================================================================
+  // EXPORTACIÓN A EXCEL COMPLETO (SHEETJS CON MULTI-SOLAPAS)
+  // ============================================================================
+  function exportFullExcelWorkbook() {
+    if (!window.XLSX) {
+      showToast('Librería XLSX no disponible.', 'error');
+      return;
+    }
+
+    const anioFiscal = parseInt(state.currentPeriod.split('-')[0]) || 2026;
+    const wb = XLSX.utils.book_new();
+
+    // 1. SOLAPA: HORAS DEL MES Y LIQUIDACIÓN
+    const rowsHoras = [
+      ['NAZARIA - REPORTE MENSUAL PARA LIQUIDACIÓN DE SUELDOS'],
+      [`Período: ${state.currentPeriod}`],
+      [],
+      ['Sucursal', 'Colaboradora', 'DNI', 'Horas Base', 'Feriados (Hs)', 'Horas Extras', 'Horas Adicionales', 'Detalle Coberturas', 'Total Hs Liquidación']
+    ];
+
+    Object.keys(state.cierres).forEach(k => {
+      if (k.startsWith(state.currentPeriod)) {
+        const colabId = k.replace(`${state.currentPeriod}_`, '');
+        const isMaschCoverage = colabId === 'c-martu_masch';
+        const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
+        const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
+        const rec = state.cierres[k];
+        const total = (Number(rec.horas_base) || 0) + (Number(rec.feriados_hs) || 0) + (Number(rec.extras_hs) || 0) + (Number(rec.adicionales_hs) || 0);
+
+        rowsHoras.push([
+          sucursal,
+          isMaschCoverage ? 'Martu P. (Cobertura Masch)' : (colab?.nombre_completo || 'Colaboradora'),
+          colab?.dni || '',
+          rec.horas_base || 0,
+          rec.feriados_hs || 0,
+          rec.extras_hs || 0,
+          rec.adicionales_hs || 0,
+          rec.detalle_cobertura || '',
+          total
+        ]);
+      }
+    });
+    const wsHoras = XLSX.utils.aoa_to_sheet(rowsHoras);
+    XLSX.utils.book_append_sheet(wb, wsHoras, 'Horas_Liquidacion');
+
+    // 2. SOLAPA: VACACIONES LCT
+    const rowsVacaciones = [
+      ['NAZARIA - CONTROL DE VACACIONES LCT 20.744'],
+      [`Año Fiscal: ${anioFiscal}`],
+      [],
+      ['Sucursal', 'Colaboradora', 'Fecha Ingreso', 'Antigüedad Reconocida', 'Años al 31/12', 'Días Ley LCT', 'Días Gozados', 'Saldo Pendiente', 'Tramos Tomados']
+    ];
+
+    state.colaboradoras.forEach(c => {
+      const calc = calcularVacacionesLCT(c, anioFiscal);
+      const vacNovedades = state.novedades.filter(n => n.colaboradora_id === c.id && n.tipo === 'Vacaciones');
+      const diasTomados = vacNovedades.reduce((sum, n) => sum + (Number(n.dias_computados) || 0), 0);
+      const saldo = Math.max(0, calc.diasLey - diasTomados);
+      const tramos = vacNovedades.map(n => `${n.fecha_inicio} al ${n.fecha_fin} (${n.dias_computados}d)`).join('; ');
+
+      rowsVacaciones.push([
+        c.codigo_sucursal,
+        c.nombre_completo,
+        c.fecha_ingreso,
+        c.fecha_antiguedad_reconocida || 'N/A',
+        calc.aniosAntiguedad,
+        calc.diasLey,
+        diasTomados,
+        saldo,
+        tramos
+      ]);
+    });
+    const wsVac = XLSX.utils.aoa_to_sheet(rowsVacaciones);
+    XLSX.utils.book_append_sheet(wb, wsVac, 'Vacaciones_LCT');
+
+    // 3. SOLAPA: RETIROS Y PAR DE TEMPORADA
+    const rowsRetiros = [
+      ['NAZARIA - RETIROS DE CALZADO Y PAR DE TEMPORADA'],
+      [],
+      ['Tipo', 'Sucursal', 'Colaboradora', 'Artículo', 'Talle y Color', 'Fecha']
+    ];
+    state.retiros.forEach(r => {
+      const colab = state.colaboradoras.find(c => c.id === r.colaboradora_id);
+      rowsRetiros.push([
+        r.tipo,
+        r.sucursal,
+        colab?.nombre_completo || '',
+        r.articulo,
+        r.talle_color,
+        r.fecha || ''
+      ]);
+    });
+    const wsRet = XLSX.utils.aoa_to_sheet(rowsRetiros);
+    XLSX.utils.book_append_sheet(wb, wsRet, 'Calzado_Retiros');
+
+    // 4. SOLAPA: NOVEDADES Y FALTAS
+    const rowsNov = [
+      ['NAZARIA - NOVEDADES, LICENCIAS Y FALTAS'],
+      [],
+      ['Fecha Inicio', 'Fecha Fin', 'Sucursal', 'Colaboradora', 'Tipo', 'Días', 'Observaciones']
+    ];
+    state.novedades.forEach(n => {
+      const colab = state.colaboradoras.find(c => c.id === n.colaboradora_id);
+      rowsNov.push([
+        n.fecha_inicio,
+        n.fecha_fin,
+        n.codigo_sucursal,
+        colab?.nombre_completo || '',
+        n.tipo,
+        n.dias_computados,
+        n.observaciones || ''
+      ]);
+    });
+    const wsNov = XLSX.utils.aoa_to_sheet(rowsNov);
+    XLSX.utils.book_append_sheet(wb, wsNov, 'Novedades_Faltas');
+
+    // Guardar archivo
+    XLSX.writeFile(wb, `Reporte_RRHH_Nazaria_${state.currentPeriod}.xlsx`);
+    showToast('Archivo Excel consolidado exportado.', 'success');
+  }
+
+  // ============================================================================
+  // DROPZONE Y MANEJO DE FOTOS/CERTIFICADOS
+  // ============================================================================
+  function setupDropzone() {
+    const dropzone = document.getElementById('dropzone-certificado');
+    if (!dropzone) return;
+
+    ['dragenter', 'dragover'].forEach(name => {
+      dropzone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(name => {
+      dropzone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      }, false);
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) processFile(files[0]);
+    });
+  }
+
+  function handleFileSelect(e) {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+  }
+
+  function processFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      state.currentSelectedFile = { name: file.name, type: file.type, dataUrl: dataUrl };
+
+      const empty = document.getElementById('dropzone-empty');
+      const preview = document.getElementById('dropzone-preview');
+      const previewImg = document.getElementById('preview-img');
+      const filename = document.getElementById('preview-filename');
+
+      empty.classList.add('hidden');
+      preview.classList.remove('hidden');
+      preview.classList.add('flex');
+      filename.textContent = file.name;
+
+      if (file.type.startsWith('image/')) {
+        previewImg.src = dataUrl;
+        previewImg.classList.remove('hidden');
+      } else {
+        previewImg.classList.add('hidden');
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeSelectedFile(e) {
+    if (e) e.stopPropagation();
+    state.currentSelectedFile = null;
+    const fileInput = document.getElementById('nov-file-input');
+    if (fileInput) fileInput.value = '';
+
+    const empty = document.getElementById('dropzone-empty');
+    const preview = document.getElementById('dropzone-preview');
+    if (empty && preview) {
+      empty.classList.remove('hidden');
+      preview.classList.add('hidden');
+      preview.classList.remove('flex');
+    }
+  }
+
   function viewComprobante(url, colabNombre, tipo) {
     const modal = document.getElementById('modal-viewer');
     const img = document.getElementById('viewer-img');
@@ -1313,230 +1251,67 @@
     document.getElementById('modal-viewer').classList.add('hidden');
   }
 
-  // --- Gestión de Colaboradoras ---
-  function renderAdminColaboradoras() {
-    const tbody = document.getElementById('tbody-admin-colaboradoras');
-    tbody.innerHTML = '';
-
-    state.colaboradoras.forEach(c => {
-      const tr = document.createElement('tr');
-      tr.className = 'hover:bg-slate-800/30 transition';
-
-      const isActive = c.estado === 'activa';
-      const statusBadge = isActive
-        ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Activa</span>`
-        : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">Inactiva</span>`;
-
-      tr.innerHTML = `
-        <td class="py-3 px-3 font-semibold text-white">${c.nombre_completo}</td>
-        <td class="py-3 px-2 font-mono text-xs font-bold text-slate-300">${c.codigo_sucursal}</td>
-        <td class="py-3 px-2 font-mono text-xs text-slate-400">${c.dni}</td>
-        <td class="py-3 px-2 font-mono text-xs text-slate-400">${c.cuil || '-'}</td>
-        <td class="py-3 px-2 font-mono text-xs text-slate-300">${formatDateDisplay(c.fecha_ingreso)}</td>
-        <td class="py-3 px-2 text-xs text-slate-300">${c.categoria}</td>
-        <td class="py-3 px-2 text-center">${statusBadge}</td>
-        <td class="py-3 px-2 text-right">
-          <button onclick="window.app.toggleColaboradoraEstado('${c.id}')" class="text-xs text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-800 hover:bg-slate-700">
-            ${isActive ? 'Desactivar' : 'Activar'}
-          </button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function openAddColaboradoraModal() {
-    document.getElementById('modal-colaboradora').classList.remove('hidden');
-  }
-
-  function closeColaboradoraModal() {
-    document.getElementById('modal-colaboradora').classList.add('hidden');
-  }
-
-  async function handleSaveColaboradora(event) {
-    event.preventDefault();
-    const nombre = document.getElementById('colab-nombre').value.trim();
-    const dni = document.getElementById('colab-dni').value.trim();
-    const cuil = document.getElementById('colab-cuil').value.trim();
-    const sucursal = document.getElementById('colab-sucursal').value;
-    const fechaIngreso = document.getElementById('colab-fecha-ingreso').value;
-    const categoria = document.getElementById('colab-categoria').value.trim();
-
-    const newColab = {
-      id: 'c-' + Date.now(),
-      sucursal_id: sucursal === 'TOM' ? 'suc-tom' : 'suc-maschwitz',
-      codigo_sucursal: sucursal,
-      nombre_completo: nombre,
-      dni: dni,
-      cuil: cuil,
-      fecha_ingreso: fechaIngreso,
-      categoria: categoria,
-      estado: 'activa'
-    };
-
-    if (state.isSupabaseConnected && state.supabaseClient) {
-      try {
-        await state.supabaseClient.from('colaboradoras').insert([{
-          sucursal_id: newColab.sucursal_id,
-          nombre_completo: nombre,
-          dni: dni,
-          cuil: cuil,
-          fecha_ingreso: fechaIngreso,
-          categoria: categoria,
-          estado: 'activa'
-        }]);
-      } catch (e) {
-        console.warn('Error insertando colaboradora en Supabase:', e);
-      }
-    }
-
-    state.colaboradoras.push(newColab);
-    localStorage.setItem('nazaria_colaboradoras', JSON.stringify(state.colaboradoras));
-
-    closeColaboradoraModal();
-    showToast('Colaboradora agregada con éxito.', 'success');
-    renderAdminColaboradoras();
-    updateAdminKPIs();
-  }
-
-  function toggleColaboradoraEstado(colabId) {
-    const colab = state.colaboradoras.find(c => c.id === colabId);
-    if (!colab) return;
-
-    colab.estado = colab.estado === 'activa' ? 'inactiva' : 'activa';
-    localStorage.setItem('nazaria_colaboradoras', JSON.stringify(state.colaboradoras));
-
-    if (state.isSupabaseConnected && state.supabaseClient) {
-      state.supabaseClient.from('colaboradoras').update({ estado: colab.estado }).eq('id', colabId);
-    }
-
-    renderAdminColaboradoras();
-    updateAdminKPIs();
-    showToast(`Estado de ${colab.nombre_completo} actualizado.`, 'info');
-  }
-
-  // --- Configuración Supabase ---
-  function renderAdminConfig() {
-    document.getElementById('cfg-supabase-url').value = localStorage.getItem('nazaria_supabase_url') || '';
-    document.getElementById('cfg-supabase-key').value = localStorage.getItem('nazaria_supabase_anon_key') || '';
-  }
-
-  async function saveSupabaseConfig(e) {
-    e.preventDefault();
-    const url = document.getElementById('cfg-supabase-url').value.trim();
-    const key = document.getElementById('cfg-supabase-key').value.trim();
-
-    localStorage.setItem('nazaria_supabase_url', url);
-    localStorage.setItem('nazaria_supabase_anon_key', key);
-    window.APP_CONFIG.SUPABASE_URL = url;
-    window.APP_CONFIG.SUPABASE_ANON_KEY = key;
-
-    showToast('Credenciales guardadas. Verificando conexión...', 'info');
-    initSupabase();
-
-    if (state.supabaseClient) {
-      try {
-        const { data, error } = await state.supabaseClient.from('sucursales').select('count');
-        if (!error) {
-          showToast('¡Conexión a Supabase exitosa!', 'success');
-          syncDataFromSupabase();
-        } else {
-          showToast('Credenciales válidas pero las tablas aún no existen. Ejecuta schema.sql en Supabase.', 'warning');
-        }
-      } catch (err) {
-        showToast('Error conectando a Supabase. Verifica la URL.', 'error');
-      }
-    }
-  }
-
-  function resetToDemoData() {
-    if (!confirm('¿Restablecer datos de prueba de demostración iniciales?')) return;
-    localStorage.setItem('nazaria_colaboradoras', JSON.stringify(DEFAULT_COLABORADORAS));
-    localStorage.setItem('nazaria_novedades', JSON.stringify(DEFAULT_NOVEDADES));
-    localStorage.setItem('nazaria_cierres', JSON.stringify({}));
-    initStorageData();
-    showToast('Datos de demostración restablecidos.', 'info');
-    renderCurrentView();
-  }
-
   // ============================================================================
-  // 6. UTILIDADES Y TOASTS
+  // UTILIDADES Y TOASTS
   // ============================================================================
-  function formatDateDisplay(dateStr) {
-    if (!dateStr) return '-';
-    const parts = dateStr.split('T')[0].split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  function formatDateShort(dateStr) {
+    if (!dateStr) return '';
+    try {
+      const parts = dateStr.split('T')[0].split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return dateStr;
+    } catch (e) {
+      return dateStr;
     }
-    return dateStr;
   }
 
-  function showToast(message, type = 'info') {
+  function showToast(msg, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
     const toast = document.createElement('div');
-    toast.className = `pointer-events-auto px-4 py-3 rounded-xl text-xs font-semibold text-white shadow-2xl flex items-center gap-2 fade-in transition-all`;
+    const bgClass = type === 'success' ? 'bg-black text-white' : type === 'error' ? 'bg-red-700 text-white' : 'bg-neutral-800 text-white';
 
-    if (type === 'success') {
-      toast.classList.add('bg-emerald-600', 'border', 'border-emerald-500/40');
-      toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i> <span>${message}</span>`;
-    } else if (type === 'error') {
-      toast.classList.add('bg-rose-600', 'border', 'border-rose-500/40');
-      toast.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4"></i> <span>${message}</span>`;
-    } else if (type === 'warning') {
-      toast.classList.add('bg-amber-600', 'border', 'border-amber-500/40');
-      toast.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4"></i> <span>${message}</span>`;
-    } else {
-      toast.classList.add('bg-slate-800', 'border', 'border-slate-700');
-      toast.innerHTML = `<i data-lucide="info" class="w-4 h-4 text-blue-400"></i> <span>${message}</span>`;
-    }
+    toast.className = `${bgClass} px-4 py-2.5 rounded-lg shadow-xl text-xs font-bold flex items-center gap-2 fade-in`;
+    toast.innerHTML = `<span>${msg}</span>`;
 
     container.appendChild(toast);
-    initLucideIcons();
-
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateY(8px)';
+      toast.style.transition = 'opacity 0.3s ease';
       setTimeout(() => toast.remove(), 300);
-    }, 4000);
+    }, 3000);
   }
 
-  // Exponer API pública al objeto global
+  // Exponer métodos globalmente
   window.app = {
-    init,
     promptPin,
     closePinModal,
     pressPinKey,
     submitPin,
     logout,
+    changePeriod,
     switchStoreTab,
+    switchAdminTab,
+    saveAllHorasStore,
+    saveHorariosStore,
+    recalcRowTotal,
     handleTipoNovedadChange,
-    handleFileSelect,
-    clearFile,
     handleSaveNovedad,
     deleteNovedad,
-    saveCierreStore,
-    submitCierreStore,
-    updateCierreTotals,
-    switchAdminTab,
-    handleAdminPeriodChange,
-    renderAdminCierres,
-    approveAndFreezePeriodo,
-    reopenPeriodo,
-    exportToExcel,
-    exportVacacionesExcel,
+    handleSaveRetiro,
+    deleteRetiro,
+    exportFullExcelWorkbook,
+    handleFileSelect,
+    removeSelectedFile,
     viewComprobante,
     closeViewerModal,
-    openAddColaboradoraModal,
-    closeColaboradoraModal,
-    handleSaveColaboradora,
-    toggleColaboradoraEstado,
-    saveSupabaseConfig,
-    resetToDemoData
+    openAddColaboradoraModal: () => showToast('Para sumar colaboradoras editá la lista o contactá a RRHH.', 'info')
   };
 
-  // Auto-iniciar al cargar el DOM
+  // Inicializar al cargar el DOM
   document.addEventListener('DOMContentLoaded', init);
 
 })();
