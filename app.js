@@ -1162,7 +1162,7 @@
 
   function switchAdminTab(tab) {
     state.activeAdminTab = tab;
-    const tabs = ['consolidado', 'vacaciones', 'retiros', 'novedades', 'colaboradoras'];
+    const tabs = ['consolidado', 'vacaciones', 'novedades', 'retiros', 'colaboradoras'];
     tabs.forEach(t => {
       const btn = document.getElementById(`tab-admin-${t}`);
       const view = document.getElementById(`subview-admin-${t}`);
@@ -1177,8 +1177,8 @@
 
     if (tab === 'consolidado') renderAdminConsolidado();
     if (tab === 'vacaciones') renderAdminVacaciones();
-    if (tab === 'retiros') renderAdminRetiros();
     if (tab === 'novedades') renderAdminNovedades();
+    if (tab === 'retiros') renderAdminRetiros();
     if (tab === 'colaboradoras') renderAdminColaboradoras();
 
     initLucideIcons();
@@ -1730,8 +1730,17 @@
 
     const currentPeriod = state.currentPeriod;
     const allKeys = getConsolidadoKeysForPeriod(currentPeriod);
-    const retirosPeriod = state.retiros.filter(r => r.fecha && r.fecha.startsWith(currentPeriod));
-    const novedadesPeriod = state.novedades.filter(n => n.tipo !== 'Vacaciones' && ((n.fecha_inicio && n.fecha_inicio.startsWith(currentPeriod)) || (n.creado_en && n.creado_en.startsWith(currentPeriod))));
+    const vacPeriod = state.novedades.filter(n => n.tipo === 'Vacaciones' && (
+      (n.fecha_inicio && n.fecha_inicio.startsWith(currentPeriod)) ||
+      (n.fecha_fin && n.fecha_fin.startsWith(currentPeriod))
+    ));
+    vacPeriod.sort((a, b) => (a.fecha_inicio || '').localeCompare(b.fecha_inicio || ''));
+
+    const novedadesPeriod = state.novedades.filter(n => n.tipo !== 'Vacaciones' && (
+      (n.fecha_inicio && n.fecha_inicio.startsWith(currentPeriod)) ||
+      (n.creado_en && n.creado_en.startsWith(currentPeriod))
+    ));
+    novedadesPeriod.sort((a, b) => (a.fecha_inicio || '').localeCompare(b.fecha_inicio || ''));
 
     let totalHorasRed = 0;
     let totalBaseRed = 0;
@@ -1764,7 +1773,8 @@
             <span style="background: ${sucursal === 'TOM' ? '#E6D5C3' : '#0f172a'}; color: ${sucursal === 'TOM' ? '#1e1e1e' : '#ffffff'}; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 800;">${sucursal}</span>
           </td>
           <td style="padding: 9px 10px; font-weight: 700; color: #0f172a;">
-            ${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.nombre_completo || 'Colaboradora')}
+            <div>${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.nombre_completo || 'Colaboradora')}</div>
+            ${colab?.dni ? `<div style="font-size: 10px; color: #64748b; font-family: monospace; font-weight: normal; margin-top: 1px;">DNI ${colab.dni}</div>` : ''}
           </td>
           <td style="padding: 9px 10px; text-align: center; font-family: monospace; font-size: 13px;">${b}</td>
           <td style="padding: 9px 10px; text-align: center; font-family: monospace; font-size: 13px;">${f}</td>
@@ -1776,7 +1786,38 @@
       `;
     }).join('');
 
-    let novsHtml = '<p style="font-size: 12px; color: #94a3b8; font-style: italic; margin: 8px 0;">Sin ausencias ni licencias registradas en este período.</p>';
+    let vacHtml = '<p style="font-size: 12px; color: #94a3b8; font-style: italic; margin: 8px 0;">Sin vacaciones gozadas registradas en este período.</p>';
+    if (vacPeriod.length > 0) {
+      vacHtml = `
+        <table style="width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left; color: #475569; font-size: 11px;">
+              <th style="padding: 6px 8px;">Colaboradora</th>
+              <th style="padding: 6px 8px;">Sucursal</th>
+              <th style="padding: 6px 8px;">Tramo Fechas</th>
+              <th style="padding: 6px 8px; text-align: center;">Días</th>
+              <th style="padding: 6px 8px;">Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${vacPeriod.map(n => {
+              const c = state.colaboradoras.find(col => col.id === n.colaboradora_id);
+              return `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${c?.nombre_completo || 'Colaboradora'}</td>
+                  <td style="padding: 6px 8px;"><span style="background: ${n.codigo_sucursal === 'TOM' ? '#E6D5C3' : '#0f172a'}; color: ${n.codigo_sucursal === 'TOM' ? '#1e1e1e' : '#ffffff'}; padding: 2px 5px; border-radius: 4px; font-size: 10px; font-weight: bold;">${n.codigo_sucursal}</span></td>
+                  <td style="padding: 6px 8px; font-family: monospace; color: #334155;">${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)}</td>
+                  <td style="padding: 6px 8px; font-weight: bold; text-align: center; color: #065f46; font-size: 13px;">${n.dias_computados}d</td>
+                  <td style="padding: 6px 8px; color: #475569;">${n.observaciones || 'Vacaciones anuales'}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    let novsHtml = '<p style="font-size: 12px; color: #94a3b8; font-style: italic; margin: 8px 0;">Sin ausencias ni faltas registradas en este período.</p>';
     if (novedadesPeriod.length > 0) {
       novsHtml = `
         <table style="width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px;">
@@ -1793,48 +1834,15 @@
           <tbody>
             ${novedadesPeriod.map(n => {
               const c = state.colaboradoras.find(col => col.id === n.colaboradora_id);
+              const isFalta = n.tipo.toLowerCase().includes('falta') || n.tipo.toLowerCase().includes('injustificada');
               return `
                 <tr style="border-bottom: 1px solid #f1f5f9;">
                   <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${c?.nombre_completo || 'Colaboradora'}</td>
                   <td style="padding: 6px 8px;"><span style="background: #e2e8f0; padding: 2px 5px; border-radius: 4px; font-size: 10px; font-weight: bold;">${n.codigo_sucursal}</span></td>
-                  <td style="padding: 6px 8px; font-weight: 700; color: #b91c1c;">${n.tipo}</td>
+                  <td style="padding: 6px 8px; font-weight: 700; color: ${isFalta ? '#b91c1c' : '#0369a1'};">${n.tipo}</td>
                   <td style="padding: 6px 8px; font-family: monospace; color: #475569;">${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)}</td>
                   <td style="padding: 6px 8px; font-weight: bold; text-align: center; color: #0f172a;">${n.dias_computados}d</td>
                   <td style="padding: 6px 8px; color: #334155;">${n.observaciones || '-'}</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      `;
-    }
-
-    let retirosHtml = '<p style="font-size: 12px; color: #94a3b8; font-style: italic; margin: 8px 0;">Sin retiros de calzado a descontar en este período.</p>';
-    if (retirosPeriod.length > 0) {
-      retirosHtml = `
-        <table style="width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px;">
-          <thead>
-            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left; color: #475569; font-size: 11px;">
-              <th style="padding: 6px 8px;">Tipo</th>
-              <th style="padding: 6px 8px;">Colaboradora</th>
-              <th style="padding: 6px 8px;">Sucursal</th>
-              <th style="padding: 6px 8px;">Artículo</th>
-              <th style="padding: 6px 8px;">Talle/Color</th>
-              <th style="padding: 6px 8px;">Fecha</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${retirosPeriod.map(r => {
-              const c = state.colaboradoras.find(col => col.id === r.colaboradora_id);
-              const isSeason = r.tipo === 'Par de Temporada';
-              return `
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                  <td style="padding: 6px 8px;"><span style="background: ${isSeason ? '#e2e8f0' : '#fee2e2'}; color: ${isSeason ? '#334155' : '#991b1b'}; font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 4px;">${r.tipo}</span></td>
-                  <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${c?.nombre_completo || 'Colaboradora'}</td>
-                  <td style="padding: 6px 8px; font-weight: 600;">${r.sucursal}</td>
-                  <td style="padding: 6px 8px; font-weight: 700; font-family: monospace;">${r.articulo}</td>
-                  <td style="padding: 6px 8px; color: #475569;">${r.talle_color}</td>
-                  <td style="padding: 6px 8px; font-family: monospace; color: #64748b;">${formatDateShort(r.fecha)}</td>
                 </tr>
               `;
             }).join('')}
@@ -1875,7 +1883,7 @@
             <thead>
               <tr style="background: #0f172a; color: #ffffff; font-size: 12px; text-align: left;">
                 <th style="padding: 8px 10px; width: 90px;">Sucursal</th>
-                <th style="padding: 8px 10px;">Colaboradora</th>
+                <th style="padding: 8px 10px;">Colaboradora & Documento</th>
                 <th style="padding: 8px 10px; text-align: center; width: 75px;">Hs Base</th>
                 <th style="padding: 8px 10px; text-align: center; width: 75px;">Feriados</th>
                 <th style="padding: 8px 10px; text-align: center; width: 75px;">Extras</th>
@@ -1901,25 +1909,27 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
           <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; background: #fafafa;">
-            <h3 style="margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #0f172a;">
-              2. Novedades, Licencias y Faltas
+            <h3 style="margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #0f172a; display: flex; align-items: center; justify-content: space-between;">
+              <span>2. Vacaciones Gozadas en el Mes</span>
+              <span style="font-size: 10px; background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Plus Vacacional Art. 155 LCT</span>
             </h3>
-            <p style="margin: 0 0 8px; font-size: 11px; color: #64748b;">Días a justificar o descontar en recibo.</p>
-            ${novsHtml}
+            <p style="margin: 0 0 8px; font-size: 11px; color: #64748b;">Días computados para liquidación de plus vacacional (divisor 25).</p>
+            ${vacHtml}
           </div>
 
           <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; background: #fafafa;">
-            <h3 style="margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #0f172a;">
-              3. Retiros de Calzado (A Descontar)
+            <h3 style="margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #0f172a; display: flex; align-items: center; justify-content: space-between;">
+              <span>3. Novedades, Licencias y Faltas</span>
+              <span style="font-size: 10px; background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Descuentos / Certificados</span>
             </h3>
-            <p style="margin: 0 0 8px; font-size: 11px; color: #64748b;">Calzados para deducción mensual en recibo.</p>
-            ${retirosHtml}
+            <p style="margin: 0 0 8px; font-size: 11px; color: #64748b;">Faltas a descontar y licencias justificadas con certificado médico.</p>
+            ${novsHtml}
           </div>
         </div>
 
         <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b;">
           <div>Resumen validado por Administración · Nazaria Retail</div>
-          <div style="font-weight: 600;">Documento confidencial para liquidación de haberes</div>
+          <div style="font-weight: 600;">Documento oficial para liquidación de haberes (Estudio Contable)</div>
         </div>
       </div>
     `;
