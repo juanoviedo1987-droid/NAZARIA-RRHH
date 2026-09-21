@@ -59,7 +59,7 @@
       dni: '35290145',
       cuil: '27-35290145-8',
       fecha_ingreso: '2025-07-05',
-      fecha_antiguedad_reconocida: '2018-09-01', // Reconocimiento de antigüedad LCT (21 días ley)
+      fecha_antiguedad_reconocida: '2018-09-01', // Reconocimiento de antigüedad LCT (21 días disponibles)
       categoria: 'Encargada de Sucursal',
       estado: 'activa'
     },
@@ -117,7 +117,7 @@
     }
   ];
 
-  // --- 2. DATOS REALES DE HORAS Y CIERRES (Semilla de Excel Agosto / Octubre) ---
+  // --- 2. DATOS REALES DE HORAS Y CIERRES ---
   const DEFAULT_CIERRES = {
     // TOM
     '2026-10_c-sofi': { horas_base: 144, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
@@ -133,6 +133,18 @@
     '2026-10_c-martu_masch': { horas_base: 22, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami y Flavia en Maschwitz' }
   };
 
+  // --- DETALLE INDIVIDUAL DE HORAS EXTRAS Y ADICIONALES (Punto 1) ---
+  const DEFAULT_HORAS_DETALLE = [
+    { id: 'hd-1', colaboradora_id: 'c-anto', sucursal: 'TOM', fecha: '2026-08-04', tipo: 'Hora Adicional', horas: 6, motivo: 'Hora adicional en TOM' },
+    { id: 'hd-2', colaboradora_id: 'c-cande', sucursal: 'TOM', fecha: '2026-08-09', tipo: 'Hora Adicional', horas: 6, motivo: 'Cubre a Martu por vacaciones' },
+    { id: 'hd-3', colaboradora_id: 'c-anto', sucursal: 'TOM', fecha: '2026-08-10', tipo: 'Hora Adicional', horas: 6, motivo: 'Cobertura en Maschwitz por vacaciones Cami' },
+    { id: 'hd-4', colaboradora_id: 'c-anto', sucursal: 'TOM', fecha: '2026-08-11', tipo: 'Hora Adicional', horas: 6, motivo: 'Hora adicional en TOM' },
+    { id: 'hd-5', colaboradora_id: 'c-sofi', sucursal: 'TOM', fecha: '2026-08-17', tipo: 'Hora Extra', horas: 6, motivo: 'Feriado nacional 17 de agosto' },
+    { id: 'hd-6', colaboradora_id: 'c-esme', sucursal: 'TOM', fecha: '2026-08-17', tipo: 'Hora Extra', horas: 6, motivo: 'Feriado nacional 17 de agosto' },
+    { id: 'hd-7', colaboradora_id: 'c-cande', sucursal: 'TOM', fecha: '2026-08-17', tipo: 'Hora Extra', horas: 6, motivo: 'Feriado nacional 17 de agosto' },
+    { id: 'hd-8', colaboradora_id: 'c-anto', sucursal: 'TOM', fecha: '2026-08-30', tipo: 'Hora Adicional', horas: 6, motivo: 'Guardia especial de domingo' }
+  ];
+
   // --- 3. HORARIOS SEMANALES OFICIALES (Grilla de Turnos de Excel) ---
   const DEFAULT_HORARIOS = {
     'TOM': {
@@ -143,6 +155,19 @@
       manana: { lun: 'JULI', mar: 'FLAVIA', mie: 'FLAVIA', jue: 'FLAVIA', vie: 'FLAVIA', sab: 'FLAVIA', dom: 'CAMI' },
       tarde: { lun: 'CAMI', mar: 'CAMI', mie: 'JULI', jue: 'CAMI', vie: 'JULI', sab: 'JULI', dom: 'MARTU' }
     }
+  };
+
+  // --- ANEXO: FECHAS ESPECIALES Y EXCEPCIONES (Punto 2) ---
+  const DEFAULT_FECHAS_ESPECIALES = [
+    { id: 'fe-1', sucursal: 'TOM', fecha_evento: '19/10 - Día de la Madre', manana: 'ESME / CANDE (10 a 16hs)', tarde: 'SOFI / ANTO (16 a 23hs)', observacion: 'Apertura extendida shopping' },
+    { id: 'fe-2', sucursal: 'TOM', fecha_evento: '17/08 - Feriado San Martín', manana: 'SOFI (11 a 17hs)', tarde: 'ESME / CANDE (17 a 22hs)', observacion: 'Feriado nacional trabajado' },
+    { id: 'fe-3', sucursal: 'MASCHWITZ', fecha_evento: '09/08 - Cobertura Especial', manana: 'FLAVIA (10 a 16hs)', tarde: 'CANDE (Cubre Martu 16 a 21hs)', observacion: 'Cobertura por vacaciones Cami' }
+  ];
+
+  // --- NOTAS GENERALES DE COBERTURAS DEL MES ---
+  const DEFAULT_HORARIOS_NOTAS = {
+    'TOM': 'Anto de TOM cubre el 10/08 por vacaciones de Cami en Maschwitz. Cande cubre a Martu el 09/08.',
+    'MASCHWITZ': 'Cami se toma vacaciones pendientes del 09/08 al 13/08. Cande de TOM cubre a Martu por vacaciones el día 09/08. Flavia cubre a Cami por vacaciones el día 09/08. Anto de TOM cubre el 10/08 por vacaciones de Cami. Martu cubre a Cami los días 11/08 y 13/08. Flavia se toma el 15/08 como franco, cubre Martu. Flavia ausente el día 29/08 (descontar el día) cubre Martu.'
   };
 
   // --- 4. RETIROS DE CALZADO Y PAR DE TEMPORADA ---
@@ -196,8 +221,11 @@
     colaboradoras: [],
     novedades: [],
     cierres: {},
+    horas_detalle: [],
     retiros: [],
-    horarios: {}
+    horarios: {},
+    fechas_especiales: [],
+    horarios_notas: {}
   };
 
   // ============================================================================
@@ -218,21 +246,26 @@
   }
 
   function initStorageData() {
-    // Si la lista de colaboradores en localstorage no tiene a las 8 reales, reinicializar
-    const savedColabs = localStorage.getItem('nazaria_colaboradoras');
-    if (!savedColabs || !savedColabs.includes('Gómez Flavia Marianela') || !savedColabs.includes('Barrientos Sofia')) {
-      localStorage.setItem('nazaria_colaboradoras', JSON.stringify(DEFAULT_COLABORADORAS));
-      localStorage.setItem('nazaria_cierres', JSON.stringify(DEFAULT_CIERRES));
-      localStorage.setItem('nazaria_horarios', JSON.stringify(DEFAULT_HORARIOS));
-      localStorage.setItem('nazaria_retiros', JSON.stringify(DEFAULT_RETIROS));
-      localStorage.setItem('nazaria_novedades', JSON.stringify(DEFAULT_NOVEDADES));
+    // Inicializar o recargar datos
+    if (!localStorage.getItem('nazaria_colaboradoras_v2')) {
+      localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
+      localStorage.setItem('nazaria_cierres_v2', JSON.stringify(DEFAULT_CIERRES));
+      localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(DEFAULT_HORAS_DETALLE));
+      localStorage.setItem('nazaria_horarios_v2', JSON.stringify(DEFAULT_HORARIOS));
+      localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(DEFAULT_FECHAS_ESPECIALES));
+      localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(DEFAULT_HORARIOS_NOTAS));
+      localStorage.setItem('nazaria_retiros_v2', JSON.stringify(DEFAULT_RETIROS));
+      localStorage.setItem('nazaria_novedades_v2', JSON.stringify(DEFAULT_NOVEDADES));
     }
 
-    state.colaboradoras = JSON.parse(localStorage.getItem('nazaria_colaboradoras') || JSON.stringify(DEFAULT_COLABORADORAS));
-    state.cierres = JSON.parse(localStorage.getItem('nazaria_cierres') || JSON.stringify(DEFAULT_CIERRES));
-    state.horarios = JSON.parse(localStorage.getItem('nazaria_horarios') || JSON.stringify(DEFAULT_HORARIOS));
-    state.retiros = JSON.parse(localStorage.getItem('nazaria_retiros') || JSON.stringify(DEFAULT_RETIROS));
-    state.novedades = JSON.parse(localStorage.getItem('nazaria_novedades') || JSON.stringify(DEFAULT_NOVEDADES));
+    state.colaboradoras = JSON.parse(localStorage.getItem('nazaria_colaboradoras_v2') || JSON.stringify(DEFAULT_COLABORADORAS));
+    state.cierres = JSON.parse(localStorage.getItem('nazaria_cierres_v2') || JSON.stringify(DEFAULT_CIERRES));
+    state.horas_detalle = JSON.parse(localStorage.getItem('nazaria_horas_detalle_v2') || JSON.stringify(DEFAULT_HORAS_DETALLE));
+    state.horarios = JSON.parse(localStorage.getItem('nazaria_horarios_v2') || JSON.stringify(DEFAULT_HORARIOS));
+    state.fechas_especiales = JSON.parse(localStorage.getItem('nazaria_fechas_especiales_v2') || JSON.stringify(DEFAULT_FECHAS_ESPECIALES));
+    state.horarios_notas = JSON.parse(localStorage.getItem('nazaria_horarios_notas_v2') || JSON.stringify(DEFAULT_HORARIOS_NOTAS));
+    state.retiros = JSON.parse(localStorage.getItem('nazaria_retiros_v2') || JSON.stringify(DEFAULT_RETIROS));
+    state.novedades = JSON.parse(localStorage.getItem('nazaria_novedades_v2') || JSON.stringify(DEFAULT_NOVEDADES));
   }
 
   function initSupabase() {
@@ -250,7 +283,6 @@
           dbStatusText.textContent = "Supabase Conectado";
         }
       } catch (err) {
-        console.warn('Supabase offline, usando almacenamiento local:', err);
         setLocalModeBadge();
       }
     } else {
@@ -403,32 +435,35 @@
   // TERMINAL DE LOCAL (STORE VIEW)
   // ============================================================================
   function renderStoreView() {
-    const storeCode = state.currentRole; // 'TOM' | 'MASCHWITZ'
+    const storeCode = state.currentRole;
     const storeTitle = document.getElementById('store-title');
     storeTitle.textContent = storeCode === 'TOM' ? 'Tortugas Open Mall (TOM)' : 'Maschwitz Mall';
 
     document.getElementById('select-store-period').value = state.currentPeriod;
 
-    // Poblar selects de colaboradoras para la sucursal
+    // Poblar selects de colaboradoras para todos los formularios
     populateStoreColaboradorasSelects(storeCode);
 
-    // Renderizar según la pestaña activa
     switchStoreTab(state.activeStoreTab);
   }
 
   function populateStoreColaboradorasSelects(storeCode) {
-    const novSelect = document.getElementById('nov-colaboradora');
-    const retSelect = document.getElementById('ret-colaboradora');
+    const selects = [
+      document.getElementById('nov-colaboradora'),
+      document.getElementById('ret-colaboradora'),
+      document.getElementById('hd-colaboradora'),
+      document.getElementById('vac-colaboradora')
+    ];
 
     const opts = ['<option value="">-- Seleccionar colaboradora --</option>'];
 
-    // Colaboradoras asignadas formalmente a la sucursal
+    // Colaboradoras asignadas a la sucursal
     const localColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
     localColabs.forEach(c => {
       opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.nombre_completo})</option>`);
     });
 
-    // En Maschwitz, permitir seleccionar a colaboradoras de TOM que habitualmente cubren (Martu, Anto, Cande)
+    // En Maschwitz, permitir seleccionar a colaboradoras de TOM para coberturas
     if (storeCode === 'MASCHWITZ') {
       opts.push('<optgroup label="Coberturas desde TOM">');
       state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM').forEach(c => {
@@ -437,8 +472,10 @@
       opts.push('</optgroup>');
     }
 
-    novSelect.innerHTML = opts.join('');
-    retSelect.innerHTML = opts.join('');
+    const html = opts.join('');
+    selects.forEach(sel => {
+      if (sel) sel.innerHTML = html;
+    });
   }
 
   function switchStoreTab(tab) {
@@ -457,8 +494,14 @@
       }
     });
 
-    if (tab === 'horas') renderStoreHoras();
-    if (tab === 'horarios') renderStoreHorarios();
+    if (tab === 'horas') {
+      renderStoreHoras();
+      renderStoreHorasDetalle();
+    }
+    if (tab === 'horarios') {
+      renderStoreHorarios();
+      renderStoreFechasEspeciales();
+    }
     if (tab === 'novedades') renderStoreNovedades();
     if (tab === 'retiros') renderStoreRetiros();
     if (tab === 'vacaciones') renderStoreVacaciones();
@@ -472,10 +515,7 @@
     tbody.innerHTML = '';
     const storeCode = state.currentRole;
 
-    // Colaboradoras de la sucursal
     const colabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
-    
-    // Si es Maschwitz, agregar fila de cobertura para Martu Pinto
     const listToRender = [...colabs];
     if (storeCode === 'MASCHWITZ') {
       const martu = state.colaboradoras.find(c => c.id === 'c-martu');
@@ -551,11 +591,102 @@
       };
     });
 
-    localStorage.setItem('nazaria_cierres', JSON.stringify(state.cierres));
+    localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
     showToast('Horas del mes guardadas exitosamente.', 'success');
   }
 
-  // --- SUBVISTA 2: HORARIOS SEMANALES ---
+  // --- SUBVISTA 1.B: DETALLE Y JUSTIFICACIÓN DE EXTRAS / ADICIONALES (Punto 1) ---
+  function renderStoreHorasDetalle() {
+    const tbody = document.getElementById('tbody-store-horas-detalle');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const storeCode = state.currentRole;
+
+    // Filtrar y ordenar cronológicamente por fecha, luego por colaboradora
+    const list = state.horas_detalle.filter(h => h.sucursal === storeCode);
+    list.sort((a, b) => {
+      const cmpDate = (a.fecha || '').localeCompare(b.fecha || '');
+      if (cmpDate !== 0) return cmpDate;
+      const cA = state.colaboradoras.find(c => c.id === a.colaboradora_id)?.nombre_completo || '';
+      const cB = state.colaboradoras.find(c => c.id === b.colaboradora_id)?.nombre_completo || '';
+      return cA.localeCompare(cB);
+    });
+
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-neutral-400 text-xs">No hay detalle de horas extras o adicionales registradas.</td></tr>`;
+      return;
+    }
+
+    list.forEach(h => {
+      const colab = state.colaboradoras.find(c => c.id === h.colaboradora_id);
+      const tr = document.createElement('tr');
+      const isExtra = h.tipo === 'Hora Extra';
+
+      tr.innerHTML = `
+        <td class="font-mono text-xs text-neutral-600">${formatDateShort(h.fecha)}</td>
+        <td class="font-bold text-xs text-neutral-900">${colab?.alias || colab?.nombre_completo || 'Colaboradora'}</td>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isExtra ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-blue-50 text-blue-800 border border-blue-200'}">${h.tipo}</span></td>
+        <td class="font-mono font-bold text-xs text-neutral-900">${h.horas} hs</td>
+        <td class="text-xs text-neutral-700">${h.motivo}</td>
+        <td class="text-right">
+          <button onclick="window.app.handleDeleteHoraDetalle('${h.id}')" class="text-neutral-400 hover:text-red-600 p-1" title="Eliminar registro">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    initLucideIcons();
+  }
+
+  function handleAddHoraDetalle(event) {
+    event.preventDefault();
+    const colabId = document.getElementById('hd-colaboradora').value;
+    const fecha = document.getElementById('hd-fecha').value;
+    const tipo = document.getElementById('hd-tipo').value;
+    const horas = parseFloat(document.getElementById('hd-horas').value) || 0;
+    const motivo = document.getElementById('hd-motivo').value.trim();
+
+    const newRecord = {
+      id: 'hd-' + Date.now(),
+      colaboradora_id: colabId,
+      sucursal: state.currentRole,
+      fecha: fecha,
+      tipo: tipo,
+      horas: horas,
+      motivo: motivo
+    };
+
+    state.horas_detalle.push(newRecord);
+    localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
+
+    // Opcional: auto-sumar en la fila de la tabla principal
+    const key = `${state.currentPeriod}_${colabId}`;
+    if (state.cierres[key]) {
+      if (tipo === 'Hora Extra') {
+        state.cierres[key].extras_hs = (Number(state.cierres[key].extras_hs) || 0) + horas;
+      } else {
+        state.cierres[key].adicionales_hs = (Number(state.cierres[key].adicionales_hs) || 0) + horas;
+      }
+      localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+    }
+
+    document.getElementById('form-hora-detalle').reset();
+    showToast('Horas registradas con justificación.', 'success');
+    renderStoreHoras();
+    renderStoreHorasDetalle();
+  }
+
+  function handleDeleteHoraDetalle(id) {
+    if (!confirm('¿Eliminar este registro de horas?')) return;
+    state.horas_detalle = state.horas_detalle.filter(h => h.id !== id);
+    localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
+    renderStoreHorasDetalle();
+    showToast('Registro eliminado.', 'info');
+  }
+
+  // --- SUBVISTA 2: HORARIOS SEMANALES & FECHAS ESPECIALES (Punto 2) ---
   function renderStoreHorarios() {
     const storeCode = state.currentRole;
     const h = state.horarios[storeCode] || { manana: {}, tarde: {} };
@@ -567,6 +698,11 @@
       if (elMan) elMan.value = h.manana[d] || '';
       if (elTar) elTar.value = h.tarde[d] || '';
     });
+
+    const notasEl = document.getElementById('store-horarios-notas');
+    if (notasEl) {
+      notasEl.value = state.horarios_notas[storeCode] || '';
+    }
   }
 
   function saveHorariosStore() {
@@ -581,18 +717,99 @@
     });
 
     state.horarios[storeCode] = { manana, tarde };
-    localStorage.setItem('nazaria_horarios', JSON.stringify(state.horarios));
-    showToast('Horarios semanales guardados.', 'success');
+    localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
+    showToast('Grilla de horarios guardada.', 'success');
   }
 
-  // --- SUBVISTA 3: NOVEDADES & FALTAS ---
+  function renderStoreFechasEspeciales() {
+    const tbody = document.getElementById('tbody-store-fechas-especiales');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const storeCode = state.currentRole;
+
+    const list = state.fechas_especiales.filter(f => f.sucursal === storeCode);
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-neutral-400 text-xs">No hay fechas especiales cargadas este mes.</td></tr>`;
+      return;
+    }
+
+    list.forEach(f => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="font-bold text-xs text-neutral-900">${f.fecha_evento}</td>
+        <td class="font-mono text-xs uppercase">${f.manana}</td>
+        <td class="font-mono text-xs uppercase">${f.tarde}</td>
+        <td class="text-xs text-neutral-600">${f.observacion || '-'}</td>
+        <td class="text-right">
+          <button onclick="window.app.handleDeleteFechaEspecial('${f.id}')" class="text-neutral-400 hover:text-red-600 p-1" title="Eliminar">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    initLucideIcons();
+  }
+
+  function handleAddFechaEspecial(event) {
+    event.preventDefault();
+    const evento = document.getElementById('fe-evento').value.trim();
+    const manana = document.getElementById('fe-manana').value.trim().toUpperCase();
+    const tarde = document.getElementById('fe-tarde').value.trim().toUpperCase();
+    const obs = document.getElementById('fe-obs').value.trim();
+
+    const newFe = {
+      id: 'fe-' + Date.now(),
+      sucursal: state.currentRole,
+      fecha_evento: evento,
+      manana: manana,
+      tarde: tarde,
+      observacion: obs
+    };
+
+    state.fechas_especiales.push(newFe);
+    localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(state.fechas_especiales));
+
+    document.getElementById('form-fecha-especial').reset();
+    showToast('Fecha especial agregada al anexo.', 'success');
+    renderStoreFechasEspeciales();
+  }
+
+  function handleDeleteFechaEspecial(id) {
+    if (!confirm('¿Eliminar esta fecha especial?')) return;
+    state.fechas_especiales = state.fechas_especiales.filter(f => f.id !== id);
+    localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(state.fechas_especiales));
+    renderStoreFechasEspeciales();
+    showToast('Fecha especial eliminada.', 'info');
+  }
+
+  function saveHorariosNotas() {
+    const storeCode = state.currentRole;
+    const txt = document.getElementById('store-horarios-notas')?.value.trim() || '';
+    state.horarios_notas[storeCode] = txt;
+    localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(state.horarios_notas));
+    showToast('Observaciones y coberturas guardadas.', 'success');
+  }
+
+  // --- SUBVISTA 3: NOVEDADES & FALTAS (Ordenado por Fecha y Colaboradora - Punto 3) ---
   function renderStoreNovedades() {
     const tbody = document.getElementById('tbody-store-novedades');
     tbody.innerHTML = '';
     const storeCode = state.currentRole;
 
-    const filtered = state.novedades.filter(n => n.codigo_sucursal === storeCode);
-    document.getElementById('store-nov-count').textContent = `${filtered.length} novedades`;
+    const filtered = state.novedades.filter(n => n.codigo_sucursal === storeCode && n.tipo !== 'Vacaciones');
+    
+    // Ordenar cronológicamente por fecha, luego por nombre de colaboradora
+    filtered.sort((a, b) => {
+      const cmpDate = (a.fecha_inicio || '').localeCompare(b.fecha_inicio || '');
+      if (cmpDate !== 0) return cmpDate;
+      const cA = state.colaboradoras.find(c => c.id === a.colaboradora_id)?.nombre_completo || '';
+      const cB = state.colaboradoras.find(c => c.id === b.colaboradora_id)?.nombre_completo || '';
+      return cA.localeCompare(cB);
+    });
+
+    document.getElementById('store-nov-count').textContent = `${filtered.length} registros`;
 
     if (filtered.length === 0) {
       tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-neutral-400 text-xs">No hay novedades registradas en este período.</td></tr>`;
@@ -671,9 +888,8 @@
     };
 
     state.novedades.unshift(newNov);
-    localStorage.setItem('nazaria_novedades', JSON.stringify(state.novedades));
+    localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
 
-    // Resetear form
     document.getElementById('form-novedad').reset();
     removeSelectedFile();
     showToast('Novedad guardada exitosamente.', 'success');
@@ -681,20 +897,31 @@
   }
 
   function deleteNovedad(id) {
-    if (!confirm('¿Seguro que deseás eliminar este registro de novedad?')) return;
+    if (!confirm('¿Seguro que deseás eliminar este registro?')) return;
     state.novedades = state.novedades.filter(n => n.id !== id);
-    localStorage.setItem('nazaria_novedades', JSON.stringify(state.novedades));
+    localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
     renderStoreNovedades();
-    showToast('Novedad eliminada.', 'info');
+    renderStoreVacaciones();
+    showToast('Registro eliminado.', 'info');
   }
 
-  // --- SUBVISTA 4: RETIROS & PAR DE TEMPORADA ---
+  // --- SUBVISTA 4: RETIROS & PAR DE TEMPORADA (Ordenado por Fecha y Colaboradora - Punto 4) ---
   function renderStoreRetiros() {
     const tbody = document.getElementById('tbody-store-retiros');
     tbody.innerHTML = '';
     const storeCode = state.currentRole;
 
     const filtered = state.retiros.filter(r => r.sucursal === storeCode);
+    
+    // Ordenar cronológicamente por fecha, luego por nombre de colaboradora
+    filtered.sort((a, b) => {
+      const cmpDate = (a.fecha || '').localeCompare(b.fecha || '');
+      if (cmpDate !== 0) return cmpDate;
+      const cA = state.colaboradoras.find(c => c.id === a.colaboradora_id)?.nombre_completo || '';
+      const cB = state.colaboradoras.find(c => c.id === b.colaboradora_id)?.nombre_completo || '';
+      return cA.localeCompare(cB);
+    });
+
     document.getElementById('store-ret-count').textContent = `${filtered.length} pares`;
 
     if (filtered.length === 0) {
@@ -747,8 +974,8 @@
       fecha: fecha || new Date().toISOString().split('T')[0]
     };
 
-    state.retiros.unshift(newRet);
-    localStorage.setItem('nazaria_retiros', JSON.stringify(state.retiros));
+    state.retiros.push(newRet);
+    localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
 
     document.getElementById('form-retiro').reset();
     showToast('Calzado registrado con éxito.', 'success');
@@ -758,12 +985,55 @@
   function deleteRetiro(id) {
     if (!confirm('¿Seguro que deseás eliminar este registro de calzado?')) return;
     state.retiros = state.retiros.filter(r => r.id !== id);
-    localStorage.setItem('nazaria_retiros', JSON.stringify(state.retiros));
+    localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
     renderStoreRetiros();
     showToast('Registro eliminado.', 'info');
   }
 
-  // --- SUBVISTA 5: VACACIONES DEL LOCAL ---
+  // --- SUBVISTA 5: VACACIONES (Carga directa, Días Disponibles y Tramos Desplegados - Punto 5) ---
+  function calcVacDaysAuto() {
+    const d = document.getElementById('vac-desde')?.value;
+    const h = document.getElementById('vac-hasta')?.value;
+    if (d && h) {
+      const date1 = new Date(d);
+      const date2 = new Date(h);
+      if (date2 >= date1) {
+        const diffTime = Math.abs(date2 - date1);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        document.getElementById('vac-dias').value = diffDays;
+      }
+    }
+  }
+
+  function handleSaveVacaciones(event) {
+    event.preventDefault();
+    const colabId = document.getElementById('vac-colaboradora').value;
+    const desde = document.getElementById('vac-desde').value;
+    const hasta = document.getElementById('vac-hasta').value;
+    const dias = parseFloat(document.getElementById('vac-dias').value) || 1;
+    const obs = document.getElementById('vac-obs').value.trim();
+
+    const newVac = {
+      id: 'nov-' + Date.now(),
+      colaboradora_id: colabId,
+      codigo_sucursal: state.currentRole,
+      tipo: 'Vacaciones',
+      fecha_inicio: desde,
+      fecha_fin: hasta,
+      dias_computados: dias,
+      certificado_url: '',
+      observaciones: obs || `Tramo ${formatDateShort(desde)} al ${formatDateShort(hasta)}`,
+      creado_en: new Date().toISOString()
+    };
+
+    state.novedades.push(newVac);
+    localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
+
+    document.getElementById('form-vacaciones').reset();
+    showToast('Tramo de vacaciones registrado.', 'success');
+    renderStoreVacaciones();
+  }
+
   function renderStoreVacaciones() {
     const tbody = document.getElementById('tbody-store-vacaciones');
     tbody.innerHTML = '';
@@ -776,24 +1046,43 @@
       
       // Buscar novedades de vacaciones para esta colaboradora
       const vacNovedades = state.novedades.filter(n => n.colaboradora_id === c.id && n.tipo === 'Vacaciones');
+      // Ordenar tramos por fecha
+      vacNovedades.sort((a, b) => (a.fecha_inicio || '').localeCompare(b.fecha_inicio || ''));
+
       const diasTomados = vacNovedades.reduce((sum, n) => sum + (Number(n.dias_computados) || 0), 0);
       const saldo = Math.max(0, calc.diasLey - diasTomados);
 
-      const tramos = vacNovedades.map(n => `${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)} (${n.dias_computados}d)`).join(', ') || 'Sin tramos cargados';
+      // Renderizar tramos desplegados en tarjetas individuales
+      let tramosHtml = '<div class="flex flex-wrap gap-1.5">';
+      if (vacNovedades.length === 0) {
+        tramosHtml += '<span class="text-neutral-400 text-xs italic">Sin tramos gozados aún</span>';
+      } else {
+        vacNovedades.forEach(n => {
+          tramosHtml += `
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#FAF9F6] border border-neutral-200 text-xs">
+              <span class="font-medium text-neutral-800">📅 ${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)}</span>
+              <span class="font-bold text-amber-800">(${n.dias_computados}d)</span>
+              ${n.observaciones ? `<span class="text-neutral-500 text-[11px] truncate max-w-[120px]" title="${n.observaciones}">· ${n.observaciones}</span>` : ''}
+              <button onclick="window.app.deleteNovedad('${n.id}')" class="text-neutral-400 hover:text-red-600 font-bold ml-1" title="Eliminar tramo">✕</button>
+            </div>
+          `;
+        });
+      }
+      tramosHtml += '</div>';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="font-bold text-neutral-900">
           <div>${c.alias || c.nombre_completo}</div>
-          <div class="text-[11px] text-neutral-400 font-normal">Ingreso: ${formatDateShort(c.fecha_ingreso)} ${c.fecha_antiguedad_reconocida ? '(Ant. reconocida: ' + formatDateShort(c.fecha_antiguedad_reconocida) + ')' : ''}</div>
+          <div class="text-[11px] text-neutral-400 font-normal">Ingreso: ${formatDateShort(c.fecha_ingreso)} ${c.fecha_antiguedad_reconocida ? '<span class="text-amber-800 font-semibold">(Antigüedad: ' + formatDateShort(c.fecha_antiguedad_reconocida) + ')</span>' : ''}</div>
         </td>
         <td class="font-mono text-xs text-neutral-700">${calc.aniosAntiguedad} años al 31/12</td>
-        <td class="font-mono font-bold text-xs text-center"><span class="bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">${calc.diasLey} días</span></td>
+        <td class="font-mono font-bold text-xs text-center"><span class="bg-[#E6D5C3]/40 border border-[#E6D5C3] px-2.5 py-0.5 rounded text-neutral-900">${calc.diasLey} días</span></td>
         <td class="font-mono font-bold text-xs text-center text-amber-800">${diasTomados} días</td>
-        <td class="text-xs text-neutral-600 max-w-[240px] truncate" title="${tramos}">${tramos}</td>
         <td class="font-mono font-bold text-sm text-center ${saldo === 0 ? 'text-neutral-400' : 'text-emerald-700'}">
           ${saldo} días
         </td>
+        <td>${tramosHtml}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -890,7 +1179,7 @@
     });
   }
 
-  // --- ADMIN 2: VACACIONES LCT ---
+  // --- ADMIN 2: VACACIONES LCT (Días Disponibles y Tramos Desplegados - Punto 5) ---
   function renderAdminVacaciones() {
     const tbody = document.getElementById('tbody-admin-vacaciones');
     tbody.innerHTML = '';
@@ -899,42 +1188,61 @@
     state.colaboradoras.forEach(c => {
       const calc = calcularVacacionesLCT(c, anioFiscal);
       const vacNovedades = state.novedades.filter(n => n.colaboradora_id === c.id && n.tipo === 'Vacaciones');
+      vacNovedades.sort((a, b) => (a.fecha_inicio || '').localeCompare(b.fecha_inicio || ''));
+
       const diasTomados = vacNovedades.reduce((sum, n) => sum + (Number(n.dias_computados) || 0), 0);
       const saldo = Math.max(0, calc.diasLey - diasTomados);
 
-      const tramos = vacNovedades.map(n => `${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)} (${n.dias_computados}d)`).join(', ') || 'Sin tramos';
+      let tramosHtml = '<div class="flex flex-wrap gap-1">';
+      if (vacNovedades.length === 0) {
+        tramosHtml += '<span class="text-neutral-400 text-xs italic">Sin tramos</span>';
+      } else {
+        vacNovedades.forEach(n => {
+          tramosHtml += `<span class="inline-block bg-[#FAF9F6] border border-neutral-200 px-2 py-0.5 rounded text-[11px] font-medium text-neutral-700">${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)} (${n.dias_computados}d)</span>`;
+        });
+      }
+      tramosHtml += '</div>';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${c.codigo_sucursal}</span></td>
         <td class="font-bold text-xs text-neutral-900">${c.nombre_completo} <span class="text-neutral-500 font-normal">(${c.alias})</span></td>
         <td class="font-mono text-xs text-neutral-600">${formatDateShort(c.fecha_ingreso)}</td>
-        <td class="font-mono text-xs ${c.fecha_antiguedad_reconocida ? 'font-bold text-neutral-900' : 'text-neutral-400'}">
+        <td class="font-mono text-xs ${c.fecha_antiguedad_reconocida ? 'font-bold text-amber-900' : 'text-neutral-400'}">
           ${c.fecha_antiguedad_reconocida ? formatDateShort(c.fecha_antiguedad_reconocida) + ' ⭐' : 'No aplica'}
         </td>
         <td class="font-mono text-xs text-center">${calc.aniosAntiguedad} años</td>
-        <td class="font-mono font-bold text-xs text-center"><span class="bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">${calc.diasLey} días</span></td>
+        <td class="font-mono font-bold text-xs text-center"><span class="bg-[#E6D5C3]/40 border border-[#E6D5C3] px-2 py-0.5 rounded text-neutral-900">${calc.diasLey} días</span></td>
         <td class="font-mono font-bold text-xs text-center text-amber-800">${diasTomados} días</td>
-        <td class="text-xs text-neutral-600 max-w-[200px] truncate" title="${tramos}">${tramos}</td>
         <td class="font-mono font-bold text-sm text-center ${saldo === 0 ? 'text-neutral-400' : 'text-emerald-700'}">
           ${saldo} días
         </td>
+        <td>${tramosHtml}</td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  // --- ADMIN 3: RETIROS & TEMPORADA ---
+  // --- ADMIN 3: RETIROS & TEMPORADA (Ordenado por Fecha - Punto 4) ---
   function renderAdminRetiros() {
     const tbody = document.getElementById('tbody-admin-retiros');
     tbody.innerHTML = '';
 
-    if (state.retiros.length === 0) {
+    const list = [...state.retiros];
+    list.sort((a, b) => {
+      const cmpDate = (a.fecha || '').localeCompare(b.fecha || '');
+      if (cmpDate !== 0) return cmpDate;
+      const cA = state.colaboradoras.find(c => c.id === a.colaboradora_id)?.nombre_completo || '';
+      const cB = state.colaboradoras.find(c => c.id === b.colaboradora_id)?.nombre_completo || '';
+      return cA.localeCompare(cB);
+    });
+
+    if (list.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-neutral-400 text-xs">No hay retiros registrados.</td></tr>`;
       return;
     }
 
-    state.retiros.forEach(r => {
+    list.forEach(r => {
       const colab = state.colaboradoras.find(c => c.id === r.colaboradora_id);
       const tr = document.createElement('tr');
 
@@ -955,17 +1263,26 @@
     });
   }
 
-  // --- ADMIN 4: AUDITORÍA DE NOVEDADES & CERTIFICADOS ---
+  // --- ADMIN 4: AUDITORÍA DE NOVEDADES Y CERTIFICADOS (Ordenado por Fecha - Punto 3) ---
   function renderAdminNovedades() {
     const tbody = document.getElementById('tbody-admin-novedades');
     tbody.innerHTML = '';
 
-    if (state.novedades.length === 0) {
+    const list = state.novedades.filter(n => n.tipo !== 'Vacaciones');
+    list.sort((a, b) => {
+      const cmpDate = (a.fecha_inicio || '').localeCompare(b.fecha_inicio || '');
+      if (cmpDate !== 0) return cmpDate;
+      const cA = state.colaboradoras.find(c => c.id === a.colaboradora_id)?.nombre_completo || '';
+      const cB = state.colaboradoras.find(c => c.id === b.colaboradora_id)?.nombre_completo || '';
+      return cA.localeCompare(cB);
+    });
+
+    if (list.length === 0) {
       tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay novedades registradas.</td></tr>`;
       return;
     }
 
-    state.novedades.forEach(n => {
+    list.forEach(n => {
       const colab = state.colaboradoras.find(c => c.id === n.colaboradora_id);
       const tr = document.createElement('tr');
 
@@ -1005,7 +1322,7 @@
         <td class="font-mono text-xs text-neutral-600">${c.dni}</td>
         <td class="font-mono text-xs text-neutral-600">${c.cuil || '-'}</td>
         <td class="font-mono text-xs text-neutral-700">${formatDateShort(c.fecha_ingreso)}</td>
-        <td class="font-mono text-xs ${c.fecha_antiguedad_reconocida ? 'font-bold text-neutral-900' : 'text-neutral-400'}">
+        <td class="font-mono text-xs ${c.fecha_antiguedad_reconocida ? 'font-bold text-amber-900' : 'text-neutral-400'}">
           ${c.fecha_antiguedad_reconocida ? formatDateShort(c.fecha_antiguedad_reconocida) : '-'}
         </td>
         <td class="text-xs text-neutral-600">${c.categoria}</td>
@@ -1038,7 +1355,7 @@
   }
 
   // ============================================================================
-  // EXPORTACIÓN A EXCEL COMPLETO (SHEETJS CON MULTI-SOLAPAS)
+  // EXPORTACIÓN A EXCEL COMPLETO (SHEETJS)
   // ============================================================================
   function exportFullExcelWorkbook() {
     if (!window.XLSX) {
@@ -1082,12 +1399,32 @@
     const wsHoras = XLSX.utils.aoa_to_sheet(rowsHoras);
     XLSX.utils.book_append_sheet(wb, wsHoras, 'Horas_Liquidacion');
 
-    // 2. SOLAPA: VACACIONES LCT
+    // 2. SOLAPA: DETALLE HORAS EXTRAS Y ADICIONALES (Punto 1)
+    const rowsHorasDetalle = [
+      ['NAZARIA - DETALLE Y JUSTIFICACIÓN DE HORAS EXTRAS Y ADICIONALES'],
+      [],
+      ['Fecha', 'Sucursal', 'Colaboradora', 'Tipo', 'Horas', 'Motivo / Justificación']
+    ];
+    state.horas_detalle.forEach(h => {
+      const colab = state.colaboradoras.find(c => c.id === h.colaboradora_id);
+      rowsHorasDetalle.push([
+        h.fecha,
+        h.sucursal,
+        colab?.nombre_completo || '',
+        h.tipo,
+        h.horas,
+        h.motivo
+      ]);
+    });
+    const wsHorasDetalle = XLSX.utils.aoa_to_sheet(rowsHorasDetalle);
+    XLSX.utils.book_append_sheet(wb, wsHorasDetalle, 'Detalle_Extras_Adic');
+
+    // 3. SOLAPA: VACACIONES
     const rowsVacaciones = [
       ['NAZARIA - CONTROL DE VACACIONES LCT 20.744'],
       [`Año Fiscal: ${anioFiscal}`],
       [],
-      ['Sucursal', 'Colaboradora', 'Fecha Ingreso', 'Antigüedad Reconocida', 'Años al 31/12', 'Días Ley LCT', 'Días Gozados', 'Saldo Pendiente', 'Tramos Tomados']
+      ['Sucursal', 'Colaboradora', 'Fecha Ingreso', 'Antigüedad Reconocida', 'Años al 31/12', 'Días Disponibles', 'Días Tomados', 'Saldo Restante', 'Tramos Tomados']
     ];
 
     state.colaboradoras.forEach(c => {
@@ -1112,7 +1449,7 @@
     const wsVac = XLSX.utils.aoa_to_sheet(rowsVacaciones);
     XLSX.utils.book_append_sheet(wb, wsVac, 'Vacaciones_LCT');
 
-    // 3. SOLAPA: RETIROS Y PAR DE TEMPORADA
+    // 4. SOLAPA: RETIROS Y PAR DE TEMPORADA
     const rowsRetiros = [
       ['NAZARIA - RETIROS DE CALZADO Y PAR DE TEMPORADA'],
       [],
@@ -1132,13 +1469,13 @@
     const wsRet = XLSX.utils.aoa_to_sheet(rowsRetiros);
     XLSX.utils.book_append_sheet(wb, wsRet, 'Calzado_Retiros');
 
-    // 4. SOLAPA: NOVEDADES Y FALTAS
+    // 5. SOLAPA: NOVEDADES Y FALTAS
     const rowsNov = [
       ['NAZARIA - NOVEDADES, LICENCIAS Y FALTAS'],
       [],
       ['Fecha Inicio', 'Fecha Fin', 'Sucursal', 'Colaboradora', 'Tipo', 'Días', 'Observaciones']
     ];
-    state.novedades.forEach(n => {
+    state.novedades.filter(n => n.tipo !== 'Vacaciones').forEach(n => {
       const colab = state.colaboradoras.find(c => c.id === n.colaboradora_id);
       rowsNov.push([
         n.fecha_inicio,
@@ -1296,19 +1633,26 @@
     switchStoreTab,
     switchAdminTab,
     saveAllHorasStore,
-    saveHorariosStore,
     recalcRowTotal,
+    handleAddHoraDetalle,
+    handleDeleteHoraDetalle,
+    saveHorariosStore,
+    handleAddFechaEspecial,
+    handleDeleteFechaEspecial,
+    saveHorariosNotas,
     handleTipoNovedadChange,
     handleSaveNovedad,
     deleteNovedad,
     handleSaveRetiro,
     deleteRetiro,
+    calcVacDaysAuto,
+    handleSaveVacaciones,
     exportFullExcelWorkbook,
     handleFileSelect,
     removeSelectedFile,
     viewComprobante,
     closeViewerModal,
-    openAddColaboradoraModal: () => showToast('Para sumar colaboradoras editá la lista o contactá a RRHH.', 'info')
+    openAddColaboradoraModal: () => showToast('Padrón centralizado con las 8 colaboradoras.', 'info')
   };
 
   // Inicializar al cargar el DOM
