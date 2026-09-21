@@ -67,10 +67,17 @@ Este documento es la **Fuente Central de Verdad y Memoria (SSOT)** del proyecto.
 
 ---
 
-## 5. Módulos Operativos del Sistema
-1. **Horas Trabajadas & Cierre:** Grilla de horas base, feriados, extras y adicionales por cobertura con cálculo automático.
-2. **Horarios Semanales:** Asignación de turnos Mañana y Tarde (Lunes a Domingo) por local.
-3. **Novedades & Faltas:** Carga de días de estudio, francos compensatorios, ausencias con descuento y licencias médicas con compresión de foto.
-4. **Retiros & Par de Temporada:** Registro de compras con descuento en sueldo y asignación del par de temporada oficial.
-5. **Vacaciones LCT 20.744:** Cómputo automático según antigüedad al 31/12, registro de tramos tomados y saldos restantes.
-6. **Exportación Consolidada (.xlsx):** Generación automática de libro multi-hoja listo para el liquidador de sueldos.
+## 5. Estructura del Panel de Administración (Orden Estratégico)
+1. **1. Consolidado Horas a Liquidar (Liquidador):** Planilla unificada de horas trabajadas (base, feriados con recargo, extras, adicionales, coberturas y total hs), editable en vivo por el administrador con botón para guardar.
+2. **2. Sábanas de Vacaciones LCT (Liquidador):** Control de días disponibles por ley según antigüedad al 31/12, días gozados y saldos restantes con tramos desplegados.
+3. **3. Novedades, Licencias y Faltas (Liquidador):** Historial cronológico de ausencias, licencias médicas con visor de certificados firmados y faltas injustificadas.
+4. **4. Retiros & Temporada (Control Interno Nazaria):** Registro de calzado retirado por colaboradora para deducción mensual interna y control del beneficio de temporada.
+5. **5. Padrón de 8 Colaboradoras (RRHH):** Nómina centralizada de colaboradoras activas e inactivas (las inactivas se envían al final de la lista).
+
+## 6. Exportación para Liquidación
+* **📸 Exportar Imagen WhatsApp (.png):** Generador de placa oficial en alta resolución (Retina 2x) que compila exclusivamente los 3 bloques que necesita el liquidador:
+  * Horas trabajadas a liquidar (con DNI/CUIL de cada colaboradora).
+  * Vacaciones gozadas en el período (para liquidación del plus vacacional Art. 155 LCT).
+  * Novedades, licencias médicas y faltas a descontar.
+  * Incluye botón para copiar al portapapeles y pegar con `Ctrl + V` directamente en WhatsApp Web.
+* **Excel Consolidado (.xlsx):** Libro de cálculo multi-solapa para archivo contable.
