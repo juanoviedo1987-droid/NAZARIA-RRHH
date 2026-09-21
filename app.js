@@ -274,7 +274,7 @@
 
   function initStorageData() {
     // Inicializar o recargar datos con versión para migración limpia
-    const DATA_VERSION = 'v5';
+    const DATA_VERSION = 'v6';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
@@ -1207,14 +1207,56 @@
     document.getElementById('kpi-retiros').textContent = retirosPeriod.length;
   }
 
-  // --- ADMIN 1: CONSOLIDADO DE HORAS ---
+  // --- HELPER: OBTENER CLAVES CONSOLIDADAS DEL PERÍODO (ORDEN TOM PRIMERO, LUEGO MASCHWITZ) ---
+  function getConsolidadoKeysForPeriod(period) {
+    let keys = Object.keys(state.cierres).filter(k => k.startsWith(period));
+    if (keys.length === 0) {
+      // Si no hay cierres registrados aún para este período, inicializamos con las colaboradoras activas
+      const tomColabs = state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM' && (c.estado || 'activa') === 'activa');
+      const maschColabs = state.colaboradoras.filter(c => c.codigo_sucursal === 'MASCHWITZ' && (c.estado || 'activa') === 'activa');
+      tomColabs.forEach(c => {
+        const k = `${period}_${c.id}`;
+        if (!state.cierres[k]) state.cierres[k] = { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+        keys.push(k);
+      });
+      maschColabs.forEach(c => {
+        const k = `${period}_${c.id}`;
+        if (!state.cierres[k]) state.cierres[k] = { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+        keys.push(k);
+      });
+      const maschCovKey = `${period}_c-martu_masch`;
+      if (!state.cierres[maschCovKey]) state.cierres[maschCovKey] = { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre en Maschwitz' };
+      keys.push(maschCovKey);
+    }
+
+    // Ordenar: primero TOM, luego MASCHWITZ, coberturas al final de la sucursal
+    return keys.sort((a, b) => {
+      const colabIdA = a.replace(`${period}_`, '');
+      const colabIdB = b.replace(`${period}_`, '');
+      const isCovA = colabIdA === 'c-martu_masch';
+      const isCovB = colabIdB === 'c-martu_masch';
+      const sucursalA = isCovA ? 'MASCHWITZ' : (state.colaboradoras.find(c => c.id === colabIdA)?.codigo_sucursal || 'TOM');
+      const sucursalB = isCovB ? 'MASCHWITZ' : (state.colaboradoras.find(c => c.id === colabIdB)?.codigo_sucursal || 'TOM');
+
+      if (sucursalA !== sucursalB) {
+        return sucursalA === 'TOM' ? -1 : 1;
+      }
+      if (isCovA) return 1;
+      if (isCovB) return -1;
+      const nameA = state.colaboradoras.find(c => c.id === colabIdA)?.nombre_completo || '';
+      const nameB = state.colaboradoras.find(c => c.id === colabIdB)?.nombre_completo || '';
+      return nameA.localeCompare(nameB);
+    });
+  }
+
+  // --- ADMIN 1: CONSOLIDADO DE HORAS (EDITABLE POR ADMIN) ---
   function renderAdminConsolidado() {
     const tbody = document.getElementById('tbody-admin-consolidado');
     tbody.innerHTML = '';
 
-    const allKeys = Object.keys(state.cierres).filter(k => k.startsWith(state.currentPeriod));
+    const allKeys = getConsolidadoKeysForPeriod(state.currentPeriod);
     if (allKeys.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay cierres de horas para este período (${state.currentPeriod}).</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay colaboradoras disponibles para este período (${state.currentPeriod}).</td></tr>`;
       return;
     }
 
@@ -1223,7 +1265,7 @@
       const isMaschCoverage = colabId === 'c-martu_masch';
       const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
       const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
-      const rec = state.cierres[k];
+      const rec = state.cierres[k] || { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
 
       const totalHs = (Number(rec.horas_base) || 0) + (Number(rec.feriados_hs) || 0) + (Number(rec.extras_hs) || 0) + (Number(rec.adicionales_hs) || 0);
 
@@ -1233,17 +1275,63 @@
         <td class="font-bold text-xs text-neutral-900">
           ${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.nombre_completo || 'Colaboradora')}
         </td>
-        <td class="font-mono text-center text-xs">${rec.horas_base || 0}</td>
-        <td class="font-mono text-center text-xs">${rec.feriados_hs || 0}</td>
-        <td class="font-mono text-center text-xs">${rec.extras_hs || 0}</td>
-        <td class="font-mono text-center text-xs font-bold ${rec.adicionales_hs > 0 ? 'text-amber-800' : ''}">${rec.adicionales_hs || 0}</td>
-        <td class="text-xs text-neutral-700 whitespace-normal leading-relaxed min-w-[220px]">
-          ${rec.detalle_cobertura ? `<div class="bg-neutral-50 p-1.5 rounded border border-neutral-200 text-[11px]">${rec.detalle_cobertura}</div>` : '<span class="text-neutral-400 text-xs">-</span>'}
+        <td class="text-center">
+          <input type="number" min="0" step="1" value="${rec.horas_base || 0}" 
+            onchange="window.app.handleAdminUpdateCierre('${k}', 'horas_base', this.value)"
+            class="w-16 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
         </td>
-        <td class="font-mono font-bold text-sm text-neutral-900">${totalHs} hs</td>
+        <td class="text-center">
+          <input type="number" min="0" step="1" value="${rec.feriados_hs || 0}" 
+            onchange="window.app.handleAdminUpdateCierre('${k}', 'feriados_hs', this.value)"
+            class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
+        </td>
+        <td class="text-center">
+          <input type="number" min="0" step="1" value="${rec.extras_hs || 0}" 
+            onchange="window.app.handleAdminUpdateCierre('${k}', 'extras_hs', this.value)"
+            class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
+        </td>
+        <td class="text-center">
+          <input type="number" min="0" step="1" value="${rec.adicionales_hs || 0}" 
+            onchange="window.app.handleAdminUpdateCierre('${k}', 'adicionales_hs', this.value)"
+            class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-amber-900 focus:bg-white focus:border-black focus:outline-none transition">
+        </td>
+        <td>
+          <input type="text" value="${rec.detalle_cobertura || ''}" placeholder="Detalle cobertura / motivo..."
+            onchange="window.app.handleAdminUpdateCierre('${k}', 'detalle_cobertura', this.value)"
+            class="w-full text-xs py-1 px-2.5 rounded bg-[#FAF9F6] border border-neutral-300 focus:bg-white focus:border-black focus:outline-none transition">
+        </td>
+        <td class="font-mono font-bold text-sm text-neutral-900 text-right pr-4 whitespace-nowrap" id="admin-total-${k}">
+          ${totalHs} hs
+        </td>
       `;
       tbody.appendChild(tr);
     });
+  }
+
+  function handleAdminUpdateCierre(key, field, val) {
+    if (!state.cierres[key]) {
+      state.cierres[key] = { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+    }
+    if (field === 'detalle_cobertura') {
+      state.cierres[key][field] = val.trim();
+    } else {
+      state.cierres[key][field] = parseFloat(val) || 0;
+    }
+    localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+
+    const rec = state.cierres[key];
+    const totalHs = (Number(rec.horas_base) || 0) + (Number(rec.feriados_hs) || 0) + (Number(rec.extras_hs) || 0) + (Number(rec.adicionales_hs) || 0);
+    const totalEl = document.getElementById(`admin-total-${key}`);
+    if (totalEl) totalEl.textContent = `${totalHs} hs`;
+
+    updateAdminKPIs();
+    showToast('Ajuste de horas guardado.', 'success');
+  }
+
+  function saveAllHorasAdmin() {
+    localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+    updateAdminKPIs();
+    showToast('Planilla de horas consolidada y guardada.', 'success');
   }
 
   // --- ADMIN 2: VACACIONES LCT (Sábana de 7 columnas sin scroll horizontal) ---
@@ -1382,12 +1470,21 @@
     initLucideIcons();
   }
 
-  // --- ADMIN 5: PADRÓN DE COLABORADORAS (5 Columnas Compactas con Switch Activa/Inactiva) ---
+  // --- ADMIN 5: PADRÓN DE COLABORADORAS (Inactivas al final) ---
   function renderAdminColaboradoras() {
     const tbody = document.getElementById('tbody-admin-colaboradoras');
     tbody.innerHTML = '';
 
-    state.colaboradoras.forEach(c => {
+    // Ordenar: primero colaboradoras activas, inactivas al final de la lista
+    const list = [...state.colaboradoras].sort((a, b) => {
+      const aActiva = (a.estado || 'activa') === 'activa';
+      const bActiva = (b.estado || 'activa') === 'activa';
+      if (aActiva && !bActiva) return -1;
+      if (!aActiva && bActiva) return 1;
+      return a.nombre_completo.localeCompare(b.nombre_completo);
+    });
+
+    list.forEach(c => {
       const isActiva = (c.estado || 'activa') === 'activa';
       const estadoBtn = isActiva
         ? `<button onclick="window.app.toggleColaboradoraEstado('${c.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 transition flex items-center gap-1.5 mx-auto cursor-pointer" title="Clic para desactivar (baja operativa)">
@@ -1488,27 +1585,26 @@
       ['Sucursal', 'Colaboradora', 'DNI', 'Horas Base', 'Feriados (Hs)', 'Horas Extras', 'Horas Adicionales', 'Detalle Coberturas', 'Total Hs Liquidación']
     ];
 
-    Object.keys(state.cierres).forEach(k => {
-      if (k.startsWith(state.currentPeriod)) {
-        const colabId = k.replace(`${state.currentPeriod}_`, '');
-        const isMaschCoverage = colabId === 'c-martu_masch';
-        const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
-        const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
-        const rec = state.cierres[k];
-        const total = (Number(rec.horas_base) || 0) + (Number(rec.feriados_hs) || 0) + (Number(rec.extras_hs) || 0) + (Number(rec.adicionales_hs) || 0);
+    const allKeys = getConsolidadoKeysForPeriod(state.currentPeriod);
+    allKeys.forEach(k => {
+      const colabId = k.replace(`${state.currentPeriod}_`, '');
+      const isMaschCoverage = colabId === 'c-martu_masch';
+      const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
+      const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
+      const rec = state.cierres[k] || { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+      const total = (Number(rec.horas_base) || 0) + (Number(rec.feriados_hs) || 0) + (Number(rec.extras_hs) || 0) + (Number(rec.adicionales_hs) || 0);
 
-        rowsHoras.push([
-          sucursal,
-          isMaschCoverage ? 'Martu P. (Cobertura Masch)' : (colab?.nombre_completo || 'Colaboradora'),
-          colab?.dni || '',
-          rec.horas_base || 0,
-          rec.feriados_hs || 0,
-          rec.extras_hs || 0,
-          rec.adicionales_hs || 0,
-          rec.detalle_cobertura || '',
-          total
-        ]);
-      }
+      rowsHoras.push([
+        sucursal,
+        isMaschCoverage ? 'Martu P. (Cobertura Masch)' : (colab?.nombre_completo || 'Colaboradora'),
+        colab?.dni || '',
+        rec.horas_base || 0,
+        rec.feriados_hs || 0,
+        rec.extras_hs || 0,
+        rec.adicionales_hs || 0,
+        rec.detalle_cobertura || '',
+        total
+      ]);
     });
     const wsHoras = XLSX.utils.aoa_to_sheet(rowsHoras);
     XLSX.utils.book_append_sheet(wb, wsHoras, 'Horas_Liquidacion');
@@ -1616,6 +1712,280 @@
     // Guardar archivo
     XLSX.writeFile(wb, `Reporte_RRHH_Nazaria_${state.currentPeriod}.xlsx`);
     showToast('Archivo Excel consolidado exportado.', 'success');
+  }
+
+  // ============================================================================
+  // EXPORTACIÓN DE IMAGEN PARA WHATSAPP / LIQUIDADOR (HTML2CANVAS)
+  // ============================================================================
+  async function exportSummaryImage() {
+    if (!window.html2canvas) {
+      showToast('Librería de exportación de imagen no disponible.', 'error');
+      return;
+    }
+
+    showToast('Generando placa de liquidación para WhatsApp...', 'info');
+
+    const container = document.getElementById('export-card-render-container');
+    if (!container) return;
+
+    const currentPeriod = state.currentPeriod;
+    const allKeys = getConsolidadoKeysForPeriod(currentPeriod);
+    const retirosPeriod = state.retiros.filter(r => r.fecha && r.fecha.startsWith(currentPeriod));
+    const novedadesPeriod = state.novedades.filter(n => n.tipo !== 'Vacaciones' && ((n.fecha_inicio && n.fecha_inicio.startsWith(currentPeriod)) || (n.creado_en && n.creado_en.startsWith(currentPeriod))));
+
+    let totalHorasRed = 0;
+    let totalBaseRed = 0;
+    let totalFeriadosRed = 0;
+    let totalExtrasRed = 0;
+    let totalAdicRed = 0;
+
+    const horasRowsHtml = allKeys.map(k => {
+      const colabId = k.replace(`${currentPeriod}_`, '');
+      const isMaschCoverage = colabId === 'c-martu_masch';
+      const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
+      const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
+      const rec = state.cierres[k] || { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+
+      const b = Number(rec.horas_base) || 0;
+      const f = Number(rec.feriados_hs) || 0;
+      const ex = Number(rec.extras_hs) || 0;
+      const ad = Number(rec.adicionales_hs) || 0;
+      const tot = b + f + ex + ad;
+
+      totalBaseRed += b;
+      totalFeriadosRed += f;
+      totalExtrasRed += ex;
+      totalAdicRed += ad;
+      totalHorasRed += tot;
+
+      return `
+        <tr style="border-bottom: 1px solid #e2e8f0; font-size: 13px;">
+          <td style="padding: 9px 10px;">
+            <span style="background: ${sucursal === 'TOM' ? '#E6D5C3' : '#0f172a'}; color: ${sucursal === 'TOM' ? '#1e1e1e' : '#ffffff'}; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 800;">${sucursal}</span>
+          </td>
+          <td style="padding: 9px 10px; font-weight: 700; color: #0f172a;">
+            ${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.nombre_completo || 'Colaboradora')}
+          </td>
+          <td style="padding: 9px 10px; text-align: center; font-family: monospace; font-size: 13px;">${b}</td>
+          <td style="padding: 9px 10px; text-align: center; font-family: monospace; font-size: 13px;">${f}</td>
+          <td style="padding: 9px 10px; text-align: center; font-family: monospace; font-size: 13px;">${ex}</td>
+          <td style="padding: 9px 10px; text-align: center; font-family: monospace; font-size: 13px; font-weight: 800; color: #92400e;">${ad}</td>
+          <td style="padding: 9px 10px; font-size: 12px; color: #475569;">${rec.detalle_cobertura || '-'}</td>
+          <td style="padding: 9px 10px; text-align: right; font-weight: 800; font-family: monospace; font-size: 14px; color: #0f172a;">${tot} hs</td>
+        </tr>
+      `;
+    }).join('');
+
+    let novsHtml = '<p style="font-size: 12px; color: #94a3b8; font-style: italic; margin: 8px 0;">Sin ausencias ni licencias registradas en este período.</p>';
+    if (novedadesPeriod.length > 0) {
+      novsHtml = `
+        <table style="width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left; color: #475569; font-size: 11px;">
+              <th style="padding: 6px 8px;">Colaboradora</th>
+              <th style="padding: 6px 8px;">Sucursal</th>
+              <th style="padding: 6px 8px;">Tipo</th>
+              <th style="padding: 6px 8px;">Rango Fechas</th>
+              <th style="padding: 6px 8px; text-align: center;">Días</th>
+              <th style="padding: 6px 8px;">Justificación</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${novedadesPeriod.map(n => {
+              const c = state.colaboradoras.find(col => col.id === n.colaboradora_id);
+              return `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${c?.nombre_completo || 'Colaboradora'}</td>
+                  <td style="padding: 6px 8px;"><span style="background: #e2e8f0; padding: 2px 5px; border-radius: 4px; font-size: 10px; font-weight: bold;">${n.codigo_sucursal}</span></td>
+                  <td style="padding: 6px 8px; font-weight: 700; color: #b91c1c;">${n.tipo}</td>
+                  <td style="padding: 6px 8px; font-family: monospace; color: #475569;">${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)}</td>
+                  <td style="padding: 6px 8px; font-weight: bold; text-align: center; color: #0f172a;">${n.dias_computados}d</td>
+                  <td style="padding: 6px 8px; color: #334155;">${n.observaciones || '-'}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    let retirosHtml = '<p style="font-size: 12px; color: #94a3b8; font-style: italic; margin: 8px 0;">Sin retiros de calzado a descontar en este período.</p>';
+    if (retirosPeriod.length > 0) {
+      retirosHtml = `
+        <table style="width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left; color: #475569; font-size: 11px;">
+              <th style="padding: 6px 8px;">Tipo</th>
+              <th style="padding: 6px 8px;">Colaboradora</th>
+              <th style="padding: 6px 8px;">Sucursal</th>
+              <th style="padding: 6px 8px;">Artículo</th>
+              <th style="padding: 6px 8px;">Talle/Color</th>
+              <th style="padding: 6px 8px;">Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${retirosPeriod.map(r => {
+              const c = state.colaboradoras.find(col => col.id === r.colaboradora_id);
+              const isSeason = r.tipo === 'Par de Temporada';
+              return `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 6px 8px;"><span style="background: ${isSeason ? '#e2e8f0' : '#fee2e2'}; color: ${isSeason ? '#334155' : '#991b1b'}; font-weight: 700; font-size: 10px; padding: 2px 6px; border-radius: 4px;">${r.tipo}</span></td>
+                  <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${c?.nombre_completo || 'Colaboradora'}</td>
+                  <td style="padding: 6px 8px; font-weight: 600;">${r.sucursal}</td>
+                  <td style="padding: 6px 8px; font-weight: 700; font-family: monospace;">${r.articulo}</td>
+                  <td style="padding: 6px 8px; color: #475569;">${r.talle_color}</td>
+                  <td style="padding: 6px 8px; font-family: monospace; color: #64748b;">${formatDateShort(r.fecha)}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    const todayStr = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    container.innerHTML = `
+      <div id="capture-card" style="background: #ffffff; padding: 32px 36px; border: 1px solid #cbd5e1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; width: 1020px; box-sizing: border-box;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="background: #000000; color: #ffffff; padding: 8px 14px; border-radius: 6px; font-weight: 800; font-size: 18px; letter-spacing: 2px;">NZ</div>
+            <div>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">NAZARIA RETAIL</h1>
+              <p style="margin: 2px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Reporte Oficial de Pre-Liquidación Mensual · TOM & Maschwitz</p>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="background: #E6D5C3; color: #1e1e1e; font-weight: 800; font-size: 13px; padding: 4px 12px; border-radius: 6px; display: inline-block; text-transform: uppercase;">
+              Período: ${currentPeriod}
+            </div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Emisión: ${todayStr}</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h2 style="margin: 0; font-size: 14px; font-weight: 800; text-transform: uppercase; color: #0f172a;">
+              1. Horas Trabajadas a Liquidar
+            </h2>
+            <span style="font-size: 12px; color: #64748b;">${allKeys.length} colaboradoras registradas</span>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1;">
+            <thead>
+              <tr style="background: #0f172a; color: #ffffff; font-size: 12px; text-align: left;">
+                <th style="padding: 8px 10px; width: 90px;">Sucursal</th>
+                <th style="padding: 8px 10px;">Colaboradora</th>
+                <th style="padding: 8px 10px; text-align: center; width: 75px;">Hs Base</th>
+                <th style="padding: 8px 10px; text-align: center; width: 75px;">Feriados</th>
+                <th style="padding: 8px 10px; text-align: center; width: 75px;">Extras</th>
+                <th style="padding: 8px 10px; text-align: center; width: 85px;">Adicionales</th>
+                <th style="padding: 8px 10px;">Motivo / Cobertura</th>
+                <th style="padding: 8px 10px; text-align: right; width: 100px;">Total Hs</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${horasRowsHtml}
+              <tr style="background: #f8fafc; border-top: 2px solid #0f172a; font-weight: 800; font-size: 13px;">
+                <td colspan="2" style="padding: 10px; text-align: right; text-transform: uppercase;">TOTALES RED:</td>
+                <td style="padding: 10px; text-align: center; font-family: monospace;">${totalBaseRed} hs</td>
+                <td style="padding: 10px; text-align: center; font-family: monospace;">${totalFeriadosRed} hs</td>
+                <td style="padding: 10px; text-align: center; font-family: monospace;">${totalExtrasRed} hs</td>
+                <td style="padding: 10px; text-align: center; font-family: monospace; color: #92400e;">${totalAdicRed} hs</td>
+                <td style="padding: 10px;"></td>
+                <td style="padding: 10px; text-align: right; font-family: monospace; font-size: 15px; color: #0f172a;">${totalHorasRed} hs</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+          <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; background: #fafafa;">
+            <h3 style="margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #0f172a;">
+              2. Novedades, Licencias y Faltas
+            </h3>
+            <p style="margin: 0 0 8px; font-size: 11px; color: #64748b;">Días a justificar o descontar en recibo.</p>
+            ${novsHtml}
+          </div>
+
+          <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; background: #fafafa;">
+            <h3 style="margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #0f172a;">
+              3. Retiros de Calzado (A Descontar)
+            </h3>
+            <p style="margin: 0 0 8px; font-size: 11px; color: #64748b;">Calzados para deducción mensual en recibo.</p>
+            ${retirosHtml}
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b;">
+          <div>Resumen validado por Administración · Nazaria Retail</div>
+          <div style="font-weight: 600;">Documento confidencial para liquidación de haberes</div>
+        </div>
+      </div>
+    `;
+
+    try {
+      const cardEl = document.getElementById('capture-card');
+      const canvas = await window.html2canvas(cardEl, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const filename = `Liquidacion_Nazaria_${currentPeriod}.png`;
+
+      const modal = document.getElementById('modal-export-image');
+      const resultImg = document.getElementById('export-result-img');
+      const downloadBtn = document.getElementById('btn-download-image');
+      const periodLabel = document.getElementById('export-image-period-label');
+
+      resultImg.src = imgData;
+      downloadBtn.href = imgData;
+      downloadBtn.download = filename;
+      periodLabel.textContent = `Período: ${currentPeriod} · Consolidado Oficial`;
+
+      modal.classList.remove('hidden');
+
+      // Descarga automática directa
+      const autoLink = document.createElement('a');
+      autoLink.href = imgData;
+      autoLink.download = filename;
+      autoLink.click();
+
+      showToast('¡Placa descargada y lista para WhatsApp!', 'success');
+      initLucideIcons();
+    } catch (err) {
+      console.error(err);
+      showToast('Error al generar la imagen: ' + err.message, 'error');
+    }
+  }
+
+  function closeExportImageModal() {
+    document.getElementById('modal-export-image')?.classList.add('hidden');
+  }
+
+  function copyExportImageToClipboard() {
+    const resultImg = document.getElementById('export-result-img');
+    if (!resultImg || !resultImg.src) {
+      showToast('No hay imagen para copiar.', 'error');
+      return;
+    }
+
+    fetch(resultImg.src)
+      .then(res => res.blob())
+      .then(blob => {
+        if (navigator.clipboard && window.ClipboardItem) {
+          navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+            .then(() => showToast('¡Imagen copiada al portapapeles! Ya podés pegarla con Ctrl+V en WhatsApp Web.', 'success'))
+            .catch(() => showToast('Hacé clic derecho en la imagen y seleccioná "Copiar imagen".', 'info'));
+        } else {
+          showToast('Hacé clic derecho en la imagen y seleccioná "Copiar imagen".', 'info');
+        }
+      })
+      .catch(() => {
+        showToast('Descargá el archivo PNG directamente.', 'info');
+      });
   }
 
   // ============================================================================
@@ -1851,6 +2221,11 @@
     handleSaveVacaciones,
     undoLastAction,
     exportFullExcelWorkbook,
+    exportSummaryImage,
+    closeExportImageModal,
+    copyExportImageToClipboard,
+    handleAdminUpdateCierre,
+    saveAllHorasAdmin,
     handleFileSelect,
     removeSelectedFile,
     viewComprobante,
