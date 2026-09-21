@@ -34,6 +34,9 @@
   <!-- SheetJS (XLSX Export) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
+  <!-- html2canvas (Exportar Imagen PNG para WhatsApp) -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  
   <!-- Supabase JS Client v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
@@ -749,9 +752,14 @@
             </select>
           </div>
 
-          <button onclick="window.app.exportFullExcelWorkbook()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm">
-            <i data-lucide="download" class="w-4 h-4"></i>
-            <span>Descargar Excel para Liquidador (.xlsx)</span>
+          <button onclick="window.app.exportSummaryImage()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+            <i data-lucide="camera" class="w-4 h-4 text-[#E6D5C3]"></i>
+            <span>Exportar Imagen WhatsApp (.png)</span>
+          </button>
+
+          <button onclick="window.app.exportFullExcelWorkbook()" class="bg-[#FAF9F6] hover:bg-neutral-100 text-neutral-800 text-xs font-bold px-3 py-2 border border-neutral-300 rounded-lg flex items-center gap-1.5 transition cursor-pointer">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-700"></i>
+            <span>Excel (.xlsx)</span>
           </button>
         </div>
       </div>
@@ -809,27 +817,36 @@
         <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-neutral-200 gap-3">
             <div>
-              <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Planilla Mensual de Horas (Ambas Sucursales)</h3>
-              <p class="text-xs text-neutral-500">Horas trabajadas base, feriados, extras y adicionales con desglose para liquidación.</p>
+              <h3 class="font-bold text-neutral-900 text-sm sm:text-base flex items-center gap-2">
+                Planilla Mensual de Horas (Ambas Sucursales)
+                <span class="text-[10px] font-bold bg-[#E6D5C3] text-neutral-900 px-2 py-0.5 rounded">Editable por Admin</span>
+              </h3>
+              <p class="text-xs text-neutral-500">Podés corregir o ajustar cualquier valor antes de emitir la pre-liquidación.</p>
             </div>
-            <button onclick="window.app.exportFullExcelWorkbook()" class="bg-[#FAF9F6] hover:bg-neutral-100 text-neutral-800 text-xs font-bold px-3 py-1.5 border border-neutral-300 rounded flex items-center gap-1.5 transition">
-              <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-700"></i>
-              <span>Exportar Excel</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button onclick="window.app.saveAllHorasAdmin()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Guardar Cambios</span>
+              </button>
+              <button onclick="window.app.exportSummaryImage()" class="bg-[#FAF9F6] hover:bg-neutral-100 text-neutral-800 text-xs font-bold px-3 py-1.5 border border-neutral-300 rounded-lg flex items-center gap-1.5 transition cursor-pointer">
+                <i data-lucide="camera" class="w-4 h-4 text-neutral-600"></i>
+                <span>Imagen WhatsApp</span>
+              </button>
+            </div>
           </div>
 
           <div class="overflow-x-auto mt-4">
-            <table class="w-full text-left table-sop">
+            <table class="w-full min-w-[800px] text-left table-sop">
               <thead>
                 <tr>
-                  <th>Sucursal</th>
-                  <th>Colaboradora</th>
-                  <th>Horas Base</th>
-                  <th>Feriados (Hs)</th>
-                  <th>Horas Extras</th>
-                  <th>Horas Adicionales</th>
-                  <th>Detalle Coberturas</th>
-                  <th>Total Hs Liquidar</th>
+                  <th class="w-24">Sucursal</th>
+                  <th class="min-w-[170px]">Colaboradora</th>
+                  <th class="text-center w-20">Hs Base</th>
+                  <th class="text-center w-20">Feriados</th>
+                  <th class="text-center w-20">Extras</th>
+                  <th class="text-center w-20">Adicionales</th>
+                  <th class="min-w-[220px]">Detalle / Coberturas</th>
+                  <th class="text-right w-28 pr-4">Total Hs</th>
                 </tr>
               </thead>
               <tbody id="tbody-admin-consolidado">
@@ -855,16 +872,16 @@
           </div>
 
           <div class="overflow-x-auto mt-4">
-            <table class="w-full text-left table-sop">
+            <table class="w-full min-w-[850px] text-left table-sop">
               <thead>
                 <tr>
                   <th class="w-24">Sucursal</th>
-                  <th>Colaboradora</th>
-                  <th>Antigüedad LCT</th>
-                  <th class="text-center">Días Ley</th>
-                  <th class="text-center">Tomados</th>
-                  <th class="text-center">Saldo</th>
-                  <th>Tramos y Fechas Gozadas</th>
+                  <th class="min-w-[190px]">Colaboradora</th>
+                  <th class="min-w-[170px]">Antigüedad LCT</th>
+                  <th class="text-center min-w-[120px]">Días Disponibles</th>
+                  <th class="text-center min-w-[90px]">Tomados</th>
+                  <th class="text-center min-w-[90px]">Saldo</th>
+                  <th class="min-w-[280px]">Tramos y Fechas Gozadas</th>
                 </tr>
               </thead>
               <tbody id="tbody-admin-vacaciones">
@@ -1034,6 +1051,45 @@
       </div>
     </div>
   </div>
+
+  <!-- =========================================================================
+       MODAL 3: VISTA PREVIA Y DESCARGA DE IMAGEN PARA WHATSAPP
+       ========================================================================= -->
+  <div id="modal-export-image" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop fade-in">
+    <div class="bg-white border border-neutral-200 rounded-2xl p-5 max-w-2xl w-full shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-neutral-200 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="bg-black text-white px-2 py-0.5 rounded text-xs font-bold">NZ</div>
+          <div>
+            <h3 class="font-bold text-neutral-900 text-sm">Placa de Liquidación para WhatsApp (PNG)</h3>
+            <p id="export-image-period-label" class="text-xs text-neutral-500">Resumen consolidado listo para enviar</p>
+          </div>
+        </div>
+        <button onclick="window.app.closeExportImageModal()" class="text-neutral-400 hover:text-black text-lg font-bold p-1">✕</button>
+      </div>
+
+      <div class="max-h-[65vh] overflow-auto bg-neutral-100 rounded-xl p-3 border border-neutral-200 flex items-center justify-center">
+        <img id="export-result-img" src="" alt="Placa Liquidación" class="max-w-full rounded shadow-md border border-neutral-300">
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+        <p class="text-[11px] text-neutral-500 italic">💡 Podés copiar la imagen o descargar el archivo para reenviarlo al liquidador.</p>
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button id="btn-copy-image" onclick="window.app.copyExportImageToClipboard()" class="px-3.5 py-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copiar al Portapapeles</span>
+          </button>
+          <a id="btn-download-image" href="" download="Liquidacion_Nazaria.png" class="px-4 py-2 rounded-lg bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-[#E6D5C3]"></i>
+            <span>Descargar PNG</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor oculto offscreen para renderizar la placa visual con html2canvas -->
+  <div id="export-card-render-container" style="position: fixed; left: -9999px; top: 0; width: 1050px; z-index: -100; pointer-events: none; opacity: 1;"></div>
 
   <!-- Toast de Notificaciones -->
   <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
