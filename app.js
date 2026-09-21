@@ -1998,6 +1998,45 @@
       });
   }
 
+  async function shareExportImage() {
+    const resultImg = document.getElementById('export-result-img');
+    if (!resultImg || !resultImg.src) {
+      showToast('Generando placa primero...', 'info');
+      await exportSummaryImage();
+    }
+
+    const currentPeriod = state.currentPeriod;
+    const filename = `Liquidacion_Nazaria_${currentPeriod}.png`;
+
+    try {
+      const res = await fetch(resultImg.src);
+      const blob = await res.blob();
+      const file = new File([blob], filename, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: `Liquidación Nazaria · ${currentPeriod}`,
+          text: `Reporte de Liquidación Nazaria Retail (${currentPeriod}) para el estudio contable.`,
+          files: [file]
+        });
+        showToast('¡Compartido con éxito!', 'success');
+      } else if (navigator.share) {
+        await navigator.share({
+          title: `Liquidación Nazaria · ${currentPeriod}`,
+          text: `Reporte de Liquidación Nazaria Retail (${currentPeriod})`,
+          url: window.location.href
+        });
+      } else {
+        copyExportImageToClipboard();
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('Error compartiendo:', err);
+        copyExportImageToClipboard();
+      }
+    }
+  }
+
   // ============================================================================
   // DROPZONE Y MANEJO DE FOTOS/CERTIFICADOS
   // ============================================================================
@@ -2234,6 +2273,7 @@
     exportSummaryImage,
     closeExportImageModal,
     copyExportImageToClipboard,
+    shareExportImage,
     handleAdminUpdateCierre,
     saveAllHorasAdmin,
     handleFileSelect,
@@ -2241,7 +2281,7 @@
     viewComprobante,
     closeViewerModal,
     toggleColaboradoraEstado,
-    openAddColaboradoraModal: () => showToast('Padrón centralizado con las 8 colaboradoras.', 'info')
+    openAddColaboradoraModal: () => showToast('Padrón centralizado de colaboradoras.', 'info')
   };
 
   // Inicializar al cargar el DOM
