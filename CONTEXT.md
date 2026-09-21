@@ -18,11 +18,11 @@ Este documento es la **Fuente Central de Verdad y Memoria (SSOT)** del proyecto.
 ---
 
 ## 2. Infraestructura y Repositorio (100% Serverless)
-* **Repositorio GitHub:** `https://github.com/juanoviedo1987-droid/rrhh-nazaria` (rama `main`).
+* **Repositorio GitHub:** `https://github.com/juanoviedo1987-droid/NAZARIA-RRHH` (rama `main`).
 * **Sitio Web Público (Terminales en Locales):**  
-  `https://juanoviedo1987-droid.github.io/rrhh-nazaria/`
+  `https://juanoviedo1987-droid.github.io/NAZARIA-RRHH/`
 * **Directorio de Proyecto en Antigravity:**  
-  `C:\Users\juano\.gemini\antigravity\scratch\rrhh-nazaria`
+  `C:\Users\juano\.gemini\antigravity\scratch\NAZARIA-RRHH`
 * **Backend Previsto:** Supabase (PostgreSQL en la nube + Storage para certificados médicos). *Estado: pendiente de vinculación final una vez aprobada la interfaz.*
 
 ---
