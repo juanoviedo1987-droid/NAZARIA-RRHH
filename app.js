@@ -119,18 +119,31 @@
 
   // --- 2. DATOS REALES DE HORAS Y CIERRES ---
   const DEFAULT_CIERRES = {
-    // TOM
+    // TOM (Octubre 2026)
     '2026-10_c-sofi': { horas_base: 144, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
     '2026-10_c-esme': { horas_base: 160, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
     '2026-10_c-martu': { horas_base: 48, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre 22hs en Maschwitz' },
-    '2026-10_c-anto': { horas_base: 96, feriados_hs: 0, extras_hs: 0, adicionales_hs: 18, detalle_cobertura: 'Guardia + Cobertura Maschwitz 10/8' },
-    '2026-10_c-cande': { horas_base: 96, feriados_hs: 6, extras_hs: 0, adicionales_hs: 6, detalle_cobertura: 'Cubre a Martu por vacaciones 09/08' },
+    '2026-10_c-anto': { horas_base: 96, feriados_hs: 0, extras_hs: 0, adicionales_hs: 18, detalle_cobertura: 'Guardia + Cobertura Maschwitz' },
+    '2026-10_c-cande': { horas_base: 96, feriados_hs: 6, extras_hs: 0, adicionales_hs: 6, detalle_cobertura: 'Cubre a Martu por vacaciones' },
     
-    // MASCHWITZ
-    '2026-10_c-cami': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Vacaciones del 09/08 al 13/08' },
+    // MASCHWITZ (Octubre 2026)
+    '2026-10_c-cami': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Vacaciones del 09 al 13' },
     '2026-10_c-juli': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-10_c-flavia': { horas_base: 120, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami 9/8; Ausente 29/8' },
-    '2026-10_c-martu_masch': { horas_base: 22, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami y Flavia en Maschwitz' }
+    '2026-10_c-flavia': { horas_base: 120, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami; Licencia Médica 48hs' },
+    '2026-10_c-martu_masch': { horas_base: 22, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami y Flavia en Maschwitz' },
+
+    // TOM (Agosto 2026)
+    '2026-08_c-sofi': { horas_base: 144, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-08_c-esme': { horas_base: 160, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-08_c-martu': { horas_base: 48, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre 22hs en Maschwitz' },
+    '2026-08_c-anto': { horas_base: 96, feriados_hs: 0, extras_hs: 0, adicionales_hs: 18, detalle_cobertura: 'Guardia + Cobertura Maschwitz 10/8' },
+    '2026-08_c-cande': { horas_base: 96, feriados_hs: 6, extras_hs: 0, adicionales_hs: 6, detalle_cobertura: 'Cubre a Martu por vacaciones 09/08' },
+    
+    // MASCHWITZ (Agosto 2026)
+    '2026-08_c-cami': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Vacaciones del 09/08 al 13/08' },
+    '2026-08_c-juli': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-08_c-flavia': { horas_base: 120, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami 9/8; Ausente 29/8' },
+    '2026-08_c-martu_masch': { horas_base: 22, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami y Flavia en Maschwitz' }
   };
 
   // --- DETALLE INDIVIDUAL DE HORAS EXTRAS Y ADICIONALES (Punto 1) ---
@@ -170,16 +183,25 @@
     'MASCHWITZ': 'Cami se toma vacaciones pendientes del 09/08 al 13/08. Cande de TOM cubre a Martu por vacaciones el día 09/08. Flavia cubre a Cami por vacaciones el día 09/08. Anto de TOM cubre el 10/08 por vacaciones de Cami. Martu cubre a Cami los días 11/08 y 13/08. Flavia se toma el 15/08 como franco, cubre Martu. Flavia ausente el día 29/08 (descontar el día) cubre Martu.'
   };
 
+  // --- MOCK SVG CERTIFICADO MÉDICO REALISTA PARA AUDITORÍA ---
+  const SAMPLE_CERT_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="780" viewBox="0 0 600 780" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;"><rect width="600" height="780" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/><rect x="25" y="25" width="550" height="730" fill="#fcfcfc" stroke="#e2e8f0" stroke-width="1.5" rx="8"/><rect x="25" y="25" width="550" height="90" fill="#f8fafc" rx="8"/><text x="50" y="65" font-size="16" font-weight="bold" fill="#0f172a">CENTRO MÉDICO PILAR</text><text x="50" y="85" font-size="11" fill="#64748b">Medicina Laboral y Guardia 24hs · Av. Tratado del Pilar 450</text><line x1="45" y1="115" x2="555" y2="115" stroke="#0f172a" stroke-width="2"/><text x="300" y="165" font-size="20" font-weight="bold" text-anchor="middle" fill="#0f172a">CERTIFICADO MÉDICO</text><text x="50" y="220" font-size="13" fill="#475569">Fecha de emisión: 14 de Octubre de 2026</text><text x="50" y="255" font-size="13" fill="#1e293b">Por la presente certifico que he examinado a la colaboradora:</text><rect x="45" y="275" width="510" height="40" fill="#f1f5f9" rx="4"/><text x="60" y="300" font-size="15" font-weight="bold" fill="#0f172a">GÓMEZ FLAVIA MARIANELA (DNI 37.102.934)</text><text x="50" y="355" font-size="13" fill="#334155">Diagnóstico clínico presuntivo:</text><text x="50" y="380" font-size="15" font-weight="bold" fill="#b91c1c">FARINGOAMIGDALITIS AGUDA CON REGISTRO FEBRIL</text><text x="50" y="435" font-size="13" fill="#334155">Indicación médica:</text><text x="50" y="460" font-size="14" font-weight="bold" fill="#0f172a">REPOSO LABORAL POR 48 HORAS (14/10/2026 al 16/10/2026).</text><text x="50" y="485" font-size="12" fill="#64748b">Pudiendo reintegrarse a sus tareas el día 17 de Octubre de 2026.</text><g transform="translate(330, 580)"><path d="M 20 40 Q 60 5 110 35 T 190 25" stroke="#1d4ed8" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="15" y="45" width="200" height="65" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="3 3" rx="4"/><text x="115" y="65" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a8a">DRA. MARIANA S. CASTILLO</text><text x="115" y="80" font-size="10" text-anchor="middle" fill="#334155">Médica Clínica - M.N. 148.922</text><text x="115" y="95" font-size="9" text-anchor="middle" fill="#64748b">Esp. en Medicina del Trabajo</text></g></svg>');
+
   // --- 4. RETIROS DE CALZADO Y PAR DE TEMPORADA ---
   const DEFAULT_RETIROS = [
-    // Retiros TOM
+    // Retiros Octubre 2026
+    { id: 'ret-oct-1', colaboradora_id: 'c-sofi', sucursal: 'TOM', tipo: 'Retiro', articulo: 'N1400', talle_color: 'NEGRO GAM 40', fecha: '2026-10-05' },
+    { id: 'ret-oct-2', colaboradora_id: 'c-flavia', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'FPRAGA', talle_color: '36 BEIGE', fecha: '2026-10-12' },
+    { id: 'ret-oct-3', colaboradora_id: 'c-cande', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F700', talle_color: 'NEGRO PU 35', fecha: '2026-10-01' },
+    { id: 'ret-oct-4', colaboradora_id: 'c-cami', sucursal: 'MASCHWITZ', tipo: 'Par de Temporada', articulo: 'F725', talle_color: '39 BEIGE', fecha: '2026-10-02' },
+
+    // Retiros Agosto 2026 TOM
     { id: 'ret-1', colaboradora_id: 'c-cande', sucursal: 'TOM', tipo: 'Retiro', articulo: 'N22/L', talle_color: 'NEGRO 35', fecha: '2026-08-10' },
     { id: 'ret-2', colaboradora_id: 'c-sofi', sucursal: 'TOM', tipo: 'Retiro', articulo: 'N1400', talle_color: 'NEGRO GAM 40', fecha: '2026-08-15' },
-    // Retiros Maschwitz
+    // Retiros Agosto 2026 Maschwitz
     { id: 'ret-3', colaboradora_id: 'c-cami', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'FPRAGA', talle_color: '39 BEIGE', fecha: '2026-08-02' },
     { id: 'ret-4', colaboradora_id: 'c-flavia', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'F725', talle_color: '35 NEGR', fecha: '2026-08-08' },
     { id: 'ret-5', colaboradora_id: 'c-flavia', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'ULMELODY', talle_color: '36 HIELO', fecha: '2026-08-28' },
-    // Pares de Temporada
+    // Pares de Temporada Agosto 2026
     { id: 'ret-6', colaboradora_id: 'c-sofi', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F700', talle_color: 'NEGRO PU 40', fecha: '2026-08-01' },
     { id: 'ret-7', colaboradora_id: 'c-esme', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F490', talle_color: 'NEGRO PU 38', fecha: '2026-08-01' },
     { id: 'ret-8', colaboradora_id: 'c-anto', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F700', talle_color: 'NEGRO PU 38', fecha: '2026-08-01' },
@@ -189,6 +211,11 @@
 
   // --- 5. NOVEDADES, FALTAS Y TRAMOS DE VACACIONES ---
   const DEFAULT_NOVEDADES = [
+    // Novedades Octubre 2026 (con certificado médico auditable)
+    { id: 'nov-oct-1', colaboradora_id: 'c-flavia', codigo_sucursal: 'MASCHWITZ', tipo: 'Licencia Médica', fecha_inicio: '2026-10-14', fecha_fin: '2026-10-16', dias_computados: 2, certificado_url: SAMPLE_CERT_SVG, observaciones: 'Faringoamigdalitis aguda con reposo 48hs indicado por guardia médica (Dra. Castillo M.N. 148.922)', creado_en: '2026-10-14T10:30:00Z' },
+    { id: 'nov-oct-2', colaboradora_id: 'c-esme', codigo_sucursal: 'TOM', tipo: 'Día de Estudio', fecha_inicio: '2026-10-20', fecha_fin: '2026-10-20', dias_computados: 1, certificado_url: '', observaciones: 'Examen final universitario de Comercialización', creado_en: '2026-10-20T09:00:00Z' },
+
+    // Novedades Agosto 2026
     { id: 'nov-1', colaboradora_id: 'c-esme', codigo_sucursal: 'TOM', tipo: 'Día de Estudio', fecha_inicio: '2026-08-28', fecha_fin: '2026-08-28', dias_computados: 1, certificado_url: '', observaciones: 'Día de estudio para examen universitario', creado_en: '2026-08-28T09:00:00Z' },
     { id: 'nov-2', colaboradora_id: 'c-anto', codigo_sucursal: 'TOM', tipo: 'Guardia', fecha_inicio: '2026-08-30', fecha_fin: '2026-08-30', dias_computados: 1, certificado_url: '', observaciones: 'Guardia especial de tienda', creado_en: '2026-08-30T10:00:00Z' },
     { id: 'nov-3', colaboradora_id: 'c-anto', codigo_sucursal: 'TOM', tipo: 'Cobertura Adicional', fecha_inicio: '2026-08-10', fecha_fin: '2026-08-10', dias_computados: 1, certificado_url: '', observaciones: 'Cubre en Maschwitz por vacaciones de Cami (6 hs adicionales)', creado_en: '2026-08-10T09:00:00Z' },
@@ -246,8 +273,10 @@
   }
 
   function initStorageData() {
-    // Inicializar o recargar datos
-    if (!localStorage.getItem('nazaria_colaboradoras_v2')) {
+    // Inicializar o recargar datos con versión para migración limpia
+    const DATA_VERSION = 'v5';
+    const verKey = 'nazaria_data_version';
+    if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
       localStorage.setItem('nazaria_cierres_v2', JSON.stringify(DEFAULT_CIERRES));
       localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(DEFAULT_HORAS_DETALLE));
@@ -256,6 +285,7 @@
       localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(DEFAULT_HORARIOS_NOTAS));
       localStorage.setItem('nazaria_retiros_v2', JSON.stringify(DEFAULT_RETIROS));
       localStorage.setItem('nazaria_novedades_v2', JSON.stringify(DEFAULT_NOVEDADES));
+      localStorage.setItem(verKey, DATA_VERSION);
     }
 
     state.colaboradoras = JSON.parse(localStorage.getItem('nazaria_colaboradoras_v2') || JSON.stringify(DEFAULT_COLABORADORAS));
@@ -380,6 +410,10 @@
 
   function changePeriod(newPeriod) {
     state.currentPeriod = newPeriod;
+    const s1 = document.getElementById('select-store-period');
+    const s2 = document.getElementById('select-admin-period');
+    if (s1) s1.value = newPeriod;
+    if (s2) s2.value = newPeriod;
     renderCurrentView();
     showToast(`Período actualizado a ${newPeriod}`, 'info');
   }
@@ -813,7 +847,11 @@
     tbody.innerHTML = '';
     const storeCode = state.currentRole;
 
-    const filtered = state.novedades.filter(n => n.codigo_sucursal === storeCode && n.tipo !== 'Vacaciones');
+    const filtered = state.novedades.filter(n => {
+      if (n.codigo_sucursal !== storeCode || n.tipo === 'Vacaciones') return false;
+      const dateStr = n.fecha_inicio || n.creado_en || '';
+      return dateStr.startsWith(state.currentPeriod);
+    });
     
     // Ordenar cronológicamente por fecha, luego por nombre de colaboradora
     filtered.sort((a, b) => {
@@ -824,10 +862,10 @@
       return cA.localeCompare(cB);
     });
 
-    document.getElementById('store-nov-count').textContent = `${filtered.length} registros`;
+    document.getElementById('store-nov-count').textContent = `${filtered.length} registros (${state.currentPeriod})`;
 
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-neutral-400 text-xs">No hay novedades registradas en este período.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-neutral-400 text-xs">No hay novedades registradas para el período ${state.currentPeriod}.</td></tr>`;
       return;
     }
 
@@ -836,20 +874,22 @@
       const tr = document.createElement('tr');
 
       const certBtn = n.certificado_url
-        ? `<button onclick="window.app.viewComprobante('${n.certificado_url}', '${colab?.nombre_completo || ''}', '${n.tipo}')" class="px-2 py-1 rounded bg-[#E6D5C3] hover:bg-[#d8c2ad] text-neutral-900 font-bold text-[11px] flex items-center gap-1">
+        ? `<button onclick="window.app.viewComprobante('${n.id}')" class="px-2.5 py-1 rounded bg-[#E6D5C3] hover:bg-[#d8c2ad] text-neutral-900 font-bold text-[11px] flex items-center gap-1 shadow-sm cursor-pointer whitespace-nowrap">
              <i data-lucide="image" class="w-3.5 h-3.5"></i> Ver Foto
            </button>`
-        : `<span class="text-neutral-400 text-xs">-</span>`;
+        : `<span class="text-neutral-400 text-xs italic">-</span>`;
 
       tr.innerHTML = `
         <td class="font-mono text-xs text-neutral-600">${formatDateShort(n.fecha_inicio)}</td>
         <td class="font-bold text-xs text-neutral-900">${colab?.alias || colab?.nombre_completo || 'Colaboradora'}</td>
         <td><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200">${n.tipo}</span></td>
         <td class="font-mono font-bold text-xs text-center">${n.dias_computados}d</td>
-        <td class="text-xs text-neutral-700 max-w-[200px] truncate" title="${n.observaciones}">${n.observaciones || '-'}</td>
+        <td class="text-xs text-neutral-800 whitespace-normal leading-relaxed min-w-[180px]">
+          ${n.observaciones ? `<div class="bg-neutral-50 p-1.5 rounded border border-neutral-200 text-[11px]">${n.observaciones}</div>` : '<span class="text-neutral-400 text-xs">-</span>'}
+        </td>
         <td class="text-center">${certBtn}</td>
         <td class="text-right">
-          <button onclick="window.app.deleteNovedad('${n.id}')" class="text-neutral-400 hover:text-red-600 p-1" title="Eliminar novedad">
+          <button onclick="window.app.deleteNovedad('${n.id}')" class="text-neutral-400 hover:text-red-600 p-1 cursor-pointer" title="Eliminar novedad">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
           </button>
         </td>
@@ -931,7 +971,7 @@
     tbody.innerHTML = '';
     const storeCode = state.currentRole;
 
-    const filtered = state.retiros.filter(r => r.sucursal === storeCode);
+    const filtered = state.retiros.filter(r => r.sucursal === storeCode && r.fecha && r.fecha.startsWith(state.currentPeriod));
     
     // Ordenar cronológicamente por fecha, luego por nombre de colaboradora
     filtered.sort((a, b) => {
@@ -942,10 +982,10 @@
       return cA.localeCompare(cB);
     });
 
-    document.getElementById('store-ret-count').textContent = `${filtered.length} pares`;
+    document.getElementById('store-ret-count').textContent = `${filtered.length} pares (${state.currentPeriod})`;
 
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-neutral-400 text-xs">No hay retiros ni pares de temporada en esta sucursal.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-neutral-400 text-xs">No hay retiros ni pares de temporada en esta sucursal para ${state.currentPeriod}.</td></tr>`;
       return;
     }
 
@@ -1145,7 +1185,9 @@
   }
 
   function updateAdminKPIs() {
-    document.getElementById('kpi-colabs').textContent = state.colaboradoras.length;
+    const activeColabs = state.colaboradoras.filter(c => (c.estado || 'activa') === 'activa').length;
+    const totalColabs = state.colaboradoras.length;
+    document.getElementById('kpi-colabs').textContent = `${activeColabs} / ${totalColabs}`;
 
     let totalHoras = 0;
     Object.keys(state.cierres).forEach(k => {
@@ -1157,11 +1199,12 @@
     document.getElementById('kpi-horas').textContent = `${totalHoras} hs`;
 
     const vacDays = state.novedades
-      .filter(n => n.tipo === 'Vacaciones')
+      .filter(n => n.tipo === 'Vacaciones' && ((n.fecha_inicio && n.fecha_inicio.startsWith(state.currentPeriod)) || (n.creado_en && n.creado_en.startsWith(state.currentPeriod))))
       .reduce((sum, n) => sum + (Number(n.dias_computados) || 0), 0);
     document.getElementById('kpi-vacaciones').textContent = `${vacDays} d`;
 
-    document.getElementById('kpi-retiros').textContent = state.retiros.length;
+    const retirosPeriod = state.retiros.filter(r => r.fecha && r.fecha.startsWith(state.currentPeriod));
+    document.getElementById('kpi-retiros').textContent = retirosPeriod.length;
   }
 
   // --- ADMIN 1: CONSOLIDADO DE HORAS ---
@@ -1171,7 +1214,7 @@
 
     const allKeys = Object.keys(state.cierres).filter(k => k.startsWith(state.currentPeriod));
     if (allKeys.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay cierres de horas para este período.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay cierres de horas para este período (${state.currentPeriod}).</td></tr>`;
       return;
     }
 
@@ -1188,21 +1231,22 @@
       tr.innerHTML = `
         <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${sucursal}</span></td>
         <td class="font-bold text-xs text-neutral-900">
-          ${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.alias || colab?.nombre_completo || 'Colaboradora')}
-          <span class="block text-[10px] text-neutral-400 font-normal">${colab?.nombre_completo || ''}</span>
+          ${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.nombre_completo || 'Colaboradora')}
         </td>
         <td class="font-mono text-center text-xs">${rec.horas_base || 0}</td>
         <td class="font-mono text-center text-xs">${rec.feriados_hs || 0}</td>
         <td class="font-mono text-center text-xs">${rec.extras_hs || 0}</td>
         <td class="font-mono text-center text-xs font-bold ${rec.adicionales_hs > 0 ? 'text-amber-800' : ''}">${rec.adicionales_hs || 0}</td>
-        <td class="text-xs text-neutral-600 max-w-[200px] truncate" title="${rec.detalle_cobertura || ''}">${rec.detalle_cobertura || '-'}</td>
+        <td class="text-xs text-neutral-700 whitespace-normal leading-relaxed min-w-[220px]">
+          ${rec.detalle_cobertura ? `<div class="bg-neutral-50 p-1.5 rounded border border-neutral-200 text-[11px]">${rec.detalle_cobertura}</div>` : '<span class="text-neutral-400 text-xs">-</span>'}
+        </td>
         <td class="font-mono font-bold text-sm text-neutral-900">${totalHs} hs</td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  // --- ADMIN 2: VACACIONES LCT (Días Disponibles y Tramos Desplegados - Punto 5) ---
+  // --- ADMIN 2: VACACIONES LCT (Sábana de 7 columnas sin scroll horizontal) ---
   function renderAdminVacaciones() {
     const tbody = document.getElementById('tbody-admin-vacaciones');
     tbody.innerHTML = '';
@@ -1229,29 +1273,29 @@
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${c.codigo_sucursal}</span></td>
-        <td class="font-bold text-xs text-neutral-900">${c.nombre_completo} <span class="text-neutral-500 font-normal">(${c.alias})</span></td>
-        <td class="font-mono text-xs text-neutral-600">${formatDateShort(c.fecha_ingreso)}</td>
-        <td class="font-mono text-xs ${c.fecha_antiguedad_reconocida ? 'font-bold text-amber-900' : 'text-neutral-400'}">
-          ${c.fecha_antiguedad_reconocida ? formatDateShort(c.fecha_antiguedad_reconocida) + ' ⭐' : 'No aplica'}
+        <td class="font-bold text-xs text-neutral-900">${c.nombre_completo}</td>
+        <td>
+          <div class="font-mono text-xs font-semibold text-neutral-800">${calc.aniosAntiguedad} años al 31/12</div>
+          <div class="text-[10px] text-neutral-500">Ingreso: ${formatDateShort(c.fecha_ingreso)}</div>
+          ${c.fecha_antiguedad_reconocida ? `<div class="text-[10px] text-amber-900 font-bold">⭐ Reconocida: ${formatDateShort(c.fecha_antiguedad_reconocida)}</div>` : ''}
         </td>
-        <td class="font-mono text-xs text-center">${calc.aniosAntiguedad} años</td>
-        <td class="font-mono font-bold text-xs text-center"><span class="bg-[#E6D5C3]/40 border border-[#E6D5C3] px-2 py-0.5 rounded text-neutral-900">${calc.diasLey} días</span></td>
+        <td class="font-mono font-bold text-xs text-center"><span class="bg-[#E6D5C3]/40 border border-[#E6D5C3] px-2.5 py-0.5 rounded text-neutral-900">${calc.diasLey} días</span></td>
         <td class="font-mono font-bold text-xs text-center text-amber-800">${diasTomados} días</td>
         <td class="font-mono font-bold text-sm text-center ${saldo === 0 ? 'text-neutral-400' : 'text-emerald-700'}">
           ${saldo} días
         </td>
-        <td>${tramosHtml}</td>
+        <td class="whitespace-normal leading-relaxed">${tramosHtml}</td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  // --- ADMIN 3: RETIROS & TEMPORADA (Ordenado por Fecha - Punto 4) ---
+  // --- ADMIN 3: RETIROS & TEMPORADA (Filtrado por Período y Ordenado por Fecha) ---
   function renderAdminRetiros() {
     const tbody = document.getElementById('tbody-admin-retiros');
     tbody.innerHTML = '';
 
-    const list = [...state.retiros];
+    const list = state.retiros.filter(r => r.fecha && r.fecha.startsWith(state.currentPeriod));
     list.sort((a, b) => {
       const cmpDate = (a.fecha || '').localeCompare(b.fecha || '');
       if (cmpDate !== 0) return cmpDate;
@@ -1261,7 +1305,7 @@
     });
 
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-neutral-400 text-xs">No hay retiros registrados.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-neutral-400 text-xs">No hay retiros registrados para el período ${state.currentPeriod}.</td></tr>`;
       return;
     }
 
@@ -1286,12 +1330,17 @@
     });
   }
 
-  // --- ADMIN 4: AUDITORÍA DE NOVEDADES Y CERTIFICADOS (Ordenado por Fecha - Punto 3) ---
+  // --- ADMIN 4: AUDITORÍA DE NOVEDADES Y CERTIFICADOS (Filtrado por Período y con Visor) ---
   function renderAdminNovedades() {
     const tbody = document.getElementById('tbody-admin-novedades');
     tbody.innerHTML = '';
 
-    const list = state.novedades.filter(n => n.tipo !== 'Vacaciones');
+    const list = state.novedades.filter(n => {
+      if (n.tipo === 'Vacaciones') return false;
+      const dateStr = n.fecha_inicio || n.creado_en || '';
+      return dateStr.startsWith(state.currentPeriod);
+    });
+
     list.sort((a, b) => {
       const cmpDate = (a.fecha_inicio || '').localeCompare(b.fecha_inicio || '');
       if (cmpDate !== 0) return cmpDate;
@@ -1301,7 +1350,7 @@
     });
 
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay novedades registradas.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay novedades registradas para el período ${state.currentPeriod}.</td></tr>`;
       return;
     }
 
@@ -1310,7 +1359,7 @@
       const tr = document.createElement('tr');
 
       const certBtn = n.certificado_url
-        ? `<button onclick="window.app.viewComprobante('${n.certificado_url}', '${colab?.nombre_completo || ''}', '${n.tipo}')" class="px-2.5 py-1 rounded bg-[#E6D5C3] hover:bg-[#d8c2ad] text-neutral-900 font-bold text-[11px] flex items-center gap-1">
+        ? `<button onclick="window.app.viewComprobante('${n.id}')" class="px-2.5 py-1 rounded bg-[#E6D5C3] hover:bg-[#d8c2ad] text-neutral-900 font-bold text-[11px] flex items-center gap-1 shadow-sm cursor-pointer whitespace-nowrap">
              <i data-lucide="image" class="w-3.5 h-3.5"></i> Ver Comprobante
            </button>`
         : `<span class="text-neutral-400 text-xs italic">Sin archivo</span>`;
@@ -1322,7 +1371,9 @@
         <td><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200">${n.tipo}</span></td>
         <td class="font-mono text-xs text-neutral-600">${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)}</td>
         <td class="font-mono font-bold text-xs text-center">${n.dias_computados}d</td>
-        <td class="text-xs text-neutral-700 max-w-[220px] truncate" title="${n.observaciones}">${n.observaciones || '-'}</td>
+        <td class="text-xs text-neutral-800 whitespace-normal leading-relaxed min-w-[220px]">
+          ${n.observaciones ? `<div class="bg-neutral-50 p-1.5 rounded border border-neutral-200 text-[11px]">${n.observaciones}</div>` : '<span class="text-neutral-400 text-xs">-</span>'}
+        </td>
         <td class="text-center">${certBtn}</td>
       `;
       tbody.appendChild(tr);
@@ -1331,28 +1382,68 @@
     initLucideIcons();
   }
 
-  // --- ADMIN 5: PADRÓN DE COLABORADORAS ---
+  // --- ADMIN 5: PADRÓN DE COLABORADORAS (5 Columnas Compactas con Switch Activa/Inactiva) ---
   function renderAdminColaboradoras() {
     const tbody = document.getElementById('tbody-admin-colaboradoras');
     tbody.innerHTML = '';
 
     state.colaboradoras.forEach(c => {
+      const isActiva = (c.estado || 'activa') === 'activa';
+      const estadoBtn = isActiva
+        ? `<button onclick="window.app.toggleColaboradoraEstado('${c.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 transition flex items-center gap-1.5 mx-auto cursor-pointer" title="Clic para desactivar (baja operativa)">
+             <span class="w-2 h-2 rounded-full bg-emerald-600"></span> Activa
+           </button>`
+        : `<button onclick="window.app.toggleColaboradoraEstado('${c.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-neutral-200 text-neutral-600 hover:bg-neutral-300 border border-neutral-300 transition flex items-center gap-1.5 mx-auto cursor-pointer" title="Clic para reactivar">
+             <span class="w-2 h-2 rounded-full bg-neutral-400"></span> Inactiva
+           </button>`;
+
+      const accionTxt = isActiva
+        ? `<span class="text-xs text-emerald-700 font-medium">En funciones</span>`
+        : `<span class="text-xs text-neutral-500 font-medium">${c.fecha_baja ? 'Baja: ' + formatDateShort(c.fecha_baja) : 'Inactiva para nuevos meses'}</span>`;
+
       const tr = document.createElement('tr');
+      tr.className = isActiva ? '' : 'opacity-70 bg-neutral-50/60';
       tr.innerHTML = `
-        <td class="font-bold text-neutral-900 text-xs">${c.nombre_completo}</td>
-        <td class="font-bold text-xs text-neutral-700">${c.alias || '-'}</td>
-        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${c.codigo_sucursal}</span></td>
-        <td class="font-mono text-xs text-neutral-600">${c.dni}</td>
-        <td class="font-mono text-xs text-neutral-600">${c.cuil || '-'}</td>
-        <td class="font-mono text-xs text-neutral-700">${formatDateShort(c.fecha_ingreso)}</td>
-        <td class="font-mono text-xs ${c.fecha_antiguedad_reconocida ? 'font-bold text-amber-900' : 'text-neutral-400'}">
-          ${c.fecha_antiguedad_reconocida ? formatDateShort(c.fecha_antiguedad_reconocida) : '-'}
+        <td>
+          <div class="font-bold text-neutral-900 text-xs">${c.nombre_completo}</div>
+          <div class="text-[11px] text-neutral-500 font-mono">DNI ${c.dni} ${c.cuil ? '· CUIL ' + c.cuil : ''}</div>
         </td>
-        <td class="text-xs text-neutral-600">${c.categoria}</td>
-        <td><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Activa</span></td>
+        <td>
+          <div class="flex items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${c.codigo_sucursal}</span>
+            <span class="text-xs text-neutral-700 font-medium">${c.categoria}</span>
+          </div>
+          <div class="text-[10px] text-neutral-400 mt-0.5">Alias: ${c.alias || '-'}</div>
+        </td>
+        <td>
+          <div class="text-xs text-neutral-700 font-medium">Ingreso: ${formatDateShort(c.fecha_ingreso)}</div>
+          ${c.fecha_antiguedad_reconocida ? `<div class="text-[10px] text-amber-900 font-bold">⭐ Reconocida: ${formatDateShort(c.fecha_antiguedad_reconocida)}</div>` : '<div class="text-[10px] text-neutral-400">Sin antigüedad previa</div>'}
+        </td>
+        <td class="text-center">${estadoBtn}</td>
+        <td>${accionTxt}</td>
       `;
       tbody.appendChild(tr);
     });
+  }
+
+  function toggleColaboradoraEstado(id) {
+    const colab = state.colaboradoras.find(c => c.id === id);
+    if (!colab) return;
+    const isActiva = (colab.estado || 'activa') === 'activa';
+    colab.estado = isActiva ? 'inactiva' : 'activa';
+    if (colab.estado === 'inactiva') {
+      colab.fecha_baja = new Date().toISOString().split('T')[0];
+    } else {
+      delete colab.fecha_baja;
+    }
+    localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(state.colaboradoras));
+    showToast(`${colab.nombre_completo} ahora está ${colab.estado.toUpperCase()}.`, 'info');
+    renderAdminColaboradoras();
+    updateAdminKPIs();
+    if (state.currentRole && state.currentRole !== 'ADMIN') {
+      populateStoreColaboradorasSelects(state.currentRole);
+      renderStoreHoras();
+    }
   }
 
   // ============================================================================
@@ -1422,23 +1513,26 @@
     const wsHoras = XLSX.utils.aoa_to_sheet(rowsHoras);
     XLSX.utils.book_append_sheet(wb, wsHoras, 'Horas_Liquidacion');
 
-    // 2. SOLAPA: DETALLE HORAS EXTRAS Y ADICIONALES (Punto 1)
+    // 2. SOLAPA: DETALLE DE EXTRAS Y ADICIONALES
     const rowsHorasDetalle = [
-      ['NAZARIA - DETALLE Y JUSTIFICACIÓN DE HORAS EXTRAS Y ADICIONALES'],
+      ['NAZARIA - DETALLE DE HORAS EXTRAS Y ADICIONALES'],
+      [`Período: ${state.currentPeriod}`],
       [],
       ['Fecha', 'Sucursal', 'Colaboradora', 'Tipo', 'Horas', 'Motivo / Justificación']
     ];
-    state.horas_detalle.forEach(h => {
-      const colab = state.colaboradoras.find(c => c.id === h.colaboradora_id);
-      rowsHorasDetalle.push([
-        h.fecha,
-        h.sucursal,
-        colab?.nombre_completo || '',
-        h.tipo,
-        h.horas,
-        h.motivo
-      ]);
-    });
+    state.horas_detalle
+      .filter(h => h.fecha && h.fecha.startsWith(state.currentPeriod))
+      .forEach(h => {
+        const colab = state.colaboradoras.find(c => c.id === h.colaboradora_id);
+        rowsHorasDetalle.push([
+          h.fecha,
+          h.sucursal,
+          colab?.nombre_completo || '',
+          h.tipo,
+          h.horas,
+          h.motivo
+        ]);
+      });
     const wsHorasDetalle = XLSX.utils.aoa_to_sheet(rowsHorasDetalle);
     XLSX.utils.book_append_sheet(wb, wsHorasDetalle, 'Detalle_Extras_Adic');
 
@@ -1475,41 +1569,47 @@
     // 4. SOLAPA: RETIROS Y PAR DE TEMPORADA
     const rowsRetiros = [
       ['NAZARIA - RETIROS DE CALZADO Y PAR DE TEMPORADA'],
+      [`Período: ${state.currentPeriod}`],
       [],
       ['Tipo', 'Sucursal', 'Colaboradora', 'Artículo', 'Talle y Color', 'Fecha']
     ];
-    state.retiros.forEach(r => {
-      const colab = state.colaboradoras.find(c => c.id === r.colaboradora_id);
-      rowsRetiros.push([
-        r.tipo,
-        r.sucursal,
-        colab?.nombre_completo || '',
-        r.articulo,
-        r.talle_color,
-        r.fecha || ''
-      ]);
-    });
+    state.retiros
+      .filter(r => r.fecha && r.fecha.startsWith(state.currentPeriod))
+      .forEach(r => {
+        const colab = state.colaboradoras.find(c => c.id === r.colaboradora_id);
+        rowsRetiros.push([
+          r.tipo,
+          r.sucursal,
+          colab?.nombre_completo || '',
+          r.articulo,
+          r.talle_color,
+          r.fecha || ''
+        ]);
+      });
     const wsRet = XLSX.utils.aoa_to_sheet(rowsRetiros);
     XLSX.utils.book_append_sheet(wb, wsRet, 'Calzado_Retiros');
 
     // 5. SOLAPA: NOVEDADES Y FALTAS
     const rowsNov = [
       ['NAZARIA - NOVEDADES, LICENCIAS Y FALTAS'],
+      [`Período: ${state.currentPeriod}`],
       [],
       ['Fecha Inicio', 'Fecha Fin', 'Sucursal', 'Colaboradora', 'Tipo', 'Días', 'Observaciones']
     ];
-    state.novedades.filter(n => n.tipo !== 'Vacaciones').forEach(n => {
-      const colab = state.colaboradoras.find(c => c.id === n.colaboradora_id);
-      rowsNov.push([
-        n.fecha_inicio,
-        n.fecha_fin,
-        n.codigo_sucursal,
-        colab?.nombre_completo || '',
-        n.tipo,
-        n.dias_computados,
-        n.observaciones || ''
-      ]);
-    });
+    state.novedades
+      .filter(n => n.tipo !== 'Vacaciones' && ((n.fecha_inicio && n.fecha_inicio.startsWith(state.currentPeriod)) || (n.creado_en && n.creado_en.startsWith(state.currentPeriod))))
+      .forEach(n => {
+        const colab = state.colaboradoras.find(c => c.id === n.colaboradora_id);
+        rowsNov.push([
+          n.fecha_inicio,
+          n.fecha_fin,
+          n.codigo_sucursal,
+          colab?.nombre_completo || '',
+          n.tipo,
+          n.dias_computados,
+          n.observaciones || ''
+        ]);
+      });
     const wsNov = XLSX.utils.aoa_to_sheet(rowsNov);
     XLSX.utils.book_append_sheet(wb, wsNov, 'Novedades_Faltas');
 
@@ -1591,15 +1691,32 @@
     }
   }
 
-  function viewComprobante(url, colabNombre, tipo) {
+  function viewComprobante(target, colabNombre, tipo) {
+    let url = target;
+    let titleText = tipo || 'Certificado Médico';
+    let detailText = colabNombre || 'Colaboradora';
+
+    const foundNov = state.novedades.find(n => n.id === target);
+    if (foundNov) {
+      url = foundNov.certificado_url;
+      const colab = state.colaboradoras.find(c => c.id === foundNov.colaboradora_id);
+      titleText = `Comprobante: ${foundNov.tipo}`;
+      detailText = `${colab?.nombre_completo || 'Colaboradora'} · Período: ${formatDateShort(foundNov.fecha_inicio)} al ${formatDateShort(foundNov.fecha_fin)}`;
+    }
+
+    if (!url) {
+      showToast('No hay archivo o comprobante adjunto en este registro.', 'info');
+      return;
+    }
+
     const modal = document.getElementById('modal-viewer');
     const img = document.getElementById('viewer-img');
     const title = document.getElementById('viewer-title');
     const details = document.getElementById('viewer-details');
     const downloadBtn = document.getElementById('viewer-download-btn');
 
-    title.textContent = `Comprobante: ${tipo}`;
-    details.textContent = colabNombre;
+    title.textContent = titleText;
+    details.textContent = detailText;
     img.src = url;
     downloadBtn.href = url;
 
@@ -1738,6 +1855,7 @@
     removeSelectedFile,
     viewComprobante,
     closeViewerModal,
+    toggleColaboradoraEstado,
     openAddColaboradoraModal: () => showToast('Padrón centralizado con las 8 colaboradoras.', 'info')
   };
 
