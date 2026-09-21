@@ -798,13 +798,13 @@
           <i data-lucide="palmtree" class="w-4 h-4"></i>
           <span>2. Sábanas de Vacaciones LCT</span>
         </button>
-        <button id="tab-admin-retiros" onclick="window.app.switchAdminTab('retiros')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition">
-          <i data-lucide="shopping-bag" class="w-4 h-4"></i>
-          <span>3. Retiros & Temporada</span>
-        </button>
         <button id="tab-admin-novedades" onclick="window.app.switchAdminTab('novedades')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition">
           <i data-lucide="file-check" class="w-4 h-4"></i>
-          <span>4. Auditoría de Certificados</span>
+          <span>3. Novedades, Licencias y Faltas</span>
+        </button>
+        <button id="tab-admin-retiros" onclick="window.app.switchAdminTab('retiros')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition">
+          <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+          <span>4. Retiros & Temporada</span>
         </button>
         <button id="tab-admin-colaboradoras" onclick="window.app.switchAdminTab('colaboradoras')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition">
           <i data-lucide="users" class="w-4 h-4"></i>
@@ -892,7 +892,37 @@
         </div>
       </div>
 
-      <!-- SUBVISTA ADMIN 3: RETIROS & TEMPORADA -->
+      <!-- SUBVISTA ADMIN 3: AUDITORÍA DE NOVEDADES Y CERTIFICADOS -->
+      <div id="subview-admin-novedades" class="hidden flex flex-col gap-6">
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
+          <div class="border-b border-neutral-200 pb-4">
+            <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Auditoría Central de Novedades y Certificados Médicos</h3>
+            <p class="text-xs text-neutral-500">Historial completo con acceso directo a visualización del comprobante médico firmado.</p>
+          </div>
+
+          <div class="overflow-x-auto mt-4">
+            <table class="w-full text-left table-sop">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Sucursal</th>
+                  <th>Colaboradora</th>
+                  <th>Tipo Novedad</th>
+                  <th>Rango Fechas</th>
+                  <th>Días</th>
+                  <th>Observaciones / Justificación</th>
+                  <th>Comprobante</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-novedades">
+                <!-- Inyectado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBVISTA ADMIN 4: RETIROS & TEMPORADA -->
       <div id="subview-admin-retiros" class="hidden flex flex-col gap-6">
         <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-neutral-200 gap-3">
@@ -919,36 +949,6 @@
                 </tr>
               </thead>
               <tbody id="tbody-admin-retiros">
-                <!-- Inyectado dinámicamente -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUBVISTA ADMIN 4: AUDITORÍA DE NOVEDADES Y CERTIFICADOS -->
-      <div id="subview-admin-novedades" class="hidden flex flex-col gap-6">
-        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
-          <div class="border-b border-neutral-200 pb-4">
-            <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Auditoría Central de Novedades y Certificados Médicos</h3>
-            <p class="text-xs text-neutral-500">Historial completo con acceso directo a visualización del comprobante médico firmado.</p>
-          </div>
-
-          <div class="overflow-x-auto mt-4">
-            <table class="w-full text-left table-sop">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Sucursal</th>
-                  <th>Colaboradora</th>
-                  <th>Tipo Novedad</th>
-                  <th>Rango Fechas</th>
-                  <th>Días</th>
-                  <th>Observaciones / Justificación</th>
-                  <th>Comprobante</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-admin-novedades">
                 <!-- Inyectado dinámicamente -->
               </tbody>
             </table>
