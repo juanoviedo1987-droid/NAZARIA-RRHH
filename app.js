@@ -679,11 +679,25 @@
   }
 
   function handleDeleteHoraDetalle(id) {
-    if (!confirm('¿Eliminar este registro de horas?')) return;
+    const item = state.horas_detalle.find(h => h.id === id);
+    if (!item) return;
     state.horas_detalle = state.horas_detalle.filter(h => h.id !== id);
     localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
+
+    // Restar de la fila principal si correspondía
+    const key = `${state.currentPeriod}_${item.colaboradora_id}`;
+    if (state.cierres[key]) {
+      if (item.tipo === 'Hora Extra') {
+        state.cierres[key].extras_hs = Math.max(0, (Number(state.cierres[key].extras_hs) || 0) - item.horas);
+      } else {
+        state.cierres[key].adicionales_hs = Math.max(0, (Number(state.cierres[key].adicionales_hs) || 0) - item.horas);
+      }
+      localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+      renderStoreHoras();
+    }
+
     renderStoreHorasDetalle();
-    showToast('Registro eliminado.', 'info');
+    setUndoableDelete('hora_detalle', item, 'Horas eliminadas.');
   }
 
   // --- SUBVISTA 2: HORARIOS SEMANALES & FECHAS ESPECIALES (Punto 2) ---
@@ -777,11 +791,12 @@
   }
 
   function handleDeleteFechaEspecial(id) {
-    if (!confirm('¿Eliminar esta fecha especial?')) return;
+    const item = state.fechas_especiales.find(f => f.id === id);
+    if (!item) return;
     state.fechas_especiales = state.fechas_especiales.filter(f => f.id !== id);
     localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(state.fechas_especiales));
     renderStoreFechasEspeciales();
-    showToast('Fecha especial eliminada.', 'info');
+    setUndoableDelete('fecha_especial', item, 'Fecha especial eliminada.');
   }
 
   function saveHorariosNotas() {
@@ -897,12 +912,17 @@
   }
 
   function deleteNovedad(id) {
-    if (!confirm('¿Seguro que deseás eliminar este registro?')) return;
+    const item = state.novedades.find(n => n.id === id);
+    if (!item) return;
     state.novedades = state.novedades.filter(n => n.id !== id);
     localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
     renderStoreNovedades();
     renderStoreVacaciones();
-    showToast('Registro eliminado.', 'info');
+    renderAdminNovedades();
+    renderAdminVacaciones();
+    updateAdminKPIs();
+    const msg = item.tipo === 'Vacaciones' ? 'Tramo de vacaciones eliminado.' : 'Novedad eliminada.';
+    setUndoableDelete('novedad', item, msg);
   }
 
   // --- SUBVISTA 4: RETIROS & PAR DE TEMPORADA (Ordenado por Fecha y Colaboradora - Punto 4) ---
@@ -983,11 +1003,14 @@
   }
 
   function deleteRetiro(id) {
-    if (!confirm('¿Seguro que deseás eliminar este registro de calzado?')) return;
+    const item = state.retiros.find(r => r.id === id);
+    if (!item) return;
     state.retiros = state.retiros.filter(r => r.id !== id);
     localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
     renderStoreRetiros();
-    showToast('Registro eliminado.', 'info');
+    renderAdminRetiros();
+    updateAdminKPIs();
+    setUndoableDelete('retiro', item, 'Calzado eliminado.');
   }
 
   // --- SUBVISTA 5: VACACIONES (Carga directa, Días Disponibles y Tramos Desplegados - Punto 5) ---
@@ -1589,8 +1612,66 @@
   }
 
   // ============================================================================
-  // UTILIDADES Y TOASTS
+  // UTILIDADES, DESHACER (UNDO) Y TOASTS
   // ============================================================================
+  let lastDeletedItem = null;
+
+  function setUndoableDelete(type, data, customMsg = 'Registro eliminado.') {
+    lastDeletedItem = { type, data };
+    showToast(customMsg, 'info', true);
+  }
+
+  function undoLastAction() {
+    if (!lastDeletedItem) return;
+    const { type, data } = lastDeletedItem;
+
+    if (type === 'novedad') {
+      state.novedades.unshift(data);
+      localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
+      renderStoreNovedades();
+      renderStoreVacaciones();
+      renderAdminNovedades();
+      renderAdminVacaciones();
+      updateAdminKPIs();
+    } else if (type === 'retiro') {
+      state.retiros.unshift(data);
+      localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
+      renderStoreRetiros();
+      renderAdminRetiros();
+      updateAdminKPIs();
+    } else if (type === 'hora_detalle') {
+      state.horas_detalle.push(data);
+      localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
+      const key = `${state.currentPeriod}_${data.colaboradora_id}`;
+      if (state.cierres[key]) {
+        if (data.tipo === 'Hora Extra') {
+          state.cierres[key].extras_hs = (Number(state.cierres[key].extras_hs) || 0) + data.horas;
+        } else {
+          state.cierres[key].adicionales_hs = (Number(state.cierres[key].adicionales_hs) || 0) + data.horas;
+        }
+        localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+        renderStoreHoras();
+      }
+      renderStoreHorasDetalle();
+    } else if (type === 'fecha_especial') {
+      state.fechas_especiales.push(data);
+      localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(state.fechas_especiales));
+      renderStoreFechasEspeciales();
+    }
+
+    lastDeletedItem = null;
+    showToast('Acción deshecha. Registro recuperado.', 'success');
+  }
+
+  function setDefaultDates() {
+    const today = new Date().toISOString().split('T')[0];
+    const inputs = ['ret-fecha', 'hd-fecha', 'nov-fecha-inicio', 'nov-fecha-fin', 'vac-desde', 'vac-hasta'];
+    inputs.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && !el.value) el.value = today;
+    });
+  }
+
   function formatDateShort(dateStr) {
     if (!dateStr) return '';
     try {
@@ -1604,22 +1685,26 @@
     }
   }
 
-  function showToast(msg, type = 'info') {
+  function showToast(msg, type = 'info', hasUndo = false) {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
     const toast = document.createElement('div');
-    const bgClass = type === 'success' ? 'bg-black text-white' : type === 'error' ? 'bg-red-700 text-white' : 'bg-neutral-800 text-white';
+    const bgClass = type === 'success' ? 'bg-black text-white' : type === 'error' ? 'bg-red-700 text-white' : 'bg-neutral-900 text-white';
 
-    toast.className = `${bgClass} px-4 py-2.5 rounded-lg shadow-xl text-xs font-bold flex items-center gap-2 fade-in`;
-    toast.innerHTML = `<span>${msg}</span>`;
+    const undoBtn = hasUndo
+      ? `<button onclick="window.app.undoLastAction()" class="bg-[#E6D5C3] text-neutral-900 hover:bg-white px-2.5 py-0.5 rounded text-[11px] font-bold ml-3 transition shadow-sm cursor-pointer">Deshacer</button>`
+      : '';
+
+    toast.className = `${bgClass} px-4 py-2.5 rounded-lg shadow-2xl text-xs font-bold flex items-center justify-between pointer-events-auto gap-2 fade-in border border-neutral-700`;
+    toast.innerHTML = `<div class="flex items-center gap-1.5"><span>${msg}</span></div>${undoBtn}`;
 
     container.appendChild(toast);
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transition = 'opacity 0.3s ease';
       setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, hasUndo ? 5000 : 3000);
   }
 
   // Exponer métodos globalmente
@@ -1647,6 +1732,7 @@
     deleteRetiro,
     calcVacDaysAuto,
     handleSaveVacaciones,
+    undoLastAction,
     exportFullExcelWorkbook,
     handleFileSelect,
     removeSelectedFile,
@@ -1656,6 +1742,9 @@
   };
 
   // Inicializar al cargar el DOM
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => {
+    init();
+    setDefaultDates();
+  });
 
 })();
