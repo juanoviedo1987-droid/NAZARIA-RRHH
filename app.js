@@ -345,13 +345,13 @@
 
     if (target === 'TOM') {
       title.textContent = 'Terminal TOM';
-      desc.textContent = 'Ingresá el PIN de Tortugas Open Mall (Default: 1111)';
+      desc.textContent = 'Ingresá tu PIN personal de Encargada (Sofi)';
     } else if (target === 'MASCHWITZ') {
       title.textContent = 'Terminal Maschwitz';
-      desc.textContent = 'Ingresá el PIN de Maschwitz Mall (Default: 2222)';
+      desc.textContent = 'Ingresá tu PIN personal de Encargada (Flavia)';
     } else {
       title.textContent = 'Panel de Administración';
-      desc.textContent = 'Ingresá el PIN de Dueño / RRHH (Default: 9999)';
+      desc.textContent = 'Ingresá tu clave personal de Administrador';
     }
 
     modal.classList.remove('hidden');
@@ -378,16 +378,16 @@
   function submitPin() {
     const pin = document.getElementById('input-pin').value;
     const target = state.selectedPinTarget;
-    const expectedPin = window.APP_CONFIG?.PINS?.[target] || (target === 'TOM' ? '1111' : target === 'MASCHWITZ' ? '2222' : '9999');
+    const expectedPin = window.APP_CONFIG?.PINS?.[target] || (target === 'TOM' ? '0145' : target === 'MASCHWITZ' ? '2934' : '3585');
 
-    if (pin === expectedPin || pin === '9999') {
+    if (pin === expectedPin) {
       sessionStorage.setItem('nazaria_session', target);
       state.currentRole = target;
       closePinModal();
       showToast(`Acceso concedido a ${target}`, 'success');
       renderCurrentView();
     } else {
-      showToast('PIN incorrecto. Intentá nuevamente.', 'error');
+      showToast('PIN incorrecto. Acceso denegado.', 'error');
       document.getElementById('input-pin').value = '';
     }
   }
@@ -600,19 +600,19 @@
           <div class="text-[11px] text-neutral-400 font-normal">${c.nombre_completo}</div>
         </td>
         <td>
-          <input type="number" step="1" min="0" value="${record.horas_base}" id="hb-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black" onchange="window.app.recalcRowTotal('${c.id}')">
+          <input type="number" step="1" min="0" value="${record.horas_base}" id="hb-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
         </td>
         <td>
-          <input type="number" step="1" min="0" value="${record.feriados_hs}" id="hf-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black" onchange="window.app.recalcRowTotal('${c.id}')">
+          <input type="number" step="1" min="0" value="${record.feriados_hs}" id="hf-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
         </td>
         <td>
-          <input type="number" step="1" min="0" value="${record.extras_hs}" id="he-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black" onchange="window.app.recalcRowTotal('${c.id}')">
+          <input type="number" step="1" min="0" value="${record.extras_hs}" id="he-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
         </td>
         <td>
-          <input type="number" step="1" min="0" value="${record.adicionales_hs}" id="ha-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black" onchange="window.app.recalcRowTotal('${c.id}')">
+          <input type="number" step="1" min="0" value="${record.adicionales_hs}" id="ha-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
         </td>
         <td>
-          <input type="text" value="${record.detalle_cobertura || ''}" id="dc-${c.id}" placeholder="Ej: Cubre en Maschwitz..." class="w-full min-w-[160px] p-1.5 border border-neutral-200 rounded text-xs focus:border-black">
+          <input type="text" value="${record.detalle_cobertura || ''}" id="dc-${c.id}" placeholder="Ej: Cubre en Maschwitz..." class="w-full min-w-[160px] p-1.5 border border-neutral-200 rounded text-xs focus:border-black focus:bg-white" onfocus="this.select()">
         </td>
         <td class="font-mono font-bold text-sm text-neutral-900" id="total-${c.id}">
           ${totalHs} hs
@@ -1325,26 +1325,31 @@
         </td>
         <td class="text-center">
           <input type="number" min="0" step="1" value="${rec.horas_base || 0}" 
+            onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'horas_base', this.value)"
             class="w-16 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
         </td>
         <td class="text-center">
           <input type="number" min="0" step="1" value="${rec.feriados_hs || 0}" 
+            onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'feriados_hs', this.value)"
             class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
         </td>
         <td class="text-center">
           <input type="number" min="0" step="1" value="${rec.extras_hs || 0}" 
+            onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'extras_hs', this.value)"
             class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
         </td>
         <td class="text-center">
           <input type="number" min="0" step="1" value="${rec.adicionales_hs || 0}" 
+            onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'adicionales_hs', this.value)"
             class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-amber-900 focus:bg-white focus:border-black focus:outline-none transition">
         </td>
         <td>
           <input type="text" value="${rec.detalle_cobertura || ''}" placeholder="Detalle cobertura / motivo..."
+            onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'detalle_cobertura', this.value)"
             class="w-full text-xs py-1 px-2.5 rounded bg-[#FAF9F6] border border-neutral-300 focus:bg-white focus:border-black focus:outline-none transition">
         </td>
