@@ -1933,7 +1933,7 @@
       <div id="capture-card" style="background: #ffffff; padding: 32px 36px; border: 1px solid #cbd5e1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; width: 1020px; box-sizing: border-box;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 20px;">
           <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="background: #000000; color: #ffffff; padding: 8px 14px; border-radius: 6px; font-weight: 800; font-size: 18px; letter-spacing: 2px;">NZ</div>
+            <img src="favicon.png" alt="Nazaria" style="width: 46px; height: 46px; border-radius: 8px; object-fit: contain; border: 1px solid #cbd5e1; background: #ffffff; padding: 2px;">
             <div>
               <h1 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">NAZARIA RETAIL</h1>
               <p style="margin: 2px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Reporte Oficial de Pre-Liquidación Mensual · TOM & Maschwitz</p>
