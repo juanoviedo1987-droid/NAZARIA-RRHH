@@ -1985,11 +1985,10 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
           <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; background: #fafafa;">
-            <h3 style="margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #0f172a; display: flex; align-items: center; justify-content: space-between;">
-              <span>2. Vacaciones Gozadas en el Mes</span>
-              <span style="font-size: 10px; background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Plus Vacacional Art. 155 LCT</span>
+            <h3 style="margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #0f172a;">
+              2. Vacaciones Gozadas en el Mes
             </h3>
-            <p style="margin: 0 0 8px; font-size: 11px; color: #64748b;">Días computados para liquidación de plus vacacional (divisor 25).</p>
+            <p style="margin: 0 0 8px; font-size: 11px; color: #64748b;">Días computados tomados en el período.</p>
             ${vacHtml}
           </div>
 
