@@ -241,6 +241,7 @@
     currentPeriod: '2026-10',   // YYYY-MM
     activeStoreTab: 'horas',    // 'horas' | 'horarios' | 'novedades' | 'retiros' | 'vacaciones'
     activeAdminTab: 'consolidado', // 'consolidado' | 'vacaciones' | 'retiros' | 'novedades' | 'colaboradoras'
+    adminNovedadesFilter: 'todas',
     selectedPinTarget: null,
     currentSelectedFile: null,
 
@@ -1053,6 +1054,21 @@
     setUndoableDelete('retiro', item, 'Calzado eliminado.');
   }
 
+  function calcNovDaysAuto() {
+    const d = document.getElementById('nov-fecha-inicio')?.value;
+    const h = document.getElementById('nov-fecha-fin')?.value;
+    if (d && h) {
+      const date1 = new Date(d);
+      const date2 = new Date(h);
+      if (date2 >= date1) {
+        const diffTime = Math.abs(date2 - date1);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        const diasEl = document.getElementById('nov-dias');
+        if (diasEl) diasEl.value = diffDays;
+      }
+    }
+  }
+
   // --- SUBVISTA 5: VACACIONES (Carga directa, Días Disponibles y Tramos Desplegados - Punto 5) ---
   function calcVacDaysAuto() {
     const d = document.getElementById('vac-desde')?.value;
@@ -1271,9 +1287,11 @@
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${sucursal}</span></td>
-        <td class="font-bold text-xs text-neutral-900">
-          ${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.nombre_completo || 'Colaboradora')}
+        <td class="font-bold text-xs text-neutral-900 whitespace-nowrap">
+          <div class="flex items-center gap-1.5">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${sucursal}</span>
+            <span>${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.nombre_completo || 'Colaboradora')}</span>
+          </div>
         </td>
         <td class="text-center">
           <input type="number" min="0" step="1" value="${rec.horas_base || 0}" 
@@ -1360,8 +1378,12 @@
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${c.codigo_sucursal}</span></td>
-        <td class="font-bold text-xs text-neutral-900">${c.nombre_completo}</td>
+        <td class="font-bold text-xs text-neutral-900 whitespace-nowrap">
+          <div class="flex items-center gap-1.5">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${c.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${c.codigo_sucursal}</span>
+            <span>${c.nombre_completo}</span>
+          </div>
+        </td>
         <td>
           <div class="font-mono text-xs font-semibold text-neutral-800">${calc.aniosAntiguedad} años al 31/12</div>
           <div class="text-[10px] text-neutral-500">Ingreso: ${formatDateShort(c.fecha_ingreso)}</div>
@@ -1418,16 +1440,40 @@
     });
   }
 
+  function filterAdminNovedades(filterType) {
+    state.adminNovedadesFilter = filterType;
+    const filters = ['todas', 'licencia', 'falta', 'otras'];
+    filters.forEach(f => {
+      const btn = document.getElementById(`btn-filtro-nov-${f}`);
+      if (btn) {
+        if (f === filterType) {
+          btn.className = "px-3 py-1 rounded-full text-xs font-bold bg-black text-white transition tap-active cursor-pointer";
+        } else {
+          btn.className = "px-3 py-1 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition tap-active cursor-pointer";
+        }
+      }
+    });
+    renderAdminNovedades();
+  }
+
   // --- ADMIN 4: AUDITORÍA DE NOVEDADES Y CERTIFICADOS (Filtrado por Período y con Visor) ---
   function renderAdminNovedades() {
     const tbody = document.getElementById('tbody-admin-novedades');
     tbody.innerHTML = '';
 
-    const list = state.novedades.filter(n => {
+    let list = state.novedades.filter(n => {
       if (n.tipo === 'Vacaciones') return false;
       const dateStr = n.fecha_inicio || n.creado_en || '';
       return dateStr.startsWith(state.currentPeriod);
     });
+
+    if (state.adminNovedadesFilter === 'licencia') {
+      list = list.filter(n => (n.tipo || '').toLowerCase().includes('médica') || (n.tipo || '').toLowerCase().includes('medica'));
+    } else if (state.adminNovedadesFilter === 'falta') {
+      list = list.filter(n => (n.tipo || '').toLowerCase().includes('falta') || (n.tipo || '').toLowerCase().includes('injustificada'));
+    } else if (state.adminNovedadesFilter === 'otras') {
+      list = list.filter(n => !(n.tipo || '').toLowerCase().includes('médica') && !(n.tipo || '').toLowerCase().includes('medica') && !(n.tipo || '').toLowerCase().includes('falta') && !(n.tipo || '').toLowerCase().includes('injustificada'));
+    }
 
     list.sort((a, b) => {
       const cmpDate = (a.fecha_inicio || '').localeCompare(b.fecha_inicio || '');
@@ -1438,7 +1484,7 @@
     });
 
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay novedades registradas para el período ${state.currentPeriod}.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay registros para este filtro en el período ${state.currentPeriod}.</td></tr>`;
       return;
     }
 
@@ -2266,7 +2312,9 @@
     deleteNovedad,
     handleSaveRetiro,
     deleteRetiro,
+    calcNovDaysAuto,
     calcVacDaysAuto,
+    filterAdminNovedades,
     handleSaveVacaciones,
     undoLastAction,
     exportFullExcelWorkbook,
