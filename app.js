@@ -392,6 +392,36 @@
     }
   }
 
+  // Soporte de teclado físico para PC (Numpad, Enter, Backspace, Escape)
+  document.addEventListener('keydown', (e) => {
+    const pinModal = document.getElementById('modal-pin');
+    const viewerModal = document.getElementById('modal-viewer');
+    const exportModal = document.getElementById('modal-export-image');
+
+    // Cerrar cualquier modal abierto con Escape
+    if (e.key === 'Escape') {
+      if (pinModal && !pinModal.classList.contains('hidden')) closePinModal();
+      if (viewerModal && !viewerModal.classList.contains('hidden')) closeViewerModal();
+      if (exportModal && !exportModal.classList.contains('hidden')) closeExportImageModal();
+      return;
+    }
+
+    // Teclas numéricas y control para el modal de PIN
+    if (pinModal && !pinModal.classList.contains('hidden')) {
+      if (e.key >= '0' && e.key <= '9') {
+        pressPinKey(e.key);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        submitPin();
+      } else if (e.key === 'Backspace') {
+        const input = document.getElementById('input-pin');
+        if (input && input.value.length > 0) {
+          input.value = input.value.slice(0, -1);
+        }
+      }
+    }
+  });
+
   function restoreSession() {
     const savedRole = sessionStorage.getItem('nazaria_session');
     if (savedRole) {
