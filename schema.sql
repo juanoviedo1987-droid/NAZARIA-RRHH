@@ -105,45 +105,45 @@ INSERT INTO public.sucursales (codigo, nombre, pin) VALUES
 ('MASCHWITZ', 'Maschwitz Mall', '2222')
 ON CONFLICT (codigo) DO NOTHING;
 
--- Colaboradoras de TOM (4 personas de ejemplo)
+-- Colaboradoras de TOM (5 colaboradoras oficiales)
 INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Gómez, Laura Marcela', '34112233', '27-34112233-4', '2021-03-15', 'Encargada de Sucursal', 'activa'
+SELECT id, 'Barrientos Sofia', '35290145', '27-35290145-8', '2025-07-05', 'Encargada de Sucursal', 'activa'
 FROM public.sucursales WHERE codigo = 'TOM'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Fernández, Rocío Belén', '38455667', '27-38455667-8', '2023-08-01', 'Vendedora B', 'activa'
+SELECT id, 'Galarza Esmeralda Cristina', '38901234', '27-38901234-1', '2022-02-01', 'Vendedora', 'activa'
 FROM public.sucursales WHERE codigo = 'TOM'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'López, Micaela', '41223344', '27-41223344-3', '2024-02-10', 'Cajera B', 'activa'
+SELECT id, 'Pinto Martina', '44102987', '27-44102987-9', '2024-04-01', 'Vendedora (Cubre TOM y Maschwitz)', 'activa'
 FROM public.sucursales WHERE codigo = 'TOM'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Alonso, Sofía', '42556677', '27-42556677-2', '2025-05-15', 'Vendedora B', 'activa'
+SELECT id, 'Almiron Miranda Candela Anahi', '45091234', '27-45091234-5', '2025-12-01', 'Vendedora', 'activa'
 FROM public.sucursales WHERE codigo = 'TOM'
 ON CONFLICT DO NOTHING;
 
--- Colaboradoras de Maschwitz (4 personas de ejemplo)
 INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Martínez, Valeria', '33889900', '27-33889900-5', '2019-11-04', 'Encargada de Sucursal', 'activa'
+SELECT id, 'Bustamante Vanina Antonella', '43998120', '27-43998120-3', '2025-12-01', 'Vendedora', 'activa'
+FROM public.sucursales WHERE codigo = 'TOM'
+ON CONFLICT DO NOTHING;
+
+-- Colaboradoras de Maschwitz (3 colaboradoras oficiales)
+INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
+SELECT id, 'Gómez Flavia Marianela', '37102934', '27-37102934-4', '2024-12-01', 'Vendedora', 'activa'
 FROM public.sucursales WHERE codigo = 'MASCHWITZ'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Díaz, Camila', '39123456', '27-39123456-9', '2022-06-20', 'Vendedora B', 'activa'
+SELECT id, 'Vera Julieta Agustina', '39445123', '27-39445123-2', '2023-11-01', 'Vendedora', 'activa'
 FROM public.sucursales WHERE codigo = 'MASCHWITZ'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Romero, Paula', '40567890', '27-40567890-1', '2023-11-15', 'Cajera B', 'activa'
-FROM public.sucursales WHERE codigo = 'MASCHWITZ'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Suárez, Julieta', '43112233', '27-43112233-0', '2025-01-08', 'Vendedora B', 'activa'
+SELECT id, 'Vera Camila Abril', '42189032', '27-42189032-6', '2023-02-17', 'Encargada de Sucursal', 'activa'
 FROM public.sucursales WHERE codigo = 'MASCHWITZ'
 ON CONFLICT DO NOTHING;
 
