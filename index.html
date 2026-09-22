@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-[#FAF9F6]">
+<html lang="es" class="min-h-screen bg-[#FAF9F6]">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#FAF9F6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -51,7 +51,7 @@
   <!-- Custom Styles SOPs Theme -->
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="h-full flex flex-col bg-[#FAF9F6] text-neutral-900 font-['Inter'] antialiased">
+<body class="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900 font-['Inter'] antialiased">
 
   <!-- =========================================================================
        HEADER PRINCIPAL (ESTILO OFICIAL NAZARIA-SOPS)
@@ -246,11 +246,11 @@
           <!-- Indicador de desplazamiento horizontal en celulares -->
           <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
             <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
-            <span>Deslizá hacia los lados para editar</span>
+            <span>Deslizá con el dedo para ver todas las columnas</span>
           </div>
 
-          <div class="overflow-x-auto mt-2 -mx-2 sm:mx-0">
-            <table class="w-full min-w-[700px] text-left table-sop table-sticky-col">
+          <div class="table-scroll-container mt-2">
+            <table class="w-full min-w-[680px] text-left table-sop">
               <thead>
                 <tr>
                   <th class="w-40 sm:w-48">Colaboradora</th>
@@ -353,8 +353,14 @@
             </button>
           </div>
 
-          <div class="overflow-x-auto mt-4">
-            <table class="w-full text-center table-sop">
+          <!-- Indicador de desplazamiento horizontal en celulares -->
+          <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
+            <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
+            <span>Deslizá con el dedo para ver toda la semana</span>
+          </div>
+
+          <div class="table-scroll-container mt-2">
+            <table class="w-full min-w-[650px] text-center table-sop">
               <thead>
                 <tr>
                   <th class="text-left w-28">Turno</th>
@@ -573,8 +579,8 @@
             <span id="store-nov-count" class="text-xs font-bold bg-[#E6D5C3] px-2 py-0.5 rounded text-neutral-900">0 registros</span>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left table-sop">
+          <div class="table-scroll-container">
+            <table class="w-full min-w-[620px] text-left table-sop">
               <thead>
                 <tr>
                   <th>Fecha</th>
@@ -654,8 +660,8 @@
             <span id="store-ret-count" class="text-xs font-bold bg-[#E6D5C3] px-2 py-0.5 rounded text-neutral-900">0 pares</span>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left table-sop">
+          <div class="table-scroll-container">
+            <table class="w-full min-w-[560px] text-left table-sop">
               <thead>
                 <tr>
                   <th>Tipo</th>
@@ -729,8 +735,14 @@
             <p class="text-xs text-neutral-500">Días disponibles computados por ley según antigüedad al 31/12, días tomados y saldo restante.</p>
           </div>
 
-          <div class="overflow-x-auto mt-4">
-            <table class="w-full text-left table-sop">
+          <!-- Indicador de desplazamiento horizontal en celulares -->
+          <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
+            <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
+            <span>Deslizá con el dedo para ver días y tramos</span>
+          </div>
+
+          <div class="table-scroll-container mt-2">
+            <table class="w-full min-w-[650px] text-left table-sop">
               <thead>
                 <tr>
                   <th class="w-48">Colaboradora</th>
@@ -764,7 +776,7 @@
             <span class="px-2 py-0.5 text-[11px] font-bold rounded bg-black text-white tracking-wider uppercase">PANEL GENERAL</span>
             <h2 class="text-lg font-bold text-neutral-900">Consolidado RRHH & Liquidación</h2>
           </div>
-          <p class="text-xs text-neutral-500 mt-1">Auditoría central, control de vacaciones LCT, retiros y exportación al estudio contable.</p>
+          <p class="text-xs text-neutral-500 mt-1">Auditoría central, control de vacaciones, retiros y exportación al estudio contable.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
@@ -868,11 +880,11 @@
           <!-- Indicador de desplazamiento horizontal en celulares -->
           <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
             <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
-            <span>Deslizá hacia los lados para editar columnas</span>
+            <span>Deslizá con el dedo para ver todas las columnas</span>
           </div>
 
-          <div class="overflow-x-auto mt-2 -mx-2 sm:mx-0">
-            <table class="w-full min-w-[760px] text-left table-sop table-sticky-col">
+          <div class="table-scroll-container mt-2">
+            <table class="w-full min-w-[720px] text-left table-sop">
               <thead>
                 <tr>
                   <th class="min-w-[190px]">Colaboradora</th>
@@ -909,11 +921,11 @@
           <!-- Indicador de desplazamiento horizontal en celulares -->
           <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
             <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
-            <span>Deslizá para ver días y tramos</span>
+            <span>Deslizá con el dedo para ver días y tramos</span>
           </div>
 
-          <div class="overflow-x-auto mt-2 -mx-2 sm:mx-0">
-            <table class="w-full min-w-[760px] text-left table-sop table-sticky-col">
+          <div class="table-scroll-container mt-2">
+            <table class="w-full min-w-[720px] text-left table-sop">
               <thead>
                 <tr>
                   <th class="min-w-[190px]">Colaboradora</th>
@@ -963,7 +975,7 @@
             <span>Deslizá para ver justificaciones y comprobantes</span>
           </div>
 
-          <div class="overflow-x-auto mt-2 -mx-2 sm:mx-0">
+          <div class="table-scroll-container mt-2">
             <table class="w-full min-w-[780px] text-left table-sop">
               <thead>
                 <tr>
@@ -999,8 +1011,14 @@
             </button>
           </div>
 
-          <div class="overflow-x-auto mt-4">
-            <table class="w-full text-left table-sop">
+          <!-- Indicador de desplazamiento horizontal en celulares -->
+          <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
+            <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
+            <span>Deslizá con el dedo para ver todas las columnas</span>
+          </div>
+
+          <div class="table-scroll-container mt-2">
+            <table class="w-full min-w-[650px] text-left table-sop">
               <thead>
                 <tr>
                   <th>Tipo</th>
@@ -1033,8 +1051,14 @@
             </button>
           </div>
 
-          <div class="overflow-x-auto mt-4">
-            <table class="w-full text-left table-sop">
+          <!-- Indicador de desplazamiento horizontal en celulares -->
+          <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
+            <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
+            <span>Deslizá con el dedo para ver todas las columnas</span>
+          </div>
+
+          <div class="table-scroll-container mt-2">
+            <table class="w-full min-w-[700px] text-left table-sop">
               <thead>
                 <tr>
                   <th>Colaboradora & Documentos</th>
