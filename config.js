@@ -1,16 +1,12 @@
 // ==============================================================================
 // CONFIGURACIÓN DE CONEXIÓN A SUPABASE
 // ==============================================================================
-// Puedes configurar tus credenciales aquí o directamente desde la pestaña
-// "Configuración" en el panel de Administrador de la web.
-// ==============================================================================
-
 window.APP_CONFIG = {
-  // Pega aquí la URL de tu proyecto de Supabase (ej: 'https://xyzcompany.supabase.co')
-  SUPABASE_URL: localStorage.getItem('nazaria_supabase_url') || '',
+  // URL de producción del proyecto Supabase
+  SUPABASE_URL: 'https://hlvovocufifroigdlhmv.supabase.co',
 
-  // Pega aquí tu clave anónima pública (anon key)
-  SUPABASE_ANON_KEY: localStorage.getItem('nazaria_supabase_anon_key') || '',
+  // Clave pública anónima de producción
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsdm92b2N1Zmlmcm9pZ2RsaG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMDM3MjksImV4cCI6MjEwNTY3OTcyOX0.7KGejvoqjyTAZhEGYODz_Jm2DpddYiLUyIKdhhLxsr0',
 
   // Bucket para certificados médicos
   STORAGE_BUCKET: 'certificados',
