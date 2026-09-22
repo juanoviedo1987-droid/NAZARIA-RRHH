@@ -502,11 +502,11 @@
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-bold text-neutral-700 mb-1">Fecha Inicio *</label>
-                <input type="date" id="nov-fecha-inicio" required class="w-full bg-[#FAF9F6] border border-neutral-200 rounded-lg px-3 py-2 text-xs text-neutral-900 font-mono focus:outline-none focus:border-black">
+                <input type="date" id="nov-fecha-inicio" onchange="window.app.calcNovDaysAuto()" required class="w-full bg-[#FAF9F6] border border-neutral-200 rounded-lg px-3 py-2 text-xs text-neutral-900 font-mono focus:outline-none focus:border-black">
               </div>
               <div>
                 <label class="block text-xs font-bold text-neutral-700 mb-1">Fecha Fin *</label>
-                <input type="date" id="nov-fecha-fin" required class="w-full bg-[#FAF9F6] border border-neutral-200 rounded-lg px-3 py-2 text-xs text-neutral-900 font-mono focus:outline-none focus:border-black">
+                <input type="date" id="nov-fecha-fin" onchange="window.app.calcNovDaysAuto()" required class="w-full bg-[#FAF9F6] border border-neutral-200 rounded-lg px-3 py-2 text-xs text-neutral-900 font-mono focus:outline-none focus:border-black">
               </div>
             </div>
 
@@ -858,6 +858,10 @@
                 <i data-lucide="camera" class="w-4 h-4 text-neutral-600"></i>
                 <span>Imagen WhatsApp</span>
               </button>
+              <button onclick="window.app.exportFullExcelWorkbook()" class="flex-1 sm:flex-initial bg-[#FAF9F6] hover:bg-neutral-100 text-neutral-800 text-xs font-bold px-3 py-2 border border-neutral-300 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer tap-active" title="Descargar planilla completa en Excel">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-700"></i>
+                <span>Excel (.xlsx)</span>
+              </button>
             </div>
           </div>
 
@@ -868,16 +872,15 @@
           </div>
 
           <div class="overflow-x-auto mt-2 -mx-2 sm:mx-0">
-            <table class="w-full min-w-[800px] text-left table-sop table-sticky-col">
+            <table class="w-full min-w-[760px] text-left table-sop table-sticky-col">
               <thead>
                 <tr>
-                  <th class="w-24">Sucursal</th>
-                  <th class="min-w-[170px]">Colaboradora</th>
+                  <th class="min-w-[190px]">Colaboradora</th>
                   <th class="text-center w-20">Hs Base</th>
                   <th class="text-center w-20">Feriados</th>
                   <th class="text-center w-20">Extras</th>
                   <th class="text-center w-20">Adicionales</th>
-                  <th class="min-w-[220px]">Detalle / Coberturas</th>
+                  <th class="min-w-[200px]">Detalle / Coberturas</th>
                   <th class="text-right w-28 pr-4">Total Hs</th>
                 </tr>
               </thead>
@@ -897,23 +900,28 @@
               <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Control de Vacaciones y Saldos</h3>
               <p class="text-xs text-neutral-500">Antigüedad computada al 31/12 de cada año. Sofía Barrientos computa con antigüedad reconocida 01/09/2018 (21 días de ley).</p>
             </div>
-            <button onclick="window.app.exportFullExcelWorkbook()" class="bg-[#FAF9F6] hover:bg-neutral-100 text-neutral-800 text-xs font-bold px-3 py-1.5 border border-neutral-300 rounded flex items-center gap-1.5 transition">
+            <button onclick="window.app.exportFullExcelWorkbook()" class="bg-[#FAF9F6] hover:bg-neutral-100 text-neutral-800 text-xs font-bold px-3 py-1.5 border border-neutral-300 rounded flex items-center gap-1.5 transition tap-active" title="Descargar planilla completa en Excel">
               <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-700"></i>
-              <span>Descargar Solapa Vacaciones</span>
+              <span>Descargar Excel Completo (.xlsx)</span>
             </button>
           </div>
 
-          <div class="overflow-x-auto mt-4">
-            <table class="w-full min-w-[850px] text-left table-sop">
+          <!-- Indicador de desplazamiento horizontal en celulares -->
+          <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
+            <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
+            <span>Deslizá para ver días y tramos</span>
+          </div>
+
+          <div class="overflow-x-auto mt-2 -mx-2 sm:mx-0">
+            <table class="w-full min-w-[760px] text-left table-sop table-sticky-col">
               <thead>
                 <tr>
-                  <th class="w-24">Sucursal</th>
                   <th class="min-w-[190px]">Colaboradora</th>
-                  <th class="min-w-[170px]">Antigüedad</th>
-                  <th class="text-center min-w-[120px]">Días Disponibles</th>
-                  <th class="text-center min-w-[90px]">Tomados</th>
-                  <th class="text-center min-w-[90px]">Saldo</th>
-                  <th class="min-w-[280px]">Tramos y Fechas Gozadas</th>
+                  <th class="min-w-[150px]">Antigüedad</th>
+                  <th class="text-center min-w-[110px]">Días Disponibles</th>
+                  <th class="text-center min-w-[85px]">Tomados</th>
+                  <th class="text-center min-w-[85px]">Saldo</th>
+                  <th class="min-w-[260px]">Tramos y Fechas Gozadas</th>
                 </tr>
               </thead>
               <tbody id="tbody-admin-vacaciones">
@@ -929,11 +937,34 @@
         <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
           <div class="border-b border-neutral-200 pb-4">
             <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Auditoría Central de Novedades y Certificados Médicos</h3>
-            <p class="text-xs text-neutral-500">Historial completo con acceso directo a visualización del comprobante médico firmado.</p>
+            <p class="text-xs text-neutral-500">Historial completo del período con acceso directo a visualización del comprobante médico firmado.</p>
+
+            <!-- Filtros rápidos tipo píldora -->
+            <div class="flex flex-wrap items-center gap-2 mt-3.5 pt-1">
+              <span class="text-xs font-bold text-neutral-500 mr-1">Filtrar:</span>
+              <button onclick="window.app.filterAdminNovedades('todas')" id="btn-filtro-nov-todas" class="px-3 py-1 rounded-full text-xs font-bold bg-black text-white transition tap-active cursor-pointer">
+                Todas
+              </button>
+              <button onclick="window.app.filterAdminNovedades('licencia')" id="btn-filtro-nov-licencia" class="px-3 py-1 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition tap-active cursor-pointer">
+                Licencias Médicas
+              </button>
+              <button onclick="window.app.filterAdminNovedades('falta')" id="btn-filtro-nov-falta" class="px-3 py-1 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition tap-active cursor-pointer">
+                Faltas a Descontar
+              </button>
+              <button onclick="window.app.filterAdminNovedades('otras')" id="btn-filtro-nov-otras" class="px-3 py-1 rounded-full text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 transition tap-active cursor-pointer">
+                Otras (Estudio/Francos)
+              </button>
+            </div>
           </div>
 
-          <div class="overflow-x-auto mt-4">
-            <table class="w-full text-left table-sop">
+          <!-- Indicador de desplazamiento horizontal en celulares -->
+          <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
+            <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
+            <span>Deslizá para ver justificaciones y comprobantes</span>
+          </div>
+
+          <div class="overflow-x-auto mt-2 -mx-2 sm:mx-0">
+            <table class="w-full min-w-[780px] text-left table-sop">
               <thead>
                 <tr>
                   <th>Fecha</th>
