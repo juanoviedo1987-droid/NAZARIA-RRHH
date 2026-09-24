@@ -152,7 +152,7 @@
     cuil: '27-44102987-9',
     categoria: 'Vendedora (Cobertura domingos Maschwitz)',
     esquema_jornada: '1 día / 5,5 hs',
-    horas_base_mes: 38.5,
+    horas_base_mes: 22.0,
     recibo_hs_base: 0.0,
     estado: 'activa',
     isCoverage: true
@@ -165,7 +165,7 @@
     '2026-09_c-flavia': { horas_base: 160.0, recibo_hs: 22.0, sin_recibo_hs: 138.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
     '2026-09_c-cami': { horas_base: 88.0, recibo_hs: 64.0, sin_recibo_hs: 24.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
     '2026-09_c-juli': { horas_base: 88.0, recibo_hs: 64.0, sin_recibo_hs: 24.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-martu_masch': { horas_base: 38.5, recibo_hs: 0.0, sin_recibo_hs: 38.5, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: 'Cubre domingos Maschwitz', adicionales_hs: 0, detalle_cobertura: 'Cubre domingos Maschwitz' },
+    '2026-09_c-martu_masch': { horas_base: 22.0, recibo_hs: 0.0, sin_recibo_hs: 22.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: 'Cubre domingos Maschwitz', adicionales_hs: 0, detalle_cobertura: 'Cubre domingos Maschwitz' },
 
     // TOM (Septiembre 2026)
     '2026-09_c-sofi': { horas_base: 192.0, recibo_hs: 22.0, sin_recibo_hs: 170.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
@@ -324,8 +324,8 @@
   }
 
   function initStorageData() {
-    // Inicializar o recargar datos con versión para migración limpia (v16: Vacaciones (-) y edición de esquemas)
-    const DATA_VERSION = 'v16';
+    // Inicializar o recargar datos con versión para migración limpia (v17: Ajuste base Martina Maschwitz 22hs)
+    const DATA_VERSION = 'v17';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
