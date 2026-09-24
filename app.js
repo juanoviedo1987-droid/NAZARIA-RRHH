@@ -142,20 +142,20 @@
   ];
 
   // --- 2. PLANILLA DE HORAS Y CIERRES MENSUALES (INICIO TRACKING: SEPTIEMBRE 2026) ---
-  // Base mensual = Recibo (Hs) + Adicional (Hs)
+  // Base mensual = Recibo (Hs) + Sin Recibo (Hs) | Adicional (Hs) = turnos extras reportados por sucursal
   const DEFAULT_CIERRES = {
     // MASCHWITZ (Septiembre 2026)
-    '2026-09_c-flavia': { horas_base: 160.0, recibo_hs: 22.0, adicional_hs: 138.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 138.0, detalle_cobertura: '' },
-    '2026-09_c-cami': { horas_base: 88.0, recibo_hs: 64.0, adicional_hs: 24.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 24.0, detalle_cobertura: '' },
-    '2026-09_c-juli': { horas_base: 88.0, recibo_hs: 64.0, adicional_hs: 24.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 24.0, detalle_cobertura: '' },
-    '2026-09_c-martu_masch': { horas_base: 38.5, recibo_hs: 0.0, adicional_hs: 38.5, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: 'Cubre domingos Maschwitz', adicionales_hs: 38.5, detalle_cobertura: 'Cubre domingos Maschwitz' },
+    '2026-09_c-flavia': { horas_base: 160.0, recibo_hs: 22.0, sin_recibo_hs: 138.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-cami': { horas_base: 88.0, recibo_hs: 64.0, sin_recibo_hs: 24.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-juli': { horas_base: 88.0, recibo_hs: 64.0, sin_recibo_hs: 24.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-martu_masch': { horas_base: 38.5, recibo_hs: 0.0, sin_recibo_hs: 38.5, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: 'Cubre domingos Maschwitz', adicionales_hs: 0, detalle_cobertura: 'Cubre domingos Maschwitz' },
 
     // TOM (Septiembre 2026)
-    '2026-09_c-sofi': { horas_base: 192.0, recibo_hs: 22.0, adicional_hs: 170.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 170.0, detalle_cobertura: '' },
-    '2026-09_c-esme': { horas_base: 160.0, recibo_hs: 96.0, adicional_hs: 64.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 64.0, detalle_cobertura: '' },
-    '2026-09_c-martu': { horas_base: 48.0, recibo_hs: 22.0, adicional_hs: 26.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 26.0, detalle_cobertura: '' },
-    '2026-09_c-anto': { horas_base: 96.0, recibo_hs: 0.0, adicional_hs: 96.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 96.0, detalle_cobertura: '' },
-    '2026-09_c-cande': { horas_base: 96.0, recibo_hs: 0.0, adicional_hs: 96.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 96.0, detalle_cobertura: '' }
+    '2026-09_c-sofi': { horas_base: 192.0, recibo_hs: 22.0, sin_recibo_hs: 170.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-esme': { horas_base: 160.0, recibo_hs: 96.0, sin_recibo_hs: 64.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-martu': { horas_base: 48.0, recibo_hs: 22.0, sin_recibo_hs: 26.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-anto': { horas_base: 96.0, recibo_hs: 0.0, sin_recibo_hs: 96.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-cande': { horas_base: 96.0, recibo_hs: 0.0, sin_recibo_hs: 96.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' }
   };
 
   // --- DETALLE INDIVIDUAL DE HORAS EXTRAS Y ADICIONALES ---
@@ -296,7 +296,7 @@
 
   function initStorageData() {
     // Inicializar o recargar datos con versión para migración limpia
-    const DATA_VERSION = 'v11';
+    const DATA_VERSION = 'v12';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
@@ -751,12 +751,13 @@
       const record = state.cierres[key] || {};
 
       const baseHs = Number(record.horas_base ?? c.horas_base_mes ?? 0);
+      const adicionalHs = Number(record.adicional_hs ?? 0);
       const feriadosHs = Number(record.feriados_hs ?? 0);
       const extrasHs = Number(record.extras_hs ?? 0);
       const vacacionesHs = Number(record.vacaciones_hs ?? 0);
       const obs = record.observaciones ?? record.detalle_cobertura ?? '';
 
-      const totalHs = baseHs + feriadosHs + extrasHs + vacacionesHs;
+      const totalHs = baseHs + adicionalHs + feriadosHs + extrasHs + vacacionesHs;
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -770,6 +771,9 @@
             <i data-lucide="lock" class="w-3 h-3 text-neutral-400"></i>
             <span id="hb-${c.id}">${baseHs} hs</span>
           </div>
+        </td>
+        <td class="text-center">
+          <input type="number" step="0.5" min="0" value="${adicionalHs}" id="ha-${c.id}" placeholder="0" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs font-bold text-amber-900 focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')" title="Horas por turnos o días adicionales trabajados">
         </td>
         <td class="text-center">
           <input type="number" step="0.5" min="0" value="${feriadosHs}" id="hf-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
@@ -800,11 +804,12 @@
       ? { horas_base_mes: 38.5 }
       : state.colaboradoras.find(c => c.id === colabId);
     const hb = Number(rec.horas_base ?? colab?.horas_base_mes ?? 0);
+    const ha = Number(document.getElementById(`ha-${colabId}`)?.value) || 0;
     const hf = Number(document.getElementById(`hf-${colabId}`)?.value) || 0;
     const he = Number(document.getElementById(`he-${colabId}`)?.value) || 0;
     const hv = Number(document.getElementById(`hv-${colabId}`)?.value) || 0;
     const totalEl = document.getElementById(`total-${colabId}`);
-    if (totalEl) totalEl.textContent = `${hb + hf + he + hv} hs`;
+    if (totalEl) totalEl.textContent = `${hb + ha + hf + he + hv} hs`;
   }
 
   function saveAllHorasStore() {
@@ -819,6 +824,7 @@
       const key = `${state.currentPeriod}_${c.id}`;
       const rec = state.cierres[key] || {};
 
+      const ha = Number(document.getElementById(`ha-${c.id}`)?.value) || 0;
       const hf = Number(document.getElementById(`hf-${c.id}`)?.value) || 0;
       const he = Number(document.getElementById(`he-${c.id}`)?.value) || 0;
       const hv = Number(document.getElementById(`hv-${c.id}`)?.value) || 0;
@@ -826,18 +832,19 @@
 
       const hb = Number(rec.horas_base ?? c.horas_base_mes ?? 0);
       const reciboHs = Number(rec.recibo_hs ?? c.recibo_hs_base ?? 0);
-      const adicionalHs = Math.max(0, hb - reciboHs);
+      const sinReciboHs = Number(rec.sin_recibo_hs ?? Math.max(0, hb - reciboHs));
 
       state.cierres[key] = {
         ...rec,
         horas_base: hb,
         recibo_hs: reciboHs,
-        adicional_hs: adicionalHs,
+        sin_recibo_hs: sinReciboHs,
+        adicional_hs: ha,
         feriados_hs: hf,
         extras_hs: he,
         vacaciones_hs: hv,
         observaciones: obs,
-        adicionales_hs: adicionalHs,
+        adicionales_hs: ha,
         detalle_cobertura: obs
       };
     });
@@ -1646,12 +1653,13 @@
 
   function getCierreTotal(rec) {
     if (!rec) return 0;
-    const r = Number(rec.recibo_hs ?? rec.horas_base ?? 0);
-    const a = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+    const r = Number(rec.recibo_hs ?? 0);
+    const sr = Number(rec.sin_recibo_hs ?? 0);
+    const a = Number(rec.adicional_hs ?? 0);
     const f = Number(rec.feriados_hs ?? 0);
     const e = Number(rec.extras_hs ?? 0);
     const v = Number(rec.vacaciones_hs ?? 0);
-    return r + a + f + e + v;
+    return r + sr + a + f + e + v;
   }
 
   function updateAdminKPIs() {
@@ -1687,16 +1695,17 @@
         if (!state.cierres[k]) {
           const hb = c.horas_base_mes || 88.0;
           const rec = c.recibo_hs_base || 0;
-          const adic = Math.max(0, hb - rec);
+          const sinRec = Math.max(0, hb - rec);
           state.cierres[k] = {
             horas_base: hb,
             recibo_hs: rec,
-            adicional_hs: adic,
+            sin_recibo_hs: sinRec,
+            adicional_hs: 0,
             feriados_hs: 0,
             extras_hs: 0,
             vacaciones_hs: 0,
             observaciones: '',
-            adicionales_hs: adic,
+            adicionales_hs: 0,
             detalle_cobertura: ''
           };
         }
@@ -1707,12 +1716,13 @@
         state.cierres[maschCovKey] = {
           horas_base: 38.5,
           recibo_hs: 0,
-          adicional_hs: 38.5,
+          sin_recibo_hs: 38.5,
+          adicional_hs: 0,
           feriados_hs: 0,
           extras_hs: 0,
           vacaciones_hs: 0,
           observaciones: 'Cubre domingos Maschwitz',
-          adicionales_hs: 38.5,
+          adicionales_hs: 0,
           detalle_cobertura: 'Cubre domingos Maschwitz'
         };
       }
@@ -1725,16 +1735,17 @@
         if (!state.cierres[k]) {
           const hb = c.horas_base_mes || 96.0;
           const rec = c.recibo_hs_base || 0;
-          const adic = Math.max(0, hb - rec);
+          const sinRec = Math.max(0, hb - rec);
           state.cierres[k] = {
             horas_base: hb,
             recibo_hs: rec,
-            adicional_hs: adic,
+            sin_recibo_hs: sinRec,
+            adicional_hs: 0,
             feriados_hs: 0,
             extras_hs: 0,
             vacaciones_hs: 0,
             observaciones: '',
-            adicionales_hs: adic,
+            adicionales_hs: 0,
             detalle_cobertura: ''
           };
         }
@@ -1773,7 +1784,7 @@
 
     const allKeys = getConsolidadoKeysForPeriod(state.currentPeriod);
     if (allKeys.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-neutral-400 text-xs">No hay colaboradoras disponibles para este período (${state.currentPeriod}).</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-neutral-400 text-xs">No hay colaboradoras disponibles para este período (${state.currentPeriod}).</td></tr>`;
       return;
     }
 
@@ -1786,14 +1797,15 @@
       const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
       const rec = state.cierres[k] || {};
 
-      const reciboHs = Number(rec.recibo_hs ?? rec.horas_base ?? colab?.recibo_hs_base ?? 0);
-      const adicionalHs = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const reciboHs = Number(rec.recibo_hs ?? colab?.recibo_hs_base ?? 0);
+      const sinReciboHs = Number(rec.sin_recibo_hs ?? (colab ? Math.max(0, (colab.horas_base_mes || 0) - (colab.recibo_hs_base || 0)) : 0));
+      const adicionalHs = Number(rec.adicional_hs ?? 0);
       const feriadosHs = Number(rec.feriados_hs ?? 0);
       const extrasHs = Number(rec.extras_hs ?? 0);
       const vacacionesHs = Number(rec.vacaciones_hs ?? 0);
       const observaciones = rec.observaciones ?? rec.detalle_cobertura ?? '';
 
-      const totalHs = reciboHs + adicionalHs + feriadosHs + extrasHs + vacacionesHs;
+      const totalHs = reciboHs + sinReciboHs + adicionalHs + feriadosHs + extrasHs + vacacionesHs;
 
       // Encabezado visual de sucursal
       if (sucursal !== lastStore) {
@@ -1801,7 +1813,7 @@
         const bannerTr = document.createElement('tr');
         bannerTr.className = sucursal === 'MASCHWITZ' ? 'bg-[#d8b4e2]/25 border-y-2 border-[#d8b4e2]' : 'bg-[#fed7aa]/35 border-y-2 border-[#fed7aa]';
         bannerTr.innerHTML = `
-          <td colspan="8" class="py-2.5 px-4 text-xs font-bold text-neutral-900 uppercase tracking-wider">
+          <td colspan="9" class="py-2.5 px-4 text-xs font-bold text-neutral-900 uppercase tracking-wider">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full ${sucursal === 'MASCHWITZ' ? 'bg-purple-600' : 'bg-amber-600'}"></span>
@@ -1825,14 +1837,21 @@
         </td>
         <td class="text-center py-2">
           <input type="number" min="0" step="0.5" value="${reciboHs}" 
-            title="Horas formales de recibo (base pactada)"
+            title="Horas formales de recibo (base formal)"
             onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'recibo_hs', this.value)"
             class="w-16 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
         </td>
         <td class="text-center py-2">
+          <input type="number" min="0" step="0.5" value="${sinReciboHs}" 
+            title="Horas base fuera de recibo"
+            onfocus="this.select()"
+            onchange="window.app.handleAdminUpdateCierre('${k}', 'sin_recibo_hs', this.value)"
+            class="w-16 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-neutral-800 focus:bg-white focus:border-black focus:outline-none transition">
+        </td>
+        <td class="text-center py-2">
           <input type="number" min="0" step="0.5" value="${adicionalHs}" 
-            title="Horas adicionales fuera de recibo"
+            title="Horas adicionales cargadas por sucursal"
             onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'adicional_hs', this.value)"
             class="w-16 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-amber-900 focus:bg-white focus:border-black focus:outline-none transition">
@@ -1879,15 +1898,17 @@
       const colab = isMaschCov ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
       const hb = isMaschCov ? 38.5 : (colab?.horas_base_mes || 88.0);
       const recHs = isMaschCov ? 0 : (colab?.recibo_hs_base || 0);
+      const sinRec = Math.max(0, hb - recHs);
       state.cierres[key] = {
         horas_base: hb,
         recibo_hs: recHs,
-        adicional_hs: Math.max(0, hb - recHs),
+        sin_recibo_hs: sinRec,
+        adicional_hs: 0,
         feriados_hs: 0,
         extras_hs: 0,
         vacaciones_hs: 0,
         observaciones: isMaschCov ? 'Cubre domingos Maschwitz' : '',
-        adicionales_hs: Math.max(0, hb - recHs),
+        adicionales_hs: 0,
         detalle_cobertura: isMaschCov ? 'Cubre domingos Maschwitz' : ''
       };
     }
@@ -1898,8 +1919,8 @@
       const numVal = parseFloat(val) || 0;
       state.cierres[key][field] = numVal;
       if (field === 'adicional_hs') state.cierres[key].adicionales_hs = numVal;
-      // Horas base es la sumatoria de recibo_hs + adicional_hs
-      state.cierres[key].horas_base = (Number(state.cierres[key].recibo_hs) || 0) + (Number(state.cierres[key].adicional_hs) || 0);
+      // Horas base es la sumatoria de recibo_hs + sin_recibo_hs
+      state.cierres[key].horas_base = (Number(state.cierres[key].recibo_hs) || 0) + (Number(state.cierres[key].sin_recibo_hs) || 0);
     }
     localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
 
@@ -2508,8 +2529,10 @@
       const isMaschCoverage = colabId === 'c-martu_masch';
       const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
       const rec = state.cierres[k] || {};
-      const r = Number(rec.recibo_hs ?? rec.horas_base ?? colab?.recibo_hs_base ?? 0);
-      const a = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const r = Number(rec.recibo_hs ?? colab?.recibo_hs_base ?? 0);
+      const sinRec = Number(rec.sin_recibo_hs ?? Math.max(0, (rec.horas_base ?? colab?.horas_base_mes ?? 0) - r));
+      const adicReportado = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const a = sinRec + adicReportado;
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
       const v = Number(rec.vacaciones_hs ?? 0);
@@ -2538,8 +2561,10 @@
       const colabId = k.replace(`${state.currentPeriod}_`, '');
       const colab = state.colaboradoras.find(c => c.id === colabId);
       const rec = state.cierres[k] || {};
-      const r = Number(rec.recibo_hs ?? rec.horas_base ?? colab?.recibo_hs_base ?? 0);
-      const a = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const r = Number(rec.recibo_hs ?? colab?.recibo_hs_base ?? 0);
+      const sinRec = Number(rec.sin_recibo_hs ?? Math.max(0, (rec.horas_base ?? colab?.horas_base_mes ?? 0) - r));
+      const adicReportado = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const a = sinRec + adicReportado;
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
       const v = Number(rec.vacaciones_hs ?? 0);
@@ -2733,8 +2758,10 @@
       const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
       const rec = state.cierres[k] || {};
 
-      const r = Number(rec.recibo_hs ?? rec.horas_base ?? colab?.recibo_hs_base ?? 0);
-      const a = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const r = Number(rec.recibo_hs ?? colab?.recibo_hs_base ?? 0);
+      const sinRec = Number(rec.sin_recibo_hs ?? Math.max(0, (rec.horas_base ?? colab?.horas_base_mes ?? 0) - r));
+      const adicReportado = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const a = sinRec + adicReportado;
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
       const v = Number(rec.vacaciones_hs ?? 0);
@@ -2772,8 +2799,10 @@
       const colab = state.colaboradoras.find(c => c.id === colabId);
       const rec = state.cierres[k] || {};
 
-      const r = Number(rec.recibo_hs ?? rec.horas_base ?? colab?.recibo_hs_base ?? 0);
-      const a = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const r = Number(rec.recibo_hs ?? colab?.recibo_hs_base ?? 0);
+      const sinRec = Number(rec.sin_recibo_hs ?? Math.max(0, (rec.horas_base ?? colab?.horas_base_mes ?? 0) - r));
+      const adicReportado = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const a = sinRec + adicReportado;
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
       const v = Number(rec.vacaciones_hs ?? 0);
