@@ -14,7 +14,7 @@ window.APP_CONFIG = {
   // PINs personales para acceso seguro (no visibles en la interfaz)
   PINS: {
     TOM: '0145',       // Últimos 4 dígitos DNI Sofia Barrientos (35290145)
-    MASCHWITZ: '2934',  // Últimos 4 dígitos DNI Flavia Gómez (37102934)
+    MASCHWITZ: '6228',  // Últimos 4 dígitos DNI Flavia Gómez (32826228)
     ADMIN: '3585'      // Clave personal exclusiva Juan
   }
 };
