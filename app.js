@@ -102,7 +102,7 @@
       fecha_ingreso: '2024-04-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora (Cubre TOM y Maschwitz)',
-      esquema_jornada: '2 días / 6 hs en TOM + 1 día / 5,5 hs en Masch',
+      esquema_jornada: '2 días / 6 hs',
       horas_base_mes: 48.0,
       recibo_hs_base: 22.0,
       estado: 'activa'
@@ -296,7 +296,7 @@
 
   function initStorageData() {
     // Inicializar o recargar datos con versión para migración limpia
-    const DATA_VERSION = 'v14';
+    const DATA_VERSION = 'v15';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
@@ -1854,6 +1854,7 @@
       }
 
       const displayName = getColabShortName(colabId, colab?.nombre_completo);
+      const esquema = isMaschCoverage ? '1 día / 5,5 hs' : (colab?.esquema_jornada || '');
 
       const tr = document.createElement('tr');
       tr.className = "hover:bg-neutral-50/50 transition border-b border-neutral-100";
@@ -1861,7 +1862,10 @@
         <td class="font-bold text-xs text-neutral-900 whitespace-nowrap py-2.5">
           <div class="flex items-center gap-2">
             <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-purple-100 text-purple-900'}">${sucursal}</span>
-            <span class="font-bold text-xs">${displayName}</span>
+            <div>
+              <div class="font-bold text-xs text-neutral-900">${displayName}</div>
+              ${esquema ? `<div class="text-[10px] text-neutral-400 font-normal mt-0.5">${esquema}</div>` : ''}
+            </div>
           </div>
         </td>
         <td class="text-center py-2">
