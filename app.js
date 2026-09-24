@@ -296,7 +296,7 @@
 
   function initStorageData() {
     // Inicializar o recargar datos con versión para migración limpia
-    const DATA_VERSION = 'v12';
+    const DATA_VERSION = 'v13';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
@@ -1836,18 +1836,44 @@
           </div>
         </td>
         <td class="text-center py-2">
-          <input type="number" min="0" step="0.5" value="${reciboHs}" 
-            title="Horas formales de recibo (base formal)"
-            onfocus="this.select()"
-            onchange="window.app.handleAdminUpdateCierre('${k}', 'recibo_hs', this.value)"
-            class="w-16 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
+          <div class="inline-flex items-center justify-center gap-1">
+            <input type="number" min="0" step="0.5" value="${reciboHs}" 
+              id="input-rec-${k}"
+              readonly
+              title="Horas formales de recibo (fijo mensual · doble clic o clic en lápiz para editar)"
+              onfocus="this.select()"
+              ondblclick="window.app.toggleBaseEdit('rec', '${k}')"
+              onchange="window.app.handleAdminUpdateCierre('${k}', 'recibo_hs', this.value)"
+              onkeydown="if(event.key==='Enter') { this.blur(); window.app.toggleBaseEdit('rec', '${k}'); }"
+              class="w-14 text-center text-xs py-1 px-1 rounded bg-neutral-100 border border-neutral-200 font-mono font-bold text-neutral-700 cursor-default select-none transition">
+            <button type="button" 
+              id="btn-rec-${k}" 
+              onclick="window.app.toggleBaseEdit('rec', '${k}')" 
+              class="p-1 rounded hover:bg-neutral-200 text-neutral-400 hover:text-black transition cursor-pointer" 
+              title="Modificar horas de recibo">
+              <i data-lucide="pencil" class="w-3 h-3"></i>
+            </button>
+          </div>
         </td>
         <td class="text-center py-2">
-          <input type="number" min="0" step="0.5" value="${sinReciboHs}" 
-            title="Horas base fuera de recibo"
-            onfocus="this.select()"
-            onchange="window.app.handleAdminUpdateCierre('${k}', 'sin_recibo_hs', this.value)"
-            class="w-16 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-neutral-800 focus:bg-white focus:border-black focus:outline-none transition">
+          <div class="inline-flex items-center justify-center gap-1">
+            <input type="number" min="0" step="0.5" value="${sinReciboHs}" 
+              id="input-sinrec-${k}"
+              readonly
+              title="Horas base fuera de recibo (fijo mensual · doble clic o clic en lápiz para editar)"
+              onfocus="this.select()"
+              ondblclick="window.app.toggleBaseEdit('sinrec', '${k}')"
+              onchange="window.app.handleAdminUpdateCierre('${k}', 'sin_recibo_hs', this.value)"
+              onkeydown="if(event.key==='Enter') { this.blur(); window.app.toggleBaseEdit('sinrec', '${k}'); }"
+              class="w-14 text-center text-xs py-1 px-1 rounded bg-neutral-100 border border-neutral-200 font-mono font-bold text-neutral-700 cursor-default select-none transition">
+            <button type="button" 
+              id="btn-sinrec-${k}" 
+              onclick="window.app.toggleBaseEdit('sinrec', '${k}')" 
+              class="p-1 rounded hover:bg-neutral-200 text-neutral-400 hover:text-black transition cursor-pointer" 
+              title="Modificar horas fuera de recibo">
+              <i data-lucide="pencil" class="w-3 h-3"></i>
+            </button>
+          </div>
         </td>
         <td class="text-center py-2">
           <input type="number" min="0" step="0.5" value="${adicionalHs}" 
@@ -1889,6 +1915,8 @@
       `;
       tbody.appendChild(tr);
     });
+
+    initLucideIcons();
   }
 
   function handleAdminUpdateCierre(key, field, val) {
@@ -1932,7 +1960,56 @@
     showToast('Ajuste de planilla guardado.', 'success');
   }
 
+  function toggleBaseEdit(type, key) {
+    const input = document.getElementById(`input-${type}-${key}`);
+    const btn = document.getElementById(`btn-${type}-${key}`);
+    if (!input) return;
+
+    const isReadOnly = input.hasAttribute('readonly');
+
+    if (isReadOnly) {
+      // Desbloquear campo para edición
+      input.removeAttribute('readonly');
+      input.classList.remove('bg-neutral-100', 'border-neutral-200', 'text-neutral-700', 'cursor-default', 'select-none');
+      input.classList.add('bg-white', 'border-black', 'text-neutral-900', 'ring-2', 'ring-black/10', 'shadow-sm');
+      if (btn) {
+        btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>';
+        btn.title = "Fijar y guardar valor";
+      }
+      initLucideIcons();
+      input.focus();
+      input.select();
+    } else {
+      // Bloquear y fijar valor nuevamente
+      input.setAttribute('readonly', 'true');
+      input.classList.remove('bg-white', 'border-black', 'text-neutral-900', 'ring-2', 'ring-black/10', 'shadow-sm');
+      input.classList.add('bg-neutral-100', 'border-neutral-200', 'text-neutral-700', 'cursor-default', 'select-none');
+      if (btn) {
+        btn.innerHTML = '<i data-lucide="pencil" class="w-3 h-3 text-neutral-400 hover:text-black"></i>';
+        btn.title = "Editar valor";
+      }
+      initLucideIcons();
+
+      const field = type === 'rec' ? 'recibo_hs' : 'sin_recibo_hs';
+      handleAdminUpdateCierre(key, field, input.value);
+    }
+  }
+
   function saveAllHorasAdmin() {
+    // Bloquear cualquier input base que haya quedado abierto
+    document.querySelectorAll('[id^="input-rec-"], [id^="input-sinrec-"]').forEach(inp => {
+      if (!inp.hasAttribute('readonly')) {
+        inp.setAttribute('readonly', 'true');
+        inp.classList.remove('bg-white', 'border-black', 'text-neutral-900', 'ring-2', 'ring-black/10', 'shadow-sm');
+        inp.classList.add('bg-neutral-100', 'border-neutral-200', 'text-neutral-700', 'cursor-default', 'select-none');
+      }
+    });
+    document.querySelectorAll('[id^="btn-rec-"], [id^="btn-sinrec-"]').forEach(btn => {
+      btn.innerHTML = '<i data-lucide="pencil" class="w-3 h-3 text-neutral-400 hover:text-black"></i>';
+      btn.title = "Editar valor";
+    });
+    initLucideIcons();
+
     localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
     updateAdminKPIs();
     showToast('Planilla de horas consolidada y guardada.', 'success');
@@ -3310,6 +3387,7 @@
     copyExportImageToClipboard,
     shareExportImage,
     handleAdminUpdateCierre,
+    toggleBaseEdit,
     saveAllHorasAdmin,
     handleFileSelect,
     removeSelectedFile,
