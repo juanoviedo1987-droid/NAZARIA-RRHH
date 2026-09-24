@@ -793,15 +793,16 @@
       const key = `${state.currentPeriod}_${c.id}`;
       const record = state.cierres[key] || {};
 
-      const baseHs = Number(record.horas_base ?? c.horas_base_mes ?? 0);
+      const baseContractual = Number(record.horas_base ?? c.horas_base_mes ?? 0);
       const adicionalHs = Number(record.adicional_hs ?? 0);
       const feriadosHs = Number(record.feriados_hs ?? 0);
       const extrasHs = Number(record.extras_hs ?? 0);
       const vacacionesHs = Number(record.vacaciones_hs ?? 0);
       const obs = record.observaciones ?? record.detalle_cobertura ?? '';
 
-      // Regla de Vacaciones: RESTAN del total trabajado (se liquidan aparte por ley)
-      const totalHs = Math.max(0, baseHs + adicionalHs + feriadosHs + extrasHs - vacacionesHs);
+      // Regla de Vacaciones: RESTAN directamente de las Horas Base
+      const baseNeta = Math.max(0, baseContractual - vacacionesHs);
+      const baseSubtext = vacacionesHs > 0 ? `<div class="text-[10px] text-neutral-400 font-mono mt-0.5">(${baseContractual} - ${vacacionesHs})</div>` : '';
       const displayName = getColabShortName(c.id, c.nombre_completo);
 
       const tr = document.createElement('tr');
@@ -811,30 +812,30 @@
           ${c.esquema_jornada ? `<div class="text-[10px] text-neutral-400 font-normal mt-0.5">${c.esquema_jornada}</div>` : ''}
         </td>
         <td class="text-center">
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-neutral-100 border border-neutral-200 font-mono font-bold text-xs text-neutral-800" title="Horas base mensuales fijadas por Administración según horarios">
-            <i data-lucide="lock" class="w-3 h-3 text-neutral-400"></i>
-            <span id="hb-${c.id}">${baseHs} hs</span>
+          <div id="hb-container-${c.id}" class="flex flex-col items-center">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-neutral-100 border border-neutral-200 font-mono font-bold text-xs text-neutral-800" title="Horas base netas (Base contractual menos vacaciones)">
+              <i data-lucide="lock" class="w-3 h-3 text-neutral-400"></i>
+              <span>${baseNeta} hs</span>
+            </div>
+            ${baseSubtext}
           </div>
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${adicionalHs}" id="ha-${c.id}" placeholder="0" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs font-bold text-amber-900 focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')" title="Horas por turnos o días adicionales trabajados">
+          <input type="number" step="0.5" value="${adicionalHs}" id="ha-${c.id}" placeholder="0" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs font-bold text-amber-900 focus:border-black focus:bg-white" onfocus="this.select()" title="Ajuste mensual de jornada: suma (+) o resta (-)">
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${feriadosHs}" id="hf-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
+          <input type="number" step="0.5" min="0" value="${feriadosHs}" id="hf-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()">
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${extrasHs}" id="he-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
+          <input type="number" step="0.5" min="0" value="${extrasHs}" id="he-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()">
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${vacacionesHs}" id="hv-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs text-emerald-800 font-bold focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')" title="Horas de vacaciones (restan de las horas comunes trabajadas)">
+          <input type="number" step="0.5" min="0" value="${vacacionesHs}" id="hv-${c.id}" placeholder="0" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs text-emerald-800 font-bold focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcStoreRowBase('${c.id}')" oninput="window.app.recalcStoreRowBase('${c.id}')" title="Horas de vacaciones (restan directamente de la Base)">
         </td>
-        <td class="font-mono font-bold text-sm text-neutral-900 text-right pr-4 whitespace-nowrap" id="total-${c.id}">
-          ${totalHs} hs
-        </td>
-        <td class="py-2 min-w-[220px]">
+        <td class="py-2 min-w-[260px]">
           <div class="flex items-start gap-1">
-            <textarea id="dc-${c.id}" rows="2" placeholder="Observaciones / días..." class="w-full text-xs p-1.5 border border-neutral-200 rounded focus:border-black focus:bg-white resize-y leading-tight font-sans transition" onfocus="this.select()">${obs}</textarea>
-            <button type="button" onclick="window.app.openObservacionesModal('${c.id}', '${displayName}', 'store')" class="p-1 rounded hover:bg-neutral-100 text-neutral-400 hover:text-black transition cursor-pointer mt-0.5" title="Abrir editor amplio de días y observaciones">
+            <textarea id="dc-${c.id}" rows="2" placeholder="Observaciones / justificación de adicionales y vacaciones..." class="w-full text-xs p-1.5 border border-neutral-200 rounded focus:border-black focus:bg-white resize-y leading-tight font-sans transition" onfocus="this.select()">${obs}</textarea>
+            <button type="button" onclick="window.app.openObservacionesModal('${c.id}', '${displayName}', 'store')" class="p-1 rounded hover:bg-neutral-100 text-neutral-400 hover:text-black transition cursor-pointer mt-0.5" title="Abrir editor amplio de observaciones">
               <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>
@@ -846,20 +847,28 @@
     initLucideIcons();
   }
 
-  function recalcRowTotal(colabId) {
+  function recalcStoreRowBase(colabId) {
     const key = `${state.currentPeriod}_${colabId}`;
     const rec = state.cierres[key] || {};
     const colab = colabId === 'c-martu_masch'
       ? getMartuMasch()
       : state.colaboradoras.find(c => c.id === colabId);
-    const hb = Number(rec.horas_base ?? colab?.horas_base_mes ?? 0);
-    const ha = Number(document.getElementById(`ha-${colabId}`)?.value) || 0;
-    const hf = Number(document.getElementById(`hf-${colabId}`)?.value) || 0;
-    const he = Number(document.getElementById(`he-${colabId}`)?.value) || 0;
+    const baseContractual = Number(rec.horas_base ?? colab?.horas_base_mes ?? 0);
     const hv = Number(document.getElementById(`hv-${colabId}`)?.value) || 0;
-    const totalEl = document.getElementById(`total-${colabId}`);
-    // Regla de Vacaciones: RESTAN del total trabajado
-    if (totalEl) totalEl.textContent = `${Math.max(0, hb + ha + hf + he - hv)} hs`;
+    const baseNeta = Math.max(0, baseContractual - hv);
+
+    const hbEl = document.getElementById(`hb-container-${colabId}`);
+    if (hbEl) {
+      const baseSubtext = hv > 0 ? `<div class="text-[10px] text-neutral-400 font-mono mt-0.5">(${baseContractual} - ${hv})</div>` : '';
+      hbEl.innerHTML = `
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-neutral-100 border border-neutral-200 font-mono font-bold text-xs text-neutral-800" title="Horas base netas (Base contractual menos vacaciones)">
+          <i data-lucide="lock" class="w-3 h-3 text-neutral-400"></i>
+          <span>${baseNeta} hs</span>
+        </div>
+        ${baseSubtext}
+      `;
+      initLucideIcons();
+    }
   }
 
   function saveAllHorasStore() {
@@ -1895,14 +1904,16 @@
 
       const reciboHs = Number(rec.recibo_hs ?? colab?.recibo_hs_base ?? 0);
       const sinReciboHs = Number(rec.sin_recibo_hs ?? (colab ? Math.max(0, (colab.horas_base_mes || 0) - (colab.recibo_hs_base || 0)) : 0));
+      const baseContractual = reciboHs + sinReciboHs;
       const adicionalHs = Number(rec.adicional_hs ?? 0);
       const feriadosHs = Number(rec.feriados_hs ?? 0);
       const extrasHs = Number(rec.extras_hs ?? 0);
       const vacacionesHs = Number(rec.vacaciones_hs ?? 0);
       const observaciones = rec.observaciones ?? rec.detalle_cobertura ?? '';
 
-      // Regla de Vacaciones: RESTAN del total trabajado
-      const totalHs = Math.max(0, reciboHs + sinReciboHs + adicionalHs + feriadosHs + extrasHs - vacacionesHs);
+      // Regla de Vacaciones: RESTAN directamente de las Horas Base
+      const baseNeta = Math.max(0, baseContractual - vacacionesHs);
+      const baseSubtext = vacacionesHs > 0 ? `<div class="text-[10px] text-neutral-400 font-mono mt-0.5">(${baseContractual} - ${vacacionesHs})</div>` : '';
 
       // Encabezado visual de sucursal
       if (sucursal !== lastStore) {
@@ -1984,8 +1995,14 @@
           </div>
         </td>
         <td class="text-center py-2">
-          <input type="number" min="0" step="0.5" value="${adicionalHs}" 
-            title="Horas adicionales cargadas por sucursal"
+          <div id="admin-base-${k}" class="flex flex-col items-center">
+            <span class="inline-block px-2 py-1 rounded bg-neutral-100 font-mono font-bold text-xs text-neutral-900 border border-neutral-200">${baseNeta} hs</span>
+            ${baseSubtext}
+          </div>
+        </td>
+        <td class="text-center py-2">
+          <input type="number" step="0.5" value="${adicionalHs}" 
+            title="Ajuste mensual de jornada: suma (+) o resta (-)"
             onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'adicional_hs', this.value)"
             class="w-16 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-amber-900 focus:bg-white focus:border-black focus:outline-none transition">
@@ -2006,17 +2023,15 @@
         </td>
         <td class="text-center py-2">
           <input type="number" min="0" step="0.5" value="${vacacionesHs}" 
-            title="Horas de vacaciones liquidadas"
+            title="Horas de vacaciones liquidadas (restan de la Base)"
             onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'vacaciones_hs', this.value)"
+            oninput="window.app.handleAdminUpdateCierre('${k}', 'vacaciones_hs', this.value)"
             class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-emerald-800 focus:bg-white focus:border-black focus:outline-none transition">
         </td>
-        <td class="font-mono font-bold text-sm text-neutral-900 text-right pr-4 whitespace-nowrap py-2" id="admin-total-${k}">
-          ${totalHs} hs
-        </td>
-        <td class="py-2 min-w-[240px]">
+        <td class="py-2 min-w-[260px]">
           <div class="flex items-start gap-1">
-            <textarea rows="2" placeholder="Observaciones / días..."
+            <textarea rows="2" placeholder="Observaciones / justificación de adicionales y vacaciones..."
               id="admin-obs-${k}"
               onfocus="this.select()"
               onchange="window.app.handleAdminUpdateCierre('${k}', 'observaciones', this.value)"
@@ -2066,9 +2081,20 @@
     }
     localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
 
-    const totalHs = getCierreTotal(state.cierres[key]);
-    const totalEl = document.getElementById(`admin-total-${key}`);
-    if (totalEl) totalEl.textContent = `${totalHs} hs`;
+    // Actualizar Base Neta en vivo si se modificó recibo, sin_recibo o vacaciones
+    const r = Number(state.cierres[key].recibo_hs || 0);
+    const sr = Number(state.cierres[key].sin_recibo_hs || 0);
+    const v = Number(state.cierres[key].vacaciones_hs || 0);
+    const baseTot = r + sr;
+    const baseNeta = Math.max(0, baseTot - v);
+    const baseEl = document.getElementById(`admin-base-${key}`);
+    if (baseEl) {
+      const baseSubtext = v > 0 ? `<div class="text-[10px] text-neutral-400 font-mono mt-0.5">(${baseTot} - ${v})</div>` : '';
+      baseEl.innerHTML = `
+        <span class="inline-block px-2 py-1 rounded bg-neutral-100 font-mono font-bold text-xs text-neutral-900 border border-neutral-200">${baseNeta} hs</span>
+        ${baseSubtext}
+      `;
+    }
 
     updateAdminKPIs();
     showToast('Ajuste de planilla guardado.', 'success');
@@ -2556,137 +2582,97 @@
     showToast('Esquema contractual y horas base guardados con éxito.', 'success');
   }
 
-  // --- MODAL: ASISTENTE EXPLICATIVO Y CALCULADORA DE VACACIONES ---
-  function openVacacionesCalcModal(targetColabId) {
-    const modal = document.getElementById('modal-calc-vacaciones');
+  // --- MODAL DE AYUDA DE COLUMNAS (VACACIONES & ADICIONAL) ---
+  function openInfoModal(type) {
+    const modal = document.getElementById('modal-info-columna');
     if (!modal) return;
 
-    const select = document.getElementById('calc-vac-colab-select');
-    if (!select) return;
+    const iconContainer = document.getElementById('modal-info-icon-container');
+    const iconEl = document.getElementById('modal-info-icon');
+    const titleEl = document.getElementById('modal-info-title');
+    const subtitleEl = document.getElementById('modal-info-subtitle');
+    const bodyEl = document.getElementById('modal-info-body');
 
-    // Lista de colaboradoras según el rol actual o todas para Admin
-    let list = [];
-    if (state.currentRole === 'ADMIN') {
-      const priority = ['c-flavia', 'c-martu_masch', 'c-cami', 'c-juli', 'c-sofi', 'c-esme', 'c-martu', 'c-anto', 'c-cande'];
-      priority.forEach(id => {
-        if (id === 'c-martu_masch') list.push(getMartuMasch());
-        else {
-          const c = state.colaboradoras.find(x => x.id === id);
-          if (c) list.push(c);
-        }
-      });
-    } else if (state.currentRole === 'MASCHWITZ') {
-      list = state.colaboradoras.filter(c => c.codigo_sucursal === 'MASCHWITZ');
-      list.push(getMartuMasch());
-    } else {
-      list = state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM');
+    if (type === 'vacaciones') {
+      if (iconContainer) iconContainer.className = "w-8 h-8 rounded-lg bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold";
+      if (iconEl) iconEl.setAttribute('data-lucide', 'palmtree');
+      if (titleEl) titleEl.textContent = "¿Cómo cargar las Horas de Vacaciones?";
+      if (subtitleEl) subtitleEl.textContent = "Cómputo en horas no trabajadas y descuento de la Base";
+      if (bodyEl) {
+        bodyEl.innerHTML = `
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-emerald-950 flex flex-col gap-2.5">
+            <div class="font-bold flex items-center gap-1.5 text-emerald-900 text-xs">
+              <i data-lucide="info" class="w-4 h-4 text-emerald-700"></i>
+              <span>Criterio de Carga de Vacaciones (LCT 20.744)</span>
+            </div>
+            <p class="leading-relaxed">
+              Las vacaciones por ley se otorgan en días corridos (semana completa), pero en esta planilla <strong>solo se cargan las horas de los turnos en los que la colaboradora debió venir a trabajar y no vino</strong>.
+            </p>
+            <div class="bg-white/90 p-2.5 rounded-lg border border-emerald-300 font-mono text-center font-bold text-emerald-900 text-xs shadow-2xs">
+              Turnos que trabajaría en la semana × Horas del turno
+            </div>
+            <ul class="space-y-1.5 text-[11px] leading-relaxed mt-1">
+              <li class="flex items-start gap-1.5">
+                <span class="font-bold text-emerald-800">•</span>
+                <span><strong>Ejemplo 1 (5 días de 6 hs):</strong> Si se toma 1 semana completa (7 días corridos), le correspondían 5 turnos de trabajo: <strong>5 × 6 hs = 30 hs</strong>. <em>(Se cargan 30 hs; los otros 2 días eran sus francos habituales)</em>.</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span class="font-bold text-emerald-800">•</span>
+                <span><strong>Ejemplo 2 (4 días de 5,5 hs):</strong> Si se toma 1 semana completa, le correspondían 4 turnos: <strong>4 × 5,5 hs = 22 hs</strong>.</span>
+              </li>
+            </ul>
+            <div class="text-[11px] text-emerald-900 bg-white/80 p-2 rounded border border-emerald-200 mt-1">
+              <strong>Nota sobre la Base:</strong> Estas horas se descuentan automáticamente de la columna <strong>Base</strong> porque no se pagan como horas normales de trabajo, sino que se liquidan por separado en el recibo de sueldo como <em>Plus Vacacional</em>.
+            </div>
+          </div>
+        `;
+      }
+    } else if (type === 'adicional') {
+      if (iconContainer) iconContainer.className = "w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center font-bold";
+      if (iconEl) iconEl.setAttribute('data-lucide', 'scale');
+      if (titleEl) titleEl.textContent = "¿Cómo usar la columna Adicional (+ / -)?";
+      if (subtitleEl) subtitleEl.textContent = "Balance mensual de ajuste de jornada y movimientos";
+      if (bodyEl) {
+        bodyEl.innerHTML = `
+          <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-3.5 text-amber-950 flex flex-col gap-2.5">
+            <div class="font-bold flex items-center gap-1.5 text-amber-900 text-xs">
+              <i data-lucide="info" class="w-4 h-4 text-amber-700"></i>
+              <span>Balance Mensual de Ajuste de Jornada</span>
+            </div>
+            <p class="leading-relaxed">
+              Es el balance mensual para sumar o restar horas habituales no contempladas en la jornada base:
+            </p>
+            <div class="flex flex-col gap-2 mt-1">
+              <div class="bg-white/90 p-2.5 rounded-lg border border-emerald-200 text-emerald-950 text-[11px] leading-relaxed">
+                <div class="font-bold text-emerald-800 flex items-center gap-1 mb-1">
+                  <span>➕ Valores positivos (+)</span>
+                </div>
+                <div>• <strong>Días extras trabajados:</strong> Cobertura de francos o turnos extra de compañeras.</div>
+                <div>• <strong>Coberturas inter-sucursales:</strong> Si vino una colaboradora a prestar apoyo desde otra tienda.</div>
+              </div>
+              <div class="bg-white/90 p-2.5 rounded-lg border border-rose-200 text-rose-950 text-[11px] leading-relaxed">
+                <div class="font-bold text-rose-800 flex items-center gap-1 mb-1">
+                  <span>➖ Valores negativos (-)</span>
+                </div>
+                <div>• <strong>Descuentos de horas:</strong> Llegadas tarde, retiros anticipados o ausencias no justificadas.</div>
+                <div>• <strong>Pases a otra sucursal:</strong> Si una colaboradora de esta tienda fue a trabajar a la otra sucursal (se restan acá para que la otra tienda las sume).</div>
+              </div>
+            </div>
+            <div class="text-[11px] text-amber-950 bg-white/80 p-2 rounded border border-amber-200 mt-1">
+              <strong>Importante:</strong> Siempre detallar en la columna <strong>Observaciones</strong> el motivo y fecha (ej: <em>"14/10 faltó sin aviso -5.5hs"</em> o <em>"20/10 cubrió en Maschwitz -6hs"</em>).
+            </div>
+          </div>
+        `;
+      }
     }
 
-    select.innerHTML = list.map(c => {
-      const isMaschCov = c.id === 'c-martu_masch';
-      const store = isMaschCov ? 'MASCHWITZ' : (c.codigo_sucursal || 'TOM');
-      const name = getColabShortName(c.id, c.nombre_completo);
-      const esquema = c.esquema_jornada || '';
-      return `<option value="${c.id}" data-store="${store}" data-esquema="${esquema}">${name} [${store}] · ${esquema}</option>`;
-    }).join('');
-
-    if (targetColabId) {
-      select.value = targetColabId;
-    }
-
-    handleVacCalcColabChange();
     modal.classList.remove('hidden');
     initLucideIcons();
   }
 
-  function handleVacCalcColabChange() {
-    const select = document.getElementById('calc-vac-colab-select');
-    if (!select) return;
-    const opt = select.options[select.selectedIndex];
-    const store = opt?.getAttribute('data-store') || 'TOM';
-    const esquema = opt?.getAttribute('data-esquema') || '';
-
-    const horasInput = document.getElementById('calc-vac-horas-turno');
-    const hint = document.getElementById('calc-vac-shift-hint');
-
-    // Determinar horas habituales por turno según sucursal
-    let defaultShiftHs = store === 'MASCHWITZ' ? 5.5 : 6.0;
-    if (horasInput) {
-      horasInput.value = defaultShiftHs;
-    }
-    if (hint) {
-      hint.textContent = `Turno habitual: ${defaultShiftHs} hs (${store}) · ${esquema}`;
-    }
-
-    updateVacCalcResult();
-  }
-
-  function updateVacCalcResult() {
-    const turnos = Number(document.getElementById('calc-vac-turnos')?.value) || 0;
-    const horasTurno = Number(document.getElementById('calc-vac-horas-turno')?.value) || 0;
-    const totalVacHs = turnos * horasTurno;
-
-    const formulaEl = document.getElementById('calc-vac-formula-text');
-    const totalEl = document.getElementById('calc-vac-total-hs');
-
-    if (formulaEl) formulaEl.textContent = `${turnos} turnos × ${horasTurno} hs = ${totalVacHs.toFixed(1)} hs`;
-    if (totalEl) totalEl.textContent = `${totalVacHs.toFixed(1)} hs`;
-  }
-
-  function closeVacacionesCalcModal() {
-    const modal = document.getElementById('modal-calc-vacaciones');
+  function closeInfoModal() {
+    const modal = document.getElementById('modal-info-columna');
     if (modal) modal.classList.add('hidden');
-  }
-
-  function applyVacacionesCalc(e) {
-    if (e) e.preventDefault();
-    const select = document.getElementById('calc-vac-colab-select');
-    if (!select) return;
-    const colabId = select.value;
-    const turnos = Number(document.getElementById('calc-vac-turnos')?.value) || 0;
-    const horasTurno = Number(document.getElementById('calc-vac-horas-turno')?.value) || 0;
-    const totalVacHs = turnos * horasTurno;
-
-    // Inyectar en el input de la vista de Encargada si existe
-    const storeInput = document.getElementById(`hv-${colabId}`);
-    if (storeInput) {
-      storeInput.value = totalVacHs;
-      recalcRowTotal(colabId);
-    }
-
-    // Inyectar en el cierre directamente
-    const key = `${state.currentPeriod}_${colabId}`;
-    if (!state.cierres[key]) {
-      const isMaschCov = colabId === 'c-martu_masch';
-      const colab = isMaschCov ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
-      const hb = colab?.horas_base_mes || 88;
-      const rec = colab?.recibo_hs_base || 0;
-      state.cierres[key] = {
-        horas_base: hb,
-        recibo_hs: rec,
-        sin_recibo_hs: Math.max(0, hb - rec),
-        adicional_hs: 0,
-        feriados_hs: 0,
-        extras_hs: 0,
-        vacaciones_hs: totalVacHs,
-        observaciones: '',
-        adicionales_hs: 0,
-        detalle_cobertura: ''
-      };
-    } else {
-      state.cierres[key].vacaciones_hs = totalVacHs;
-    }
-
-    localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
-
-    // Si estamos en la vista de Admin Consolidado, refrescar la tabla
-    if (state.activeAdminTab === 'consolidado') {
-      renderAdminConsolidado();
-    }
-    updateAdminKPIs();
-    closeVacacionesCalcModal();
-
-    showToast(`Se cargaron ${totalVacHs.toFixed(1)} hs de vacaciones (restadas del total trabajado).`, 'success');
   }
 
   async function saveAdminHorarios() {
@@ -3186,7 +3172,7 @@
       [`Período: ${formatPeriodLabel(state.currentPeriod)}`],
       [],
       ['MASCHWITZ', formatPeriodLabel(state.currentPeriod).toUpperCase()],
-      ['NOMBRE', 'RECIBO 5.5 HS', 'ADICIONAL', 'FERIADOS', 'HORAS EXTRA', 'VACACIONES', 'TOTAL HS', 'OBSERVACIONES']
+      ['NOMBRE', 'RECIBO (HS)', 'SIN RECIBO (HS)', 'TOTAL BASE', 'ADICIONAL', 'FERIADOS', 'HORAS EXTRA', 'VACACIONES', 'OBSERVACIONES']
     ];
 
     const allKeys = getConsolidadoKeysForPeriod(state.currentPeriod);
@@ -3199,7 +3185,7 @@
       return colabId !== 'c-martu_masch' && state.colaboradoras.find(c => c.id === colabId)?.codigo_sucursal === 'TOM';
     });
 
-    let totMaschRec = 0, totMaschAdic = 0, totMaschFer = 0, totMaschExt = 0, totMaschVac = 0, totMaschTot = 0;
+    let totMaschRec = 0, totMaschSinRec = 0, totMaschBase = 0, totMaschAdic = 0, totMaschFer = 0, totMaschExt = 0, totMaschVac = 0;
     maschKeys.forEach(k => {
       const colabId = k.replace(`${state.currentPeriod}_`, '');
       const isMaschCoverage = colabId === 'c-martu_masch';
@@ -3207,60 +3193,62 @@
       const rec = state.cierres[k] || {};
       const r = Number(rec.recibo_hs ?? colab?.recibo_hs_base ?? 0);
       const sinRec = Number(rec.sin_recibo_hs ?? Math.max(0, (rec.horas_base ?? colab?.horas_base_mes ?? 0) - r));
+      const baseContractual = r + sinRec;
       const adicReportado = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
-      const a = sinRec + adicReportado;
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
       const v = Number(rec.vacaciones_hs ?? 0);
-      // Regla de Vacaciones: RESTAN del total trabajado
-      const tot = Math.max(0, r + a + f + e - v);
-      totMaschRec += r; totMaschAdic += a; totMaschFer += f; totMaschExt += e; totMaschVac += v; totMaschTot += tot;
+      // Regla de Vacaciones: RESTAN directamente de la Base
+      const totBase = Math.max(0, baseContractual - v);
+      totMaschRec += r; totMaschSinRec += sinRec; totMaschBase += totBase; totMaschAdic += adicReportado; totMaschFer += f; totMaschExt += e; totMaschVac += v;
 
       rowsHoras.push([
         getColabShortName(colabId, colab?.nombre_completo).toUpperCase(),
         r || '',
-        a || '',
+        sinRec || '',
+        totBase,
+        adicReportado !== 0 ? adicReportado : '',
         f || '',
         e || '',
         v || '',
-        tot,
         (rec.observaciones ?? rec.detalle_cobertura ?? '').replace(/\n+/g, ' | ')
       ]);
     });
-    rowsHoras.push(['TOTAL MASCHWITZ', totMaschRec, totMaschAdic, totMaschFer, totMaschExt, totMaschVac, totMaschTot, '']);
+    rowsHoras.push(['TOTAL MASCHWITZ', totMaschRec, totMaschSinRec, totMaschBase, totMaschAdic, totMaschFer, totMaschExt, totMaschVac, '']);
 
     rowsHoras.push([]);
     rowsHoras.push(['TOM', formatPeriodLabel(state.currentPeriod).toUpperCase()]);
-    rowsHoras.push(['NOMBRE', 'RECIBO 6 HS', 'ADICIONAL', 'FERIADOS', 'HORAS EXTRA', 'VACACIONES', 'TOTAL HS', 'OBSERVACIONES']);
+    rowsHoras.push(['NOMBRE', 'RECIBO (HS)', 'SIN RECIBO (HS)', 'TOTAL BASE', 'ADICIONAL', 'FERIADOS', 'HORAS EXTRA', 'VACACIONES', 'OBSERVACIONES']);
 
-    let totTomRec = 0, totTomAdic = 0, totTomFer = 0, totTomExt = 0, totTomVac = 0, totTomTot = 0;
+    let totTomRec = 0, totTomSinRec = 0, totTomBase = 0, totTomAdic = 0, totTomFer = 0, totTomExt = 0, totTomVac = 0;
     tomKeys.forEach(k => {
       const colabId = k.replace(`${state.currentPeriod}_`, '');
       const colab = state.colaboradoras.find(c => c.id === colabId);
       const rec = state.cierres[k] || {};
       const r = Number(rec.recibo_hs ?? colab?.recibo_hs_base ?? 0);
       const sinRec = Number(rec.sin_recibo_hs ?? Math.max(0, (rec.horas_base ?? colab?.horas_base_mes ?? 0) - r));
+      const baseContractual = r + sinRec;
       const adicReportado = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
-      const a = sinRec + adicReportado;
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
       const v = Number(rec.vacaciones_hs ?? 0);
-      // Regla de Vacaciones: RESTAN del total trabajado
-      const tot = Math.max(0, r + a + f + e - v);
-      totTomRec += r; totTomAdic += a; totTomFer += f; totTomExt += e; totTomVac += v; totTomTot += tot;
+      // Regla de Vacaciones: RESTAN directamente de la Base
+      const totBase = Math.max(0, baseContractual - v);
+      totTomRec += r; totTomSinRec += sinRec; totTomBase += totBase; totTomAdic += adicReportado; totTomFer += f; totTomExt += e; totTomVac += v;
 
       rowsHoras.push([
         getColabShortName(colabId, colab?.nombre_completo).toUpperCase(),
         r || '',
-        a || '',
+        sinRec || '',
+        totBase,
+        adicReportado !== 0 ? adicReportado : '',
         f || '',
         e || '',
         v || '',
-        tot,
         (rec.observaciones ?? rec.detalle_cobertura ?? '').replace(/\n+/g, ' | ')
       ]);
     });
-    rowsHoras.push(['TOTAL TOM', totTomRec, totTomAdic, totTomFer, totTomExt, totTomVac, totTomTot, '']);
+    rowsHoras.push(['TOTAL TOM', totTomRec, totTomSinRec, totTomBase, totTomAdic, totTomFer, totTomExt, totTomVac, '']);
 
     const wsHoras = XLSX.utils.aoa_to_sheet(rowsHoras);
     XLSX.utils.book_append_sheet(wb, wsHoras, 'Sueldos_Consolidado');
@@ -3967,7 +3955,8 @@
     handleSaveStoreModificacion,
     handleDeleteModificacion,
     saveAllHorasStore,
-    recalcRowTotal,
+    recalcStoreRowBase,
+    recalcRowTotal: recalcStoreRowBase,
     handleAddHoraDetalle,
     handleDeleteHoraDetalle,
     saveHorariosStore,
@@ -4003,7 +3992,7 @@
     toggleColaboradoraEstado,
     openAddColaboradoraModal: () => showToast('Padrón centralizado de colaboradoras.', 'info'),
 
-    // Nuevos métodos de edición de grillas y esquemas (Punto 3 y 4)
+    // Métodos de edición de grillas y esquemas
     toggleStoreGridEdit,
     toggleAdminGridEdit,
     openEditEsquemaModal,
@@ -4011,12 +4000,9 @@
     closeEditEsquemaModal,
     handleSaveEsquema,
 
-    // Asistente explicativo y calculadora de vacaciones (Punto 1 y 2)
-    openVacacionesCalcModal,
-    handleVacCalcColabChange,
-    updateVacCalcResult,
-    closeVacacionesCalcModal,
-    applyVacacionesCalc
+    // Modal de guía de ayuda de columnas (Vacaciones y Adicional)
+    openInfoModal,
+    closeInfoModal
   };
 
   // Inicializar al cargar el DOM
