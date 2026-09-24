@@ -20,6 +20,8 @@
       fecha_ingreso: '2024-12-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
+      esquema_jornada: '5 días / 5,5 hs (paga 8 hs)',
+      horas_base_mes: 160.0,
       recibo_hs_base: 22.0,
       estado: 'activa'
     },
@@ -34,6 +36,8 @@
       fecha_ingreso: '2023-11-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
+      esquema_jornada: '4 días / 5,5 hs',
+      horas_base_mes: 88.0,
       recibo_hs_base: 64.0,
       estado: 'activa'
     },
@@ -48,7 +52,9 @@
       fecha_ingreso: '2023-02-17',
       fecha_antiguedad_reconocida: null,
       categoria: 'Encargada de Sucursal',
-      recibo_hs_base: 36.5,
+      esquema_jornada: '4 días / 5,5 hs',
+      horas_base_mes: 88.0,
+      recibo_hs_base: 64.0,
       estado: 'activa'
     },
 
@@ -64,6 +70,8 @@
       fecha_ingreso: '2025-07-05',
       fecha_antiguedad_reconocida: '2018-09-01', // Reconocimiento de antigüedad LCT (21 días disponibles)
       categoria: 'Encargada de Sucursal',
+      esquema_jornada: '6 días / 6 hs (paga 8 hs)',
+      horas_base_mes: 192.0,
       recibo_hs_base: 22.0,
       estado: 'activa'
     },
@@ -78,6 +86,8 @@
       fecha_ingreso: '2022-02-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
+      esquema_jornada: '6 días / 4x6hs y 2x8hs',
+      horas_base_mes: 160.0,
       recibo_hs_base: 96.0,
       estado: 'activa'
     },
@@ -92,6 +102,8 @@
       fecha_ingreso: '2024-04-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora (Cubre TOM y Maschwitz)',
+      esquema_jornada: '2 días / 6 hs en TOM + 1 día / 5,5 hs en Masch',
+      horas_base_mes: 48.0,
       recibo_hs_base: 22.0,
       estado: 'activa'
     },
@@ -106,6 +118,8 @@
       fecha_ingreso: '2025-12-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
+      esquema_jornada: '4 días / 6 hs',
+      horas_base_mes: 96.0,
       recibo_hs_base: 0.0,
       estado: 'activa'
     },
@@ -120,25 +134,28 @@
       fecha_ingreso: '2025-12-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
+      esquema_jornada: '4 días / 6 hs',
+      horas_base_mes: 96.0,
       recibo_hs_base: 0.0,
       estado: 'activa'
     }
   ];
 
   // --- 2. PLANILLA DE HORAS Y CIERRES MENSUALES (INICIO TRACKING: SEPTIEMBRE 2026) ---
+  // Base mensual = Recibo (Hs) + Adicional (Hs)
   const DEFAULT_CIERRES = {
     // MASCHWITZ (Septiembre 2026)
-    '2026-09_c-flavia': { recibo_hs: 22.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 22.0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-cami': { recibo_hs: 36.5, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 36.5, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-juli': { recibo_hs: 64.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 64.0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-martu_masch': { recibo_hs: 0.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: 'Cubre en Maschwitz', horas_base: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre en Maschwitz' },
+    '2026-09_c-flavia': { horas_base: 160.0, recibo_hs: 22.0, adicional_hs: 138.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 138.0, detalle_cobertura: '' },
+    '2026-09_c-cami': { horas_base: 88.0, recibo_hs: 64.0, adicional_hs: 24.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 24.0, detalle_cobertura: '' },
+    '2026-09_c-juli': { horas_base: 88.0, recibo_hs: 64.0, adicional_hs: 24.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 24.0, detalle_cobertura: '' },
+    '2026-09_c-martu_masch': { horas_base: 38.5, recibo_hs: 0.0, adicional_hs: 38.5, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: 'Cubre domingos Maschwitz', adicionales_hs: 38.5, detalle_cobertura: 'Cubre domingos Maschwitz' },
 
     // TOM (Septiembre 2026)
-    '2026-09_c-sofi': { recibo_hs: 22.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 22.0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-esme': { recibo_hs: 96.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 96.0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-martu': { recibo_hs: 22.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 22.0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-anto': { recibo_hs: 0.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-cande': { recibo_hs: 0.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 0, adicionales_hs: 0, detalle_cobertura: '' }
+    '2026-09_c-sofi': { horas_base: 192.0, recibo_hs: 22.0, adicional_hs: 170.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 170.0, detalle_cobertura: '' },
+    '2026-09_c-esme': { horas_base: 160.0, recibo_hs: 96.0, adicional_hs: 64.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 64.0, detalle_cobertura: '' },
+    '2026-09_c-martu': { horas_base: 48.0, recibo_hs: 22.0, adicional_hs: 26.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 26.0, detalle_cobertura: '' },
+    '2026-09_c-anto': { horas_base: 96.0, recibo_hs: 0.0, adicional_hs: 96.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 96.0, detalle_cobertura: '' },
+    '2026-09_c-cande': { horas_base: 96.0, recibo_hs: 0.0, adicional_hs: 96.0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 96.0, detalle_cobertura: '' }
   };
 
   // --- DETALLE INDIVIDUAL DE HORAS EXTRAS Y ADICIONALES ---
@@ -279,7 +296,7 @@
 
   function initStorageData() {
     // Inicializar o recargar datos con versión para migración limpia
-    const DATA_VERSION = 'v10';
+    const DATA_VERSION = 'v11';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
@@ -707,7 +724,7 @@
     initLucideIcons();
   }
 
-  // --- SUBVISTA 1: HORAS DEL MES & CIERRE ---
+  // --- SUBVISTA 1: HORAS DEL MES & CIERRE (VISTA ENCARGADA: BASE + NOVEDADES) ---
   function renderStoreHoras() {
     const tbody = document.getElementById('tbody-store-horas');
     tbody.innerHTML = '';
@@ -717,51 +734,77 @@
     const listToRender = [...colabs];
     if (storeCode === 'MASCHWITZ') {
       const martu = state.colaboradoras.find(c => c.id === 'c-martu');
-      if (martu) listToRender.push({ ...martu, id: 'c-martu_masch', alias: 'Martu P. (Cobertura)', isCoverage: true });
+      if (martu) listToRender.push({
+        ...martu,
+        id: 'c-martu_masch',
+        alias: 'Martu P. (Cobertura)',
+        nombre_completo: 'Pinto Martina (Cobertura Maschwitz)',
+        esquema_jornada: '1 día / 5,5 hs',
+        horas_base_mes: 38.5,
+        recibo_hs_base: 0.0,
+        isCoverage: true
+      });
     }
 
     listToRender.forEach(c => {
       const key = `${state.currentPeriod}_${c.id}`;
-      const record = state.cierres[key] || { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+      const record = state.cierres[key] || {};
 
-      const totalHs = (Number(record.horas_base) || 0) + (Number(record.feriados_hs) || 0) + (Number(record.extras_hs) || 0) + (Number(record.adicionales_hs) || 0);
+      const baseHs = Number(record.horas_base ?? c.horas_base_mes ?? 0);
+      const feriadosHs = Number(record.feriados_hs ?? 0);
+      const extrasHs = Number(record.extras_hs ?? 0);
+      const vacacionesHs = Number(record.vacaciones_hs ?? 0);
+      const obs = record.observaciones ?? record.detalle_cobertura ?? '';
+
+      const totalHs = baseHs + feriadosHs + extrasHs + vacacionesHs;
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="font-bold text-neutral-900">
+        <td class="font-bold text-neutral-900 py-3">
           <div>${c.alias || c.nombre_completo}</div>
           <div class="text-[11px] text-neutral-400 font-normal">${c.nombre_completo}</div>
+          ${c.esquema_jornada ? `<div class="text-[10px] text-neutral-500 font-mono mt-0.5">${c.esquema_jornada}</div>` : ''}
+        </td>
+        <td class="text-center">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-neutral-100 border border-neutral-200 font-mono font-bold text-xs text-neutral-800" title="Horas base mensuales fijadas por Administración según horarios">
+            <i data-lucide="lock" class="w-3 h-3 text-neutral-400"></i>
+            <span id="hb-${c.id}">${baseHs} hs</span>
+          </div>
+        </td>
+        <td class="text-center">
+          <input type="number" step="0.5" min="0" value="${feriadosHs}" id="hf-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
+        </td>
+        <td class="text-center">
+          <input type="number" step="0.5" min="0" value="${extrasHs}" id="he-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
+        </td>
+        <td class="text-center">
+          <input type="number" step="0.5" min="0" value="${vacacionesHs}" id="hv-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs text-emerald-800 font-bold focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
         </td>
         <td>
-          <input type="number" step="1" min="0" value="${record.horas_base}" id="hb-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
+          <input type="text" value="${obs}" id="dc-${c.id}" placeholder="Observaciones / turnos / guardias..." class="w-full min-w-[160px] p-1.5 border border-neutral-200 rounded text-xs focus:border-black focus:bg-white" onfocus="this.select()">
         </td>
-        <td>
-          <input type="number" step="1" min="0" value="${record.feriados_hs}" id="hf-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
-        </td>
-        <td>
-          <input type="number" step="1" min="0" value="${record.extras_hs}" id="he-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
-        </td>
-        <td>
-          <input type="number" step="1" min="0" value="${record.adicionales_hs}" id="ha-${c.id}" class="w-20 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
-        </td>
-        <td>
-          <input type="text" value="${record.detalle_cobertura || ''}" id="dc-${c.id}" placeholder="Ej: Cubre en Maschwitz..." class="w-full min-w-[160px] p-1.5 border border-neutral-200 rounded text-xs focus:border-black focus:bg-white" onfocus="this.select()">
-        </td>
-        <td class="font-mono font-bold text-sm text-neutral-900" id="total-${c.id}">
+        <td class="font-mono font-bold text-sm text-neutral-900 text-right pr-4 whitespace-nowrap" id="total-${c.id}">
           ${totalHs} hs
         </td>
       `;
       tbody.appendChild(tr);
     });
+
+    initLucideIcons();
   }
 
   function recalcRowTotal(colabId) {
-    const hb = Number(document.getElementById(`hb-${colabId}`)?.value) || 0;
+    const key = `${state.currentPeriod}_${colabId}`;
+    const rec = state.cierres[key] || {};
+    const colab = colabId === 'c-martu_masch'
+      ? { horas_base_mes: 38.5 }
+      : state.colaboradoras.find(c => c.id === colabId);
+    const hb = Number(rec.horas_base ?? colab?.horas_base_mes ?? 0);
     const hf = Number(document.getElementById(`hf-${colabId}`)?.value) || 0;
     const he = Number(document.getElementById(`he-${colabId}`)?.value) || 0;
-    const ha = Number(document.getElementById(`ha-${colabId}`)?.value) || 0;
+    const hv = Number(document.getElementById(`hv-${colabId}`)?.value) || 0;
     const totalEl = document.getElementById(`total-${colabId}`);
-    if (totalEl) totalEl.textContent = `${hb + hf + he + ha} hs`;
+    if (totalEl) totalEl.textContent = `${hb + hf + he + hv} hs`;
   }
 
   function saveAllHorasStore() {
@@ -769,23 +812,33 @@
     const colabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
     const listToSave = [...colabs];
     if (storeCode === 'MASCHWITZ') {
-      listToSave.push({ id: 'c-martu_masch' });
+      listToSave.push({ id: 'c-martu_masch', horas_base_mes: 38.5, recibo_hs_base: 0.0 });
     }
 
     listToSave.forEach(c => {
-      const hb = Number(document.getElementById(`hb-${c.id}`)?.value) || 0;
+      const key = `${state.currentPeriod}_${c.id}`;
+      const rec = state.cierres[key] || {};
+
       const hf = Number(document.getElementById(`hf-${c.id}`)?.value) || 0;
       const he = Number(document.getElementById(`he-${c.id}`)?.value) || 0;
-      const ha = Number(document.getElementById(`ha-${c.id}`)?.value) || 0;
-      const dc = document.getElementById(`dc-${c.id}`)?.value.trim() || '';
+      const hv = Number(document.getElementById(`hv-${c.id}`)?.value) || 0;
+      const obs = document.getElementById(`dc-${c.id}`)?.value.trim() || '';
 
-      const key = `${state.currentPeriod}_${c.id}`;
+      const hb = Number(rec.horas_base ?? c.horas_base_mes ?? 0);
+      const reciboHs = Number(rec.recibo_hs ?? c.recibo_hs_base ?? 0);
+      const adicionalHs = Math.max(0, hb - reciboHs);
+
       state.cierres[key] = {
+        ...rec,
         horas_base: hb,
+        recibo_hs: reciboHs,
+        adicional_hs: adicionalHs,
         feriados_hs: hf,
         extras_hs: he,
-        adicionales_hs: ha,
-        detalle_cobertura: dc
+        vacaciones_hs: hv,
+        observaciones: obs,
+        adicionales_hs: adicionalHs,
+        detalle_cobertura: obs
       };
     });
 
@@ -1632,15 +1685,18 @@
       maschColabs.forEach(c => {
         const k = `${period}_${c.id}`;
         if (!state.cierres[k]) {
+          const hb = c.horas_base_mes || 88.0;
+          const rec = c.recibo_hs_base || 0;
+          const adic = Math.max(0, hb - rec);
           state.cierres[k] = {
-            recibo_hs: c.recibo_hs_base || 0,
-            adicional_hs: 0,
+            horas_base: hb,
+            recibo_hs: rec,
+            adicional_hs: adic,
             feriados_hs: 0,
             extras_hs: 0,
             vacaciones_hs: 0,
             observaciones: '',
-            horas_base: c.recibo_hs_base || 0,
-            adicionales_hs: 0,
+            adicionales_hs: adic,
             detalle_cobertura: ''
           };
         }
@@ -1649,15 +1705,15 @@
       const maschCovKey = `${period}_c-martu_masch`;
       if (!state.cierres[maschCovKey]) {
         state.cierres[maschCovKey] = {
+          horas_base: 38.5,
           recibo_hs: 0,
-          adicional_hs: 0,
+          adicional_hs: 38.5,
           feriados_hs: 0,
           extras_hs: 0,
           vacaciones_hs: 0,
-          observaciones: 'Cubre en Maschwitz',
-          horas_base: 0,
-          adicionales_hs: 0,
-          detalle_cobertura: 'Cubre en Maschwitz'
+          observaciones: 'Cubre domingos Maschwitz',
+          adicionales_hs: 38.5,
+          detalle_cobertura: 'Cubre domingos Maschwitz'
         };
       }
       keys.push(maschCovKey);
@@ -1667,15 +1723,18 @@
       tomColabs.forEach(c => {
         const k = `${period}_${c.id}`;
         if (!state.cierres[k]) {
+          const hb = c.horas_base_mes || 96.0;
+          const rec = c.recibo_hs_base || 0;
+          const adic = Math.max(0, hb - rec);
           state.cierres[k] = {
-            recibo_hs: c.recibo_hs_base || 0,
-            adicional_hs: 0,
+            horas_base: hb,
+            recibo_hs: rec,
+            adicional_hs: adic,
             feriados_hs: 0,
             extras_hs: 0,
             vacaciones_hs: 0,
             observaciones: '',
-            horas_base: c.recibo_hs_base || 0,
-            adicionales_hs: 0,
+            adicionales_hs: adic,
             detalle_cobertura: ''
           };
         }
@@ -1818,16 +1877,18 @@
       const colabId = key.replace(`${state.currentPeriod}_`, '');
       const isMaschCov = colabId === 'c-martu_masch';
       const colab = isMaschCov ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
+      const hb = isMaschCov ? 38.5 : (colab?.horas_base_mes || 88.0);
+      const recHs = isMaschCov ? 0 : (colab?.recibo_hs_base || 0);
       state.cierres[key] = {
-        recibo_hs: isMaschCov ? 0 : (colab?.recibo_hs_base || 0),
-        adicional_hs: 0,
+        horas_base: hb,
+        recibo_hs: recHs,
+        adicional_hs: Math.max(0, hb - recHs),
         feriados_hs: 0,
         extras_hs: 0,
         vacaciones_hs: 0,
-        observaciones: isMaschCov ? 'Cubre en Maschwitz' : '',
-        horas_base: isMaschCov ? 0 : (colab?.recibo_hs_base || 0),
-        adicionales_hs: 0,
-        detalle_cobertura: isMaschCov ? 'Cubre en Maschwitz' : ''
+        observaciones: isMaschCov ? 'Cubre domingos Maschwitz' : '',
+        adicionales_hs: Math.max(0, hb - recHs),
+        detalle_cobertura: isMaschCov ? 'Cubre domingos Maschwitz' : ''
       };
     }
     if (field === 'observaciones' || field === 'detalle_cobertura') {
@@ -1836,8 +1897,9 @@
     } else {
       const numVal = parseFloat(val) || 0;
       state.cierres[key][field] = numVal;
-      if (field === 'recibo_hs') state.cierres[key].horas_base = numVal;
       if (field === 'adicional_hs') state.cierres[key].adicionales_hs = numVal;
+      // Horas base es la sumatoria de recibo_hs + adicional_hs
+      state.cierres[key].horas_base = (Number(state.cierres[key].recibo_hs) || 0) + (Number(state.cierres[key].adicional_hs) || 0);
     }
     localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
 
