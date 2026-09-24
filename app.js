@@ -29,7 +29,7 @@
       id: 'c-juli',
       sucursal_id: 'suc-maschwitz',
       codigo_sucursal: 'MASCHWITZ',
-      alias: 'Juli Vera',
+      alias: 'Julieta V.',
       nombre_completo: 'Vera Julieta Agustina',
       dni: '39445123',
       cuil: '27-39445123-2',
@@ -45,7 +45,7 @@
       id: 'c-cami',
       sucursal_id: 'suc-maschwitz',
       codigo_sucursal: 'MASCHWITZ',
-      alias: 'Cami Vera',
+      alias: 'Camila V.',
       nombre_completo: 'Vera Camila Abril',
       dni: '42189032',
       cuil: '27-42189032-6',
@@ -63,7 +63,7 @@
       id: 'c-sofi',
       sucursal_id: 'suc-tom',
       codigo_sucursal: 'TOM',
-      alias: 'Sofi',
+      alias: 'Sofia B.',
       nombre_completo: 'Barrientos Sofia',
       dni: '35290145',
       cuil: '27-35290145-8',
@@ -79,7 +79,7 @@
       id: 'c-esme',
       sucursal_id: 'suc-tom',
       codigo_sucursal: 'TOM',
-      alias: 'Esme',
+      alias: 'Esmeralda G.',
       nombre_completo: 'Galarza Esmeralda Cristina',
       dni: '38901234',
       cuil: '27-38901234-1',
@@ -95,7 +95,7 @@
       id: 'c-martu',
       sucursal_id: 'suc-tom',
       codigo_sucursal: 'TOM',
-      alias: 'Martu P.',
+      alias: 'Martina P.',
       nombre_completo: 'Pinto Martina',
       dni: '44102987',
       cuil: '27-44102987-9',
@@ -111,7 +111,7 @@
       id: 'c-cande',
       sucursal_id: 'suc-tom',
       codigo_sucursal: 'TOM',
-      alias: 'Cande',
+      alias: 'Candela A.',
       nombre_completo: 'Almiron Miranda Candela Anahi',
       dni: '45091234',
       cuil: '27-45091234-5',
@@ -127,7 +127,7 @@
       id: 'c-anto',
       sucursal_id: 'suc-tom',
       codigo_sucursal: 'TOM',
-      alias: 'Anto',
+      alias: 'Antonella B.',
       nombre_completo: 'Bustamante Vanina Antonella',
       dni: '43998120',
       cuil: '27-43998120-3',
@@ -296,7 +296,7 @@
 
   function initStorageData() {
     // Inicializar o recargar datos con versión para migración limpia
-    const DATA_VERSION = 'v13';
+    const DATA_VERSION = 'v14';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
@@ -724,6 +724,28 @@
     initLucideIcons();
   }
 
+  // Helper de nombre corto oficial: Primer Nombre + Inicial de Apellido (ej: Martina P.)
+  function getColabShortName(colabId, fallback) {
+    const MAP = {
+      'c-flavia': 'Flavia G.',
+      'c-juli': 'Julieta V.',
+      'c-cami': 'Camila V.',
+      'c-martu': 'Martina P.',
+      'c-martu_masch': 'Martina P.',
+      'c-sofi': 'Sofia B.',
+      'c-esme': 'Esmeralda G.',
+      'c-cande': 'Candela A.',
+      'c-anto': 'Antonella B.'
+    };
+    if (MAP[colabId]) return MAP[colabId];
+    if (fallback) {
+      const parts = fallback.trim().split(/\s+/);
+      if (parts.length >= 2) return `${parts[1]} ${parts[0][0]}.`;
+      return fallback;
+    }
+    return 'Colaboradora';
+  }
+
   // --- SUBVISTA 1: HORAS DEL MES & CIERRE (VISTA ENCARGADA: BASE + NOVEDADES) ---
   function renderStoreHoras() {
     const tbody = document.getElementById('tbody-store-horas');
@@ -737,8 +759,8 @@
       if (martu) listToRender.push({
         ...martu,
         id: 'c-martu_masch',
-        alias: 'Martu P. (Cobertura)',
-        nombre_completo: 'Pinto Martina (Cobertura Maschwitz)',
+        alias: 'Martina P.',
+        nombre_completo: 'Pinto Martina',
         esquema_jornada: '1 día / 5,5 hs',
         horas_base_mes: 38.5,
         recibo_hs_base: 0.0,
@@ -758,13 +780,13 @@
       const obs = record.observaciones ?? record.detalle_cobertura ?? '';
 
       const totalHs = baseHs + adicionalHs + feriadosHs + extrasHs + vacacionesHs;
+      const displayName = getColabShortName(c.id, c.nombre_completo);
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="font-bold text-neutral-900 py-3">
-          <div>${c.alias || c.nombre_completo}</div>
-          <div class="text-[11px] text-neutral-400 font-normal">${c.nombre_completo}</div>
-          ${c.esquema_jornada ? `<div class="text-[10px] text-neutral-500 font-mono mt-0.5">${c.esquema_jornada}</div>` : ''}
+        <td class="font-bold text-neutral-900 py-2.5">
+          <div class="text-xs font-bold text-neutral-900">${displayName}</div>
+          ${c.esquema_jornada ? `<div class="text-[10px] text-neutral-400 font-normal mt-0.5">${c.esquema_jornada}</div>` : ''}
         </td>
         <td class="text-center">
           <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-neutral-100 border border-neutral-200 font-mono font-bold text-xs text-neutral-800" title="Horas base mensuales fijadas por Administración según horarios">
@@ -784,11 +806,16 @@
         <td class="text-center">
           <input type="number" step="0.5" min="0" value="${vacacionesHs}" id="hv-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs text-emerald-800 font-bold focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
         </td>
-        <td>
-          <input type="text" value="${obs}" id="dc-${c.id}" placeholder="Observaciones / turnos / guardias..." class="w-full min-w-[160px] p-1.5 border border-neutral-200 rounded text-xs focus:border-black focus:bg-white" onfocus="this.select()">
-        </td>
         <td class="font-mono font-bold text-sm text-neutral-900 text-right pr-4 whitespace-nowrap" id="total-${c.id}">
           ${totalHs} hs
+        </td>
+        <td class="py-2 min-w-[220px]">
+          <div class="flex items-start gap-1">
+            <textarea id="dc-${c.id}" rows="2" placeholder="Observaciones / días..." class="w-full text-xs p-1.5 border border-neutral-200 rounded focus:border-black focus:bg-white resize-y leading-tight font-sans transition" onfocus="this.select()">${obs}</textarea>
+            <button type="button" onclick="window.app.openObservacionesModal('${c.id}', '${displayName}', 'store')" class="p-1 rounded hover:bg-neutral-100 text-neutral-400 hover:text-black transition cursor-pointer mt-0.5" title="Abrir editor amplio de días y observaciones">
+              <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
@@ -1826,13 +1853,15 @@
         tbody.appendChild(bannerTr);
       }
 
+      const displayName = getColabShortName(colabId, colab?.nombre_completo);
+
       const tr = document.createElement('tr');
       tr.className = "hover:bg-neutral-50/50 transition border-b border-neutral-100";
       tr.innerHTML = `
         <td class="font-bold text-xs text-neutral-900 whitespace-nowrap py-2.5">
           <div class="flex items-center gap-2">
             <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-purple-100 text-purple-900'}">${sucursal}</span>
-            <span>${isMaschCoverage ? 'MARTU PINTO (Cubre Masch)' : (colab?.alias || colab?.nombre_completo || 'Colaboradora').toUpperCase()}</span>
+            <span class="font-bold text-xs">${displayName}</span>
           </div>
         </td>
         <td class="text-center py-2">
@@ -1903,14 +1932,20 @@
             onchange="window.app.handleAdminUpdateCierre('${k}', 'vacaciones_hs', this.value)"
             class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-emerald-800 focus:bg-white focus:border-black focus:outline-none transition">
         </td>
-        <td class="py-2">
-          <input type="text" value="${observaciones}" placeholder="Observaciones / motivo / cobertura..."
-            onfocus="this.select()"
-            onchange="window.app.handleAdminUpdateCierre('${k}', 'observaciones', this.value)"
-            class="w-full text-xs py-1 px-2.5 rounded bg-[#FAF9F6] border border-neutral-300 focus:bg-white focus:border-black focus:outline-none transition">
-        </td>
         <td class="font-mono font-bold text-sm text-neutral-900 text-right pr-4 whitespace-nowrap py-2" id="admin-total-${k}">
           ${totalHs} hs
+        </td>
+        <td class="py-2 min-w-[240px]">
+          <div class="flex items-start gap-1">
+            <textarea rows="2" placeholder="Observaciones / días..."
+              id="admin-obs-${k}"
+              onfocus="this.select()"
+              onchange="window.app.handleAdminUpdateCierre('${k}', 'observaciones', this.value)"
+              class="w-full text-xs py-1 px-2 rounded bg-[#FAF9F6] border border-neutral-300 focus:bg-white focus:border-black focus:outline-none transition resize-y leading-tight font-sans">${observaciones}</textarea>
+            <button type="button" onclick="window.app.openObservacionesModal('${k}', '${displayName}', 'admin')" class="p-1 rounded hover:bg-neutral-200 text-neutral-400 hover:text-black transition cursor-pointer mt-0.5" title="Abrir editor amplio de días y observaciones">
+              <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
@@ -2008,11 +2043,139 @@
       btn.innerHTML = '<i data-lucide="pencil" class="w-3 h-3 text-neutral-400 hover:text-black"></i>';
       btn.title = "Editar valor";
     });
+
+    // Guardar también cualquier texto de observaciones del DOM
+    document.querySelectorAll('[id^="admin-obs-"]').forEach(ta => {
+      const k = ta.id.replace('admin-obs-', '');
+      if (state.cierres[k]) {
+        state.cierres[k].observaciones = ta.value.trim();
+        state.cierres[k].detalle_cobertura = ta.value.trim();
+      }
+    });
+
     initLucideIcons();
 
     localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
     updateAdminKPIs();
     showToast('Planilla de horas consolidada y guardada.', 'success');
+  }
+
+  // --- MODAL DE OBSERVACIONES Y REGISTRO AMPLIO DE DÍAS ---
+  function openObservacionesModal(idOrKey, colabName, context) {
+    const modal = document.getElementById('modal-observaciones');
+    if (!modal) return;
+
+    let key = '';
+    let currentText = '';
+
+    if (context === 'store') {
+      key = `${state.currentPeriod}_${idOrKey}`;
+      const input = document.getElementById(`dc-${idOrKey}`);
+      currentText = input ? input.value : (state.cierres[key]?.observaciones || '');
+    } else {
+      key = idOrKey;
+      const input = document.getElementById(`admin-obs-${key}`);
+      currentText = input ? input.value : (state.cierres[key]?.observaciones || '');
+    }
+
+    state.activeObsTarget = { idOrKey, colabName, context, key };
+
+    const nameEl = document.getElementById('modal-obs-colab-name');
+    const subEl = document.getElementById('modal-obs-subtitle');
+    const ta = document.getElementById('modal-obs-textarea');
+
+    if (nameEl) nameEl.textContent = `${colabName} · Registro de Días y Novedades`;
+    if (subEl) subEl.textContent = `Período: ${formatPeriodLabel(state.currentPeriod)} · Agregá notas, coberturas y días`;
+    if (ta) ta.value = currentText;
+
+    modal.classList.remove('hidden');
+    initLucideIcons();
+    if (ta) {
+      setTimeout(() => ta.focus(), 60);
+    }
+  }
+
+  function closeObservacionesModal() {
+    const modal = document.getElementById('modal-observaciones');
+    if (modal) modal.classList.add('hidden');
+    state.activeObsTarget = null;
+  }
+
+  function appendObsTag(tag) {
+    const ta = document.getElementById('modal-obs-textarea');
+    if (!ta) return;
+
+    const d = new Date();
+    const dStr = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0');
+
+    let template = '';
+    switch (tag) {
+      case 'Guardia':
+        template = `• ${dStr}: Guardia turno (6 hs)`;
+        break;
+      case 'Estudio':
+        template = `• ${dStr}: Día de estudio`;
+        break;
+      case 'Cobertura':
+        template = `• ${dStr}: Cubre turno a ...`;
+        break;
+      case 'Vacaciones':
+        template = `• ${dStr} al ...: Vacaciones pendientes`;
+        break;
+      case 'Franco':
+        template = `• ${dStr}: Franco compensatorio`;
+        break;
+      default:
+        template = `• ${dStr}: `;
+    }
+
+    const current = ta.value;
+    if (current && !current.endsWith('\n')) {
+      ta.value = current + '\n' + template;
+    } else {
+      ta.value = current + template;
+    }
+    ta.focus();
+  }
+
+  function saveObservacionesModal() {
+    if (!state.activeObsTarget) {
+      closeObservacionesModal();
+      return;
+    }
+    const { idOrKey, context, key } = state.activeObsTarget;
+    const ta = document.getElementById('modal-obs-textarea');
+    const newText = ta ? ta.value.trim() : '';
+
+    if (!state.cierres[key]) {
+      state.cierres[key] = {
+        horas_base: 88,
+        recibo_hs: 0,
+        sin_recibo_hs: 88,
+        adicional_hs: 0,
+        feriados_hs: 0,
+        extras_hs: 0,
+        vacaciones_hs: 0,
+        observaciones: '',
+        adicionales_hs: 0,
+        detalle_cobertura: ''
+      };
+    }
+
+    state.cierres[key].observaciones = newText;
+    state.cierres[key].detalle_cobertura = newText;
+    localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+
+    if (context === 'store') {
+      const el = document.getElementById(`dc-${idOrKey}`);
+      if (el) el.value = newText;
+    } else {
+      const el = document.getElementById(`admin-obs-${key}`);
+      if (el) el.value = newText;
+    }
+
+    closeObservacionesModal();
+    showToast('Observaciones y días guardados correctamente.', 'success');
   }
 
   // --- ADMIN 2: HORARIOS Y BITÁCORA DE TURNOS POR SUCURSAL ---
@@ -2617,13 +2780,13 @@
       totMaschRec += r; totMaschAdic += a; totMaschFer += f; totMaschExt += e; totMaschVac += v; totMaschTot += tot;
 
       rowsHoras.push([
-        isMaschCoverage ? 'MARTU PINTO' : (colab?.alias || colab?.nombre_completo || '').toUpperCase(),
+        getColabShortName(colabId, colab?.nombre_completo).toUpperCase(),
         r || '',
         a || '',
         f || '',
         e || '',
         v || '',
-        rec.observaciones ?? rec.detalle_cobertura ?? '',
+        (rec.observaciones ?? rec.detalle_cobertura ?? '').replace(/\n+/g, ' | '),
         tot
       ]);
     });
@@ -2631,7 +2794,7 @@
 
     rowsHoras.push([]);
     rowsHoras.push(['TOM', formatPeriodLabel(state.currentPeriod).toUpperCase()]);
-    rowsHoras.push(['NOMBRE', 'RECIBO 6 HS', 'ADICIONAL', 'FERIADOS', 'HORAS EXTRA', 'VACACIONES', 'OBSERVACIONES', 'TOTAL HS']);
+    rowsHoras.push(['NOMBRE', 'RECIBO 6 HS', 'ADICIONAL', 'FERIADOS', 'HORAS EXTRA', 'VACACIONES', 'TOTAL HS', 'OBSERVACIONES']);
 
     let totTomRec = 0, totTomAdic = 0, totTomFer = 0, totTomExt = 0, totTomVac = 0, totTomTot = 0;
     tomKeys.forEach(k => {
@@ -2649,13 +2812,13 @@
       totTomRec += r; totTomAdic += a; totTomFer += f; totTomExt += e; totTomVac += v; totTomTot += tot;
 
       rowsHoras.push([
-        (colab?.alias || colab?.nombre_completo || '').toUpperCase(),
+        getColabShortName(colabId, colab?.nombre_completo).toUpperCase(),
         r || '',
         a || '',
         f || '',
         e || '',
         v || '',
-        rec.observaciones ?? rec.detalle_cobertura ?? '',
+        (rec.observaciones ?? rec.detalle_cobertura ?? '').replace(/\n+/g, ' | '),
         tot
       ]);
     });
@@ -2805,15 +2968,15 @@
 
     // Estilos visuales exactos por colaboradora según planilla real
     const COLAB_VISUALS = {
-      'c-flavia': { bg: '#caa0db', color: '#000000', label: 'FLAVIA' },
-      'c-martu_masch': { bg: '#9900e6', color: '#ffffff', label: 'MARTU PINTO' },
-      'c-cami': { bg: '#00e5ff', color: '#000000', label: 'CAMI VERA' },
-      'c-juli': { bg: '#ff8a00', color: '#000000', label: 'JULIETA' },
-      'c-sofi': { bg: '#a4d88e', color: '#000000', label: 'SOFI' },
-      'c-esme': { bg: '#ffffff', color: '#000000', label: 'ESMERALDA' },
-      'c-martu': { bg: '#9900e6', color: '#ffffff', label: 'MARTU PINTO' },
-      'c-anto': { bg: '#f9cbd6', color: '#000000', label: 'ANTONELLA' },
-      'c-cande': { bg: '#d6d3e6', color: '#000000', label: 'CANDELA' }
+      'c-flavia': { bg: '#caa0db', color: '#000000', label: 'FLAVIA G.' },
+      'c-martu_masch': { bg: '#9900e6', color: '#ffffff', label: 'MARTINA P.' },
+      'c-cami': { bg: '#00e5ff', color: '#000000', label: 'CAMILA V.' },
+      'c-juli': { bg: '#ff8a00', color: '#000000', label: 'JULIETA V.' },
+      'c-sofi': { bg: '#a4d88e', color: '#000000', label: 'SOFIA B.' },
+      'c-esme': { bg: '#ffffff', color: '#000000', label: 'ESMERALDA G.' },
+      'c-martu': { bg: '#9900e6', color: '#ffffff', label: 'MARTINA P.' },
+      'c-anto': { bg: '#f9cbd6', color: '#000000', label: 'ANTONELLA B.' },
+      'c-cande': { bg: '#d6d3e6', color: '#000000', label: 'CANDELA A.' }
     };
 
     // Separación estricta por sucursales activas (Maschwitz y TOM - Champagnat excluida)
@@ -2849,7 +3012,7 @@
       const visual = COLAB_VISUALS[colabId] || {
         bg: '#f1f5f9',
         color: '#000000',
-        label: (isMaschCoverage ? 'MARTU PINTO' : (colab?.alias || colab?.nombre_completo || 'COLABORADORA')).toUpperCase()
+        label: getColabShortName(colabId, colab?.nombre_completo).toUpperCase()
       };
 
       const obs = rec.observaciones ?? rec.detalle_cobertura ?? '';
@@ -2864,7 +3027,7 @@
           <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(f)}</td>
           <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(e)}</td>
           <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(v)}</td>
-          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: left; font-size: 12px; color: #000000;">${obs}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: left; font-size: 12px; color: #000000;">${obs ? obs.replace(/\n/g, '<br>') : ''}</td>
         </tr>
       `;
     }).join('');
@@ -2890,7 +3053,7 @@
       const visual = COLAB_VISUALS[colabId] || {
         bg: '#f1f5f9',
         color: '#000000',
-        label: (colab?.alias || colab?.nombre_completo || 'COLABORADORA').toUpperCase()
+        label: getColabShortName(colabId, colab?.nombre_completo).toUpperCase()
       };
 
       const obs = rec.observaciones ?? rec.detalle_cobertura ?? '';
@@ -2905,7 +3068,7 @@
           <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(f)}</td>
           <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(e)}</td>
           <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(v)}</td>
-          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: left; font-size: 12px; color: #000000;">${obs}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: left; font-size: 12px; color: #000000;">${obs ? obs.replace(/\n/g, '<br>') : ''}</td>
         </tr>
       `;
     }).join('');
@@ -3389,6 +3552,10 @@
     handleAdminUpdateCierre,
     toggleBaseEdit,
     saveAllHorasAdmin,
+    openObservacionesModal,
+    closeObservacionesModal,
+    appendObsTag,
+    saveObservacionesModal,
     handleFileSelect,
     removeSelectedFile,
     viewComprobante,
