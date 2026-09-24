@@ -148,16 +148,62 @@ FROM public.sucursales WHERE codigo = 'MASCHWITZ'
 ON CONFLICT DO NOTHING;
 
 -- ==============================================================================
--- 9. HABILITACIÓN DE LECTURA Y ESCRITURA PÚBLICA (ANON)
+-- 9. TABLAS DE HORARIOS SEMANALES Y MODIFICACIONES / COBERTURAS
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.horarios_sucursal (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sucursal_codigo VARCHAR(20) NOT NULL,
+    periodo VARCHAR(7) NOT NULL DEFAULT '2026-10',
+    manana JSONB DEFAULT '{}'::jsonb,
+    tarde JSONB DEFAULT '{}'::jsonb,
+    notas TEXT,
+    actualizado_en TIMESTAMPTZ DEFAULT NOW(),
+    actualizado_por VARCHAR(50) DEFAULT 'Encargada',
+    CONSTRAINT uq_horario_sucursal_periodo UNIQUE(sucursal_codigo, periodo)
+);
+
+CREATE TABLE IF NOT EXISTS public.fechas_especiales (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sucursal_codigo VARCHAR(20) NOT NULL,
+    periodo VARCHAR(7) NOT NULL DEFAULT '2026-10',
+    evento VARCHAR(150) NOT NULL,
+    manana VARCHAR(150),
+    tarde VARCHAR(150),
+    observacion TEXT,
+    creado_en TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.horarios_modificaciones (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sucursal_codigo VARCHAR(20) NOT NULL,
+    periodo VARCHAR(7) NOT NULL DEFAULT '2026-10',
+    fecha DATE NOT NULL,
+    turno VARCHAR(50) NOT NULL,
+    colaboradora_origen VARCHAR(100) NOT NULL,
+    colaboradora_reemplazo VARCHAR(100) NOT NULL,
+    motivo TEXT,
+    creado_por VARCHAR(50) DEFAULT 'Encargada',
+    creado_en TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ==============================================================================
+-- 10. HABILITACIÓN DE LECTURA Y ESCRITURA PÚBLICA (ANON)
 -- ==============================================================================
 ALTER TABLE public.sucursales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.colaboradoras ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.novedades_puntuales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cierres_mensuales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.periodos_vacaciones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.horarios_sucursal ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fechas_especiales ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.horarios_modificaciones ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Acceso total a sucursales" ON public.sucursales FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Acceso total a colaboradoras" ON public.colaboradoras FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Acceso total a novedades" ON public.novedades_puntuales FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Acceso total a cierres" ON public.cierres_mensuales FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Acceso total a vacaciones" ON public.periodos_vacaciones FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acceso total a horarios" ON public.horarios_sucursal FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acceso total a fechas especiales" ON public.fechas_especiales FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acceso total a modificaciones" ON public.horarios_modificaciones FOR ALL USING (true) WITH CHECK (true);
+
