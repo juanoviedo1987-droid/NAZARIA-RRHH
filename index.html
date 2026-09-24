@@ -53,7 +53,7 @@
   <script src="config.js"></script>
 
   <!-- Custom Styles SOPs Theme -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=17.3">
 </head>
 <body class="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900 font-['Inter'] antialiased">
 
@@ -265,21 +265,27 @@
                   <th class="w-40 sm:w-48">Colaboradora</th>
                   <th class="w-28 text-center" title="Horas base efectivas (Base contractual menos horas de vacaciones)">Base (Hs)</th>
                   <th class="w-24 text-center" title="Ajuste mensual de jornada: suma días extras (+) o descuenta ausencias/llegadas tarde (-)">
-                    <div class="flex items-center justify-center gap-1 text-amber-900">
+                    <div class="inline-flex items-center justify-center gap-1.5 text-amber-900 cursor-pointer select-none"
+                         onmouseenter="window.app.showHoverTooltip(event, 'adicional')" 
+                         onmouseleave="window.app.hideHoverTooltip()" 
+                         onclick="window.app.openInfoModal('adicional')">
                       <span>Adicional</span>
-                      <button type="button" onclick="window.app.openInfoModal('adicional')" class="p-0.5 rounded text-amber-800 hover:text-black hover:bg-amber-100 transition cursor-pointer" title="Ver cómo usar Adicional (+ / -)">
+                      <span class="p-1 rounded bg-amber-100/80 text-amber-900 hover:bg-amber-200 transition flex items-center justify-center shadow-2xs" title="Clic o posar el mouse para ver guía">
                         <i data-lucide="info" class="w-3.5 h-3.5"></i>
-                      </button>
+                      </span>
                     </div>
                   </th>
                   <th class="w-20 text-center">Feriados</th>
                   <th class="w-20 text-center">Horas Extra</th>
                   <th class="w-28 text-center" title="Horas de turnos habituales no trabajados por vacaciones (restan de la Base)">
-                    <div class="flex items-center justify-center gap-1 text-emerald-800">
+                    <div class="inline-flex items-center justify-center gap-1.5 text-emerald-800 cursor-pointer select-none"
+                         onmouseenter="window.app.showHoverTooltip(event, 'vacaciones')" 
+                         onmouseleave="window.app.hideHoverTooltip()" 
+                         onclick="window.app.openInfoModal('vacaciones')">
                       <span>Vacaciones</span>
-                      <button type="button" onclick="window.app.openInfoModal('vacaciones')" class="p-0.5 rounded text-emerald-700 hover:text-emerald-950 hover:bg-emerald-100 transition cursor-pointer" title="Ver cómo computar horas de vacaciones">
+                      <span class="p-1 rounded bg-emerald-100/80 text-emerald-900 hover:bg-emerald-200 transition flex items-center justify-center shadow-2xs" title="Clic o posar el mouse para ver guía">
                         <i data-lucide="info" class="w-3.5 h-3.5"></i>
-                      </button>
+                      </span>
                     </div>
                   </th>
                   <th class="min-w-[260px]">Observaciones</th>
@@ -1005,21 +1011,27 @@
                   <th class="text-center w-28" title="Base habitual fuera de recibo (hacer clic en el lápiz para editar)">Sin Recibo</th>
                   <th class="text-center w-28" title="Total Base Efectiva: Recibo + Sin Recibo menos Vacaciones">Total Base</th>
                   <th class="text-center w-24" title="Ajuste mensual de jornada: suma días extras (+) o descuenta ausencias/llegadas tarde (-)">
-                    <div class="flex items-center justify-center gap-1 text-amber-900">
+                    <div class="inline-flex items-center justify-center gap-1.5 text-amber-900 cursor-pointer select-none"
+                         onmouseenter="window.app.showHoverTooltip(event, 'adicional')" 
+                         onmouseleave="window.app.hideHoverTooltip()" 
+                         onclick="window.app.openInfoModal('adicional')">
                       <span>Adicional</span>
-                      <button type="button" onclick="window.app.openInfoModal('adicional')" class="p-0.5 rounded text-amber-800 hover:text-black hover:bg-amber-100 transition cursor-pointer" title="Ver cómo usar Adicional (+ / -)">
+                      <span class="p-1 rounded bg-amber-100/80 text-amber-900 hover:bg-amber-200 transition flex items-center justify-center shadow-2xs" title="Clic o posar el mouse para ver guía">
                         <i data-lucide="info" class="w-3.5 h-3.5"></i>
-                      </button>
+                      </span>
                     </div>
                   </th>
                   <th class="text-center w-20">Feriados</th>
                   <th class="text-center w-20">Horas Extra</th>
                   <th class="text-center w-28" title="Horas de turnos habituales no trabajados por vacaciones (restan de la Base)">
-                    <div class="flex items-center justify-center gap-1 text-emerald-800">
+                    <div class="inline-flex items-center justify-center gap-1.5 text-emerald-800 cursor-pointer select-none"
+                         onmouseenter="window.app.showHoverTooltip(event, 'vacaciones')" 
+                         onmouseleave="window.app.hideHoverTooltip()" 
+                         onclick="window.app.openInfoModal('vacaciones')">
                       <span>Vacaciones</span>
-                      <button type="button" onclick="window.app.openInfoModal('vacaciones')" class="p-0.5 rounded text-emerald-700 hover:text-emerald-950 hover:bg-emerald-100 transition cursor-pointer" title="Ver cómo computar horas de vacaciones">
+                      <span class="p-1 rounded bg-emerald-100/80 text-emerald-900 hover:bg-emerald-200 transition flex items-center justify-center shadow-2xs" title="Clic o posar el mouse para ver guía">
                         <i data-lucide="info" class="w-3.5 h-3.5"></i>
-                      </button>
+                      </span>
                     </div>
                   </th>
                   <th class="min-w-[260px]">Observaciones</th>
@@ -1615,7 +1627,7 @@
   <!-- =========================================================================
        MODAL 5: GUÍA DE AYUDA DE COLUMNAS (VACACIONES & ADICIONAL)
        ========================================================================= -->
-  <div id="modal-info-columna" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop fade-in">
+  <div id="modal-info-columna" onclick="if(event.target === this) window.app.closeInfoModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop fade-in">
     <div class="bg-white border border-neutral-200 rounded-2xl p-4 sm:p-6 max-w-lg w-full shadow-2xl flex flex-col gap-4">
       <div class="flex items-center justify-between border-b border-neutral-200 pb-3">
         <div class="flex items-center gap-2.5">
@@ -1712,7 +1724,10 @@
   <!-- Toast de Notificaciones -->
   <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
+  <!-- Tooltip flotante global para explicaciones rápidas en cabeceras -->
+  <div id="floating-info-tooltip" class="hidden fixed z-[9999] pointer-events-none transition-opacity duration-150 bg-white border border-neutral-900 rounded-xl p-3.5 shadow-2xl text-xs text-neutral-900 max-w-xs"></div>
+
   <!-- Scripts -->
-  <script src="app.js"></script>
+  <script src="app.js?v=17.3"></script>
 </body>
 </html>
