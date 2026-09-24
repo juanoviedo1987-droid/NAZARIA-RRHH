@@ -2582,20 +2582,95 @@
     showToast('Esquema contractual y horas base guardados con éxito.', 'success');
   }
 
-  // --- MODAL DE AYUDA DE COLUMNAS (VACACIONES & ADICIONAL) ---
+  // --- MODAL Y TOOLTIPS FLOTANTES DE AYUDA DE COLUMNAS (VACACIONES & ADICIONAL) ---
+  function showHoverTooltip(e, type) {
+    const tooltip = document.getElementById('floating-info-tooltip');
+    if (!tooltip) return;
+
+    if (type === 'vacaciones') {
+      tooltip.innerHTML = `
+        <div class="flex items-center gap-1.5 font-bold text-emerald-900 mb-1 text-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+          <span>¿Cómo cargar las Horas de Vacaciones?</span>
+        </div>
+        <p class="text-[11px] text-neutral-700 leading-snug">
+          Se cargan <strong>únicamente las horas de los turnos en que debió trabajar y no vino</strong>:
+        </p>
+        <div class="my-1.5 bg-emerald-50 border border-emerald-300 rounded p-1.5 font-mono text-[10px] font-bold text-emerald-950 text-center">
+          Turnos no trabajados × Horas del turno
+        </div>
+        <ul class="text-[10px] text-neutral-600 space-y-0.5 mb-1.5">
+          <li>• <strong>5 días de 6 hs (1 sem):</strong> Cargar <strong>30 hs</strong>.</li>
+          <li>• <strong>4 días de 5,5 hs (1 sem):</strong> Cargar <strong>22 hs</strong>.</li>
+        </ul>
+        <div class="text-[9px] text-emerald-800 border-t border-neutral-200 pt-1 font-semibold">
+          💡 Restan de la Base (se pagan aparte por ley). Clic para abrir guía.
+        </div>
+      `;
+    } else if (type === 'adicional') {
+      tooltip.innerHTML = `
+        <div class="flex items-center gap-1.5 font-bold text-amber-900 mb-1 text-xs">
+          <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+          <span>Balance de Adicional (+ / -)</span>
+        </div>
+        <p class="text-[11px] text-neutral-700 leading-snug mb-1">
+          Ajuste neto de horas habituales en el mes:
+        </p>
+        <div class="space-y-1 text-[10px]">
+          <div class="bg-emerald-50 border border-emerald-200 rounded p-1 text-emerald-950">
+            <strong>➕ Positivo:</strong> Días extras o coberturas de compañeras.
+          </div>
+          <div class="bg-rose-50 border border-rose-200 rounded p-1 text-rose-950">
+            <strong>➖ Negativo:</strong> Llegadas tarde, retiros anticipados o ausencias.
+          </div>
+        </div>
+        <div class="text-[9px] text-amber-900 border-t border-neutral-200 pt-1 mt-1.5 font-semibold">
+          💡 Aclarar motivo en Observaciones. Clic para abrir guía.
+        </div>
+      `;
+    }
+
+    tooltip.classList.remove('hidden');
+
+    const targetEl = (e && (e.currentTarget || e.target)) || null;
+    if (!targetEl || !targetEl.getBoundingClientRect) return;
+    const rect = targetEl.getBoundingClientRect();
+    const tooltipWidth = 320;
+    let left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+    if (left < 10) left = 10;
+    if (left + tooltipWidth > window.innerWidth - 10) {
+      left = window.innerWidth - tooltipWidth - 10;
+    }
+    let top = rect.bottom + 6;
+    if (top + 220 > window.innerHeight) {
+      top = Math.max(10, rect.top - 210);
+    }
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+    tooltip.style.width = `${tooltipWidth}px`;
+  }
+
+  function hideHoverTooltip() {
+    const tooltip = document.getElementById('floating-info-tooltip');
+    if (tooltip) tooltip.classList.add('hidden');
+  }
+
   function openInfoModal(type) {
+    hideHoverTooltip();
     const modal = document.getElementById('modal-info-columna');
     if (!modal) return;
 
     const iconContainer = document.getElementById('modal-info-icon-container');
-    const iconEl = document.getElementById('modal-info-icon');
     const titleEl = document.getElementById('modal-info-title');
     const subtitleEl = document.getElementById('modal-info-subtitle');
     const bodyEl = document.getElementById('modal-info-body');
 
     if (type === 'vacaciones') {
-      if (iconContainer) iconContainer.className = "w-8 h-8 rounded-lg bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold";
-      if (iconEl) iconEl.setAttribute('data-lucide', 'palmtree');
+      if (iconContainer) {
+        iconContainer.className = "w-8 h-8 rounded-lg bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold";
+        iconContainer.innerHTML = '<i data-lucide="palmtree" class="w-4 h-4 text-emerald-800"></i>';
+      }
       if (titleEl) titleEl.textContent = "¿Cómo cargar las Horas de Vacaciones?";
       if (subtitleEl) subtitleEl.textContent = "Cómputo en horas no trabajadas y descuento de la Base";
       if (bodyEl) {
@@ -2628,8 +2703,10 @@
         `;
       }
     } else if (type === 'adicional') {
-      if (iconContainer) iconContainer.className = "w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center font-bold";
-      if (iconEl) iconEl.setAttribute('data-lucide', 'scale');
+      if (iconContainer) {
+        iconContainer.className = "w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center font-bold";
+        iconContainer.innerHTML = '<i data-lucide="scale" class="w-4 h-4 text-amber-800"></i>';
+      }
       if (titleEl) titleEl.textContent = "¿Cómo usar la columna Adicional (+ / -)?";
       if (subtitleEl) subtitleEl.textContent = "Balance mensual de ajuste de jornada y movimientos";
       if (bodyEl) {
@@ -4000,9 +4077,11 @@
     closeEditEsquemaModal,
     handleSaveEsquema,
 
-    // Modal de guía de ayuda de columnas (Vacaciones y Adicional)
+    // Modal y Tooltips flotantes de ayuda de columnas (Vacaciones y Adicional)
     openInfoModal,
-    closeInfoModal
+    closeInfoModal,
+    showHoverTooltip,
+    hideHoverTooltip
   };
 
   // Inicializar al cargar el DOM
