@@ -101,8 +101,8 @@ USING (bucket_id = 'certificados');
 -- ==============================================================================
 -- Sucursales con sus PINs iniciales
 INSERT INTO public.sucursales (codigo, nombre, pin) VALUES 
-('TOM', 'Tortugas Open Mall', '1111'),
-('MASCHWITZ', 'Maschwitz Mall', '2222')
+('TOM', 'Tortugas Open Mall', '0145'),
+('MASCHWITZ', 'Maschwitz Mall', '6228')
 ON CONFLICT (codigo) DO NOTHING;
 
 -- Colaboradoras de TOM (5 colaboradoras oficiales)
@@ -133,7 +133,7 @@ ON CONFLICT DO NOTHING;
 
 -- Colaboradoras de Maschwitz (3 colaboradoras oficiales)
 INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Gómez Flavia Marianela', '37102934', '27-37102934-4', '2024-12-01', 'Vendedora', 'activa'
+SELECT id, 'Gómez Flavia Marianela', '32826228', '27-32826228-8', '2024-12-01', 'Vendedora', 'activa'
 FROM public.sucursales WHERE codigo = 'MASCHWITZ'
 ON CONFLICT DO NOTHING;
 
