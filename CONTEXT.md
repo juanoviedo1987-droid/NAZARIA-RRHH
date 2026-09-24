@@ -57,15 +57,16 @@ Este documento es la **Fuente Central de Verdad y Memoria (SSOT)** del proyecto.
 
 ---
 
-## 4. Terminales y Credenciales de Acceso
-
-| Terminal | PIN Acceso | Descripción |
-| :--- | :---: | :--- |
-| **TOM** | `1111` | Carga de horas, horarios semanales, retiros y novedades de TOM. |
-| **Maschwitz** | `2222` | Carga de horas, horarios semanales, retiros y novedades de Maschwitz (+ coberturas). |
-| **Administración** | `9999` | Dueño / RRHH: consolidado, vacaciones LCT, auditoría de certificados y exportación Excel. |
-
----
+## 4. Terminales, Credenciales de Acceso y Períodos
+* **Seguridad y Privacidad:** Las claves son personales y **no se exhiben en la pantalla de bienvenida**.
+* **Credenciales Oficiales:**
+  * **TOM:** PIN personal de Sofia Barrientos (`4816` — últimos 4 dígitos de su DNI).
+  * **Maschwitz:** PIN personal de Flavia Gómez (`6228` — últimos 4 dígitos de su DNI `32.826.228`).
+  * **Administración (Dueño / Juan):** PIN privado `3585`.
+* **Habilitación Automática de Períodos:**
+  * Inicio oficial del sistema: **Septiembre 2026 (`2026-09`)**.
+  * El sistema habilita dinámica y automáticamente mes a mes los períodos habilitados en base al calendario real (`new Date()`).
+  * Meses futuros quedan bloqueados para evitar cargas accidentales fuera de término. Al iniciar un nuevo mes (ej. 1° de Octubre), la opción se agrega automáticamente al selector.
 
 ## 5. Estructura del Panel de Administración (Orden Estratégico)
 1. **1. Consolidado Horas a Liquidar (Liquidador):** Planilla unificada de horas trabajadas (base, feriados con recargo, extras, adicionales, coberturas y total hs), editable en vivo por el administrador con botón para guardar.
