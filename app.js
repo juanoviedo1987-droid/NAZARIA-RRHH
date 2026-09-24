@@ -141,6 +141,23 @@
     }
   ];
 
+  // --- 1.B MARTINA PINTO (COBERTURA DOMINGOS MASCHWITZ) ---
+  const DEFAULT_MARTU_MASCH = {
+    id: 'c-martu_masch',
+    sucursal_id: 'suc-maschwitz',
+    codigo_sucursal: 'MASCHWITZ',
+    alias: 'Martina P.',
+    nombre_completo: 'Pinto Martina (Maschwitz)',
+    dni: '44102987',
+    cuil: '27-44102987-9',
+    categoria: 'Vendedora (Cobertura domingos Maschwitz)',
+    esquema_jornada: '1 día / 5,5 hs',
+    horas_base_mes: 38.5,
+    recibo_hs_base: 0.0,
+    estado: 'activa',
+    isCoverage: true
+  };
+
   // --- 2. PLANILLA DE HORAS Y CIERRES MENSUALES (INICIO TRACKING: SEPTIEMBRE 2026) ---
   // Base mensual = Recibo (Hs) + Sin Recibo (Hs) | Adicional (Hs) = turnos extras reportados por sucursal
   const DEFAULT_CIERRES = {
@@ -266,6 +283,7 @@
 
     // Colecciones
     colaboradoras: [],
+    martuMasch: null,
     novedades: [],
     cierres: {},
     horas_detalle: [],
@@ -273,8 +291,19 @@
     horarios: {},
     fechas_especiales: [],
     horarios_notas: {},
-    horarios_modificaciones: []
+    horarios_modificaciones: [],
+
+    // Banderas de edición protegida de grillas
+    isStoreGridEditable: false,
+    isAdminGridEditable: false
   };
+
+  function getMartuMasch() {
+    if (!state.martuMasch) {
+      state.martuMasch = JSON.parse(localStorage.getItem('nazaria_martu_masch_v2') || JSON.stringify(DEFAULT_MARTU_MASCH));
+    }
+    return state.martuMasch;
+  }
 
   // ============================================================================
   // INICIALIZACIÓN
@@ -295,11 +324,12 @@
   }
 
   function initStorageData() {
-    // Inicializar o recargar datos con versión para migración limpia
-    const DATA_VERSION = 'v15';
+    // Inicializar o recargar datos con versión para migración limpia (v16: Vacaciones (-) y edición de esquemas)
+    const DATA_VERSION = 'v16';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
+      localStorage.setItem('nazaria_martu_masch_v2', JSON.stringify(DEFAULT_MARTU_MASCH));
       localStorage.setItem('nazaria_cierres_v2', JSON.stringify(DEFAULT_CIERRES));
       localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(DEFAULT_HORAS_DETALLE));
       localStorage.setItem('nazaria_horarios_v2', JSON.stringify(DEFAULT_HORARIOS));
@@ -312,6 +342,7 @@
     }
 
     state.colaboradoras = JSON.parse(localStorage.getItem('nazaria_colaboradoras_v2') || JSON.stringify(DEFAULT_COLABORADORAS));
+    state.martuMasch = JSON.parse(localStorage.getItem('nazaria_martu_masch_v2') || JSON.stringify(DEFAULT_MARTU_MASCH));
     state.cierres = JSON.parse(localStorage.getItem('nazaria_cierres_v2') || JSON.stringify(DEFAULT_CIERRES));
     state.horas_detalle = JSON.parse(localStorage.getItem('nazaria_horas_detalle_v2') || JSON.stringify(DEFAULT_HORAS_DETALLE));
     state.horarios = JSON.parse(localStorage.getItem('nazaria_horarios_v2') || JSON.stringify(DEFAULT_HORARIOS));
@@ -755,17 +786,7 @@
     const colabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
     const listToRender = [...colabs];
     if (storeCode === 'MASCHWITZ') {
-      const martu = state.colaboradoras.find(c => c.id === 'c-martu');
-      if (martu) listToRender.push({
-        ...martu,
-        id: 'c-martu_masch',
-        alias: 'Martina P.',
-        nombre_completo: 'Pinto Martina',
-        esquema_jornada: '1 día / 5,5 hs',
-        horas_base_mes: 38.5,
-        recibo_hs_base: 0.0,
-        isCoverage: true
-      });
+      listToRender.push(getMartuMasch());
     }
 
     listToRender.forEach(c => {
@@ -779,7 +800,8 @@
       const vacacionesHs = Number(record.vacaciones_hs ?? 0);
       const obs = record.observaciones ?? record.detalle_cobertura ?? '';
 
-      const totalHs = baseHs + adicionalHs + feriadosHs + extrasHs + vacacionesHs;
+      // Regla de Vacaciones: RESTAN del total trabajado (se liquidan aparte por ley)
+      const totalHs = Math.max(0, baseHs + adicionalHs + feriadosHs + extrasHs - vacacionesHs);
       const displayName = getColabShortName(c.id, c.nombre_completo);
 
       const tr = document.createElement('tr');
@@ -804,7 +826,7 @@
           <input type="number" step="0.5" min="0" value="${extrasHs}" id="he-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${vacacionesHs}" id="hv-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs text-emerald-800 font-bold focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')">
+          <input type="number" step="0.5" min="0" value="${vacacionesHs}" id="hv-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs text-emerald-800 font-bold focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcRowTotal('${c.id}')" title="Horas de vacaciones (restan de las horas comunes trabajadas)">
         </td>
         <td class="font-mono font-bold text-sm text-neutral-900 text-right pr-4 whitespace-nowrap" id="total-${c.id}">
           ${totalHs} hs
@@ -828,7 +850,7 @@
     const key = `${state.currentPeriod}_${colabId}`;
     const rec = state.cierres[key] || {};
     const colab = colabId === 'c-martu_masch'
-      ? { horas_base_mes: 38.5 }
+      ? getMartuMasch()
       : state.colaboradoras.find(c => c.id === colabId);
     const hb = Number(rec.horas_base ?? colab?.horas_base_mes ?? 0);
     const ha = Number(document.getElementById(`ha-${colabId}`)?.value) || 0;
@@ -836,7 +858,8 @@
     const he = Number(document.getElementById(`he-${colabId}`)?.value) || 0;
     const hv = Number(document.getElementById(`hv-${colabId}`)?.value) || 0;
     const totalEl = document.getElementById(`total-${colabId}`);
-    if (totalEl) totalEl.textContent = `${hb + ha + hf + he + hv} hs`;
+    // Regla de Vacaciones: RESTAN del total trabajado
+    if (totalEl) totalEl.textContent = `${Math.max(0, hb + ha + hf + he - hv)} hs`;
   }
 
   function saveAllHorasStore() {
@@ -844,7 +867,8 @@
     const colabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
     const listToSave = [...colabs];
     if (storeCode === 'MASCHWITZ') {
-      listToSave.push({ id: 'c-martu_masch', horas_base_mes: 38.5, recibo_hs_base: 0.0 });
+      const mm = getMartuMasch();
+      listToSave.push({ id: 'c-martu_masch', horas_base_mes: mm.horas_base_mes, recibo_hs_base: mm.recibo_hs_base });
     }
 
     listToSave.forEach(c => {
@@ -1005,6 +1029,46 @@
 
     populateStoreModificacionSelects(storeCode);
     renderStoreModificaciones();
+    renderStoreHorariosGridInputs();
+  }
+
+  function renderStoreHorariosGridInputs() {
+    const isEdit = !!state.isStoreGridEditable;
+    const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    days.forEach(d => {
+      const elMan = document.getElementById(`h-man-${d}`);
+      const elTar = document.getElementById(`h-tar-${d}`);
+      [elMan, elTar].forEach(el => {
+        if (!el) return;
+        if (isEdit) {
+          el.removeAttribute('readonly');
+          el.className = "w-full text-center text-xs font-semibold p-1.5 border border-black rounded uppercase bg-white text-neutral-900 shadow-sm ring-2 ring-black/10 transition";
+        } else {
+          el.setAttribute('readonly', 'true');
+          el.className = "w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none transition";
+        }
+      });
+    });
+
+    const btn = document.getElementById('btn-toggle-store-grid-edit');
+    if (btn) {
+      if (isEdit) {
+        btn.className = "px-3 py-2 rounded-lg border border-black text-xs font-bold bg-black text-white flex items-center gap-1.5 transition cursor-pointer";
+        btn.innerHTML = `<i data-lucide="lock" class="w-3.5 h-3.5 text-[#E6D5C3]"></i> <span id="btn-toggle-store-grid-edit-text">Bloquear Grilla</span>`;
+      } else {
+        btn.className = "px-3 py-2 rounded-lg border border-neutral-300 text-xs font-bold bg-[#FAF9F6] text-neutral-700 hover:bg-neutral-100 flex items-center gap-1.5 transition cursor-pointer";
+        btn.innerHTML = `<i data-lucide="pencil" class="w-3.5 h-3.5 text-neutral-500"></i> <span id="btn-toggle-store-grid-edit-text">Modificar Grilla</span>`;
+      }
+    }
+    initLucideIcons();
+  }
+
+  function toggleStoreGridEdit() {
+    state.isStoreGridEditable = !state.isStoreGridEditable;
+    renderStoreHorariosGridInputs();
+    if (state.isStoreGridEditable) {
+      showToast('Modo edición activado: podés modificar turnos en la grilla.', 'info');
+    }
   }
 
   async function saveHorariosStore() {
@@ -1020,6 +1084,9 @@
 
     state.horarios[storeCode] = { manana, tarde };
     localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
+
+    state.isStoreGridEditable = false;
+    renderStoreHorariosGridInputs();
 
     if (state.supabaseClient && state.isSupabaseConnected) {
       try {
@@ -1039,7 +1106,7 @@
       }
     }
 
-    showToast('Grilla de horarios guardada y sincronizada.', 'success');
+    showToast('Grilla de horarios guardada y fijada.', 'success');
   }
 
   function renderStoreFechasEspeciales() {
@@ -1686,7 +1753,8 @@
     const f = Number(rec.feriados_hs ?? 0);
     const e = Number(rec.extras_hs ?? 0);
     const v = Number(rec.vacaciones_hs ?? 0);
-    return r + sr + a + f + e + v;
+    // Regla de Vacaciones: RESTAN del total trabajado (se liquidan aparte por LCT)
+    return Math.max(0, r + sr + a + f + e - v);
   }
 
   function updateAdminKPIs() {
@@ -1740,10 +1808,11 @@
       });
       const maschCovKey = `${period}_c-martu_masch`;
       if (!state.cierres[maschCovKey]) {
+        const mm = getMartuMasch();
         state.cierres[maschCovKey] = {
-          horas_base: 38.5,
-          recibo_hs: 0,
-          sin_recibo_hs: 38.5,
+          horas_base: mm.horas_base_mes,
+          recibo_hs: mm.recibo_hs_base,
+          sin_recibo_hs: Math.max(0, mm.horas_base_mes - mm.recibo_hs_base),
           adicional_hs: 0,
           feriados_hs: 0,
           extras_hs: 0,
@@ -1820,7 +1889,7 @@
     allKeys.forEach(k => {
       const colabId = k.replace(`${state.currentPeriod}_`, '');
       const isMaschCoverage = colabId === 'c-martu_masch';
-      const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
+      const colab = isMaschCoverage ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
       const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
       const rec = state.cierres[k] || {};
 
@@ -1832,7 +1901,8 @@
       const vacacionesHs = Number(rec.vacaciones_hs ?? 0);
       const observaciones = rec.observaciones ?? rec.detalle_cobertura ?? '';
 
-      const totalHs = reciboHs + sinReciboHs + adicionalHs + feriadosHs + extrasHs + vacacionesHs;
+      // Regla de Vacaciones: RESTAN del total trabajado
+      const totalHs = Math.max(0, reciboHs + sinReciboHs + adicionalHs + feriadosHs + extrasHs - vacacionesHs);
 
       // Encabezado visual de sucursal
       if (sucursal !== lastStore) {
@@ -1854,7 +1924,7 @@
       }
 
       const displayName = getColabShortName(colabId, colab?.nombre_completo);
-      const esquema = isMaschCoverage ? '1 día / 5,5 hs' : (colab?.esquema_jornada || '');
+      const esquema = colab?.esquema_jornada || '';
 
       const tr = document.createElement('tr');
       tr.className = "hover:bg-neutral-50/50 transition border-b border-neutral-100";
@@ -1864,7 +1934,12 @@
             <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-purple-100 text-purple-900'}">${sucursal}</span>
             <div>
               <div class="font-bold text-xs text-neutral-900">${displayName}</div>
-              ${esquema ? `<div class="text-[10px] text-neutral-400 font-normal mt-0.5">${esquema}</div>` : ''}
+              <div class="flex items-center gap-1.5 mt-0.5">
+                ${esquema ? `<span class="text-[10px] text-neutral-400 font-normal">${esquema}</span>` : ''}
+                <button type="button" onclick="window.app.openEditEsquemaModal('${colabId}')" class="p-0.5 rounded text-neutral-400 hover:text-black transition cursor-pointer" title="Modificar esquema contractual y horas base habituales">
+                  <i data-lucide="pencil" class="w-2.5 h-2.5"></i>
+                </button>
+              </div>
             </div>
           </div>
         </td>
@@ -1962,9 +2037,9 @@
     if (!state.cierres[key]) {
       const colabId = key.replace(`${state.currentPeriod}_`, '');
       const isMaschCov = colabId === 'c-martu_masch';
-      const colab = isMaschCov ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
-      const hb = isMaschCov ? 38.5 : (colab?.horas_base_mes || 88.0);
-      const recHs = isMaschCov ? 0 : (colab?.recibo_hs_base || 0);
+      const colab = isMaschCov ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
+      const hb = colab?.horas_base_mes || 88.0;
+      const recHs = colab?.recibo_hs_base || 0;
       const sinRec = Math.max(0, hb - recHs);
       state.cierres[key] = {
         horas_base: hb,
@@ -2258,6 +2333,360 @@
     populateAdminModificacionSelects(storeCode);
     renderAdminModificaciones();
     renderAdminFechasEspeciales();
+    renderAdminHorariosGridInputs();
+    renderAdminEsquemasTable(storeCode);
+  }
+
+  function renderAdminHorariosGridInputs() {
+    const isEdit = !!state.isAdminGridEditable;
+    const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    days.forEach(d => {
+      const elMan = document.getElementById(`admin-h-man-${d}`);
+      const elTar = document.getElementById(`admin-h-tar-${d}`);
+      [elMan, elTar].forEach(el => {
+        if (!el) return;
+        if (isEdit) {
+          el.removeAttribute('readonly');
+          el.className = "w-full text-center text-xs font-semibold p-1.5 border border-black rounded uppercase bg-white text-neutral-900 shadow-sm ring-2 ring-black/10 transition";
+        } else {
+          el.setAttribute('readonly', 'true');
+          el.className = "w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none transition";
+        }
+      });
+    });
+
+    const btn = document.getElementById('btn-toggle-admin-grid-edit');
+    if (btn) {
+      if (isEdit) {
+        btn.className = "px-3.5 py-2 rounded-lg border border-black text-xs font-bold bg-black text-white flex items-center gap-1.5 transition cursor-pointer";
+        btn.innerHTML = `<i data-lucide="lock" class="w-3.5 h-3.5 text-[#E6D5C3]"></i> <span id="btn-toggle-admin-grid-edit-text">Bloquear Grilla</span>`;
+      } else {
+        btn.className = "px-3.5 py-2 rounded-lg border border-neutral-300 text-xs font-bold bg-[#FAF9F6] text-neutral-700 hover:bg-neutral-100 flex items-center gap-1.5 transition cursor-pointer";
+        btn.innerHTML = `<i data-lucide="pencil" class="w-3.5 h-3.5 text-neutral-500"></i> <span id="btn-toggle-admin-grid-edit-text">Modificar Grilla</span>`;
+      }
+    }
+    initLucideIcons();
+  }
+
+  function toggleAdminGridEdit() {
+    state.isAdminGridEditable = !state.isAdminGridEditable;
+    renderAdminHorariosGridInputs();
+    if (state.isAdminGridEditable) {
+      showToast('Modo edición activado: podés modificar turnos en la grilla semanal.', 'info');
+    }
+  }
+
+  // --- SECCIÓN: ESQUEMAS CONTRACTUALES Y HORAS BASE POR COLABORADORA ---
+  function renderAdminEsquemasTable(storeCode) {
+    const tbody = document.getElementById('tbody-admin-esquemas');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    let list = [];
+    if (storeCode === 'MASCHWITZ') {
+      list = state.colaboradoras.filter(c => c.codigo_sucursal === 'MASCHWITZ');
+      list.push(getMartuMasch());
+    } else {
+      list = state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM');
+    }
+
+    list.forEach(c => {
+      const isMaschCov = c.id === 'c-martu_masch';
+      const sucursal = isMaschCov ? 'MASCHWITZ' : (c.codigo_sucursal || storeCode);
+      const displayName = getColabShortName(c.id, c.nombre_completo);
+      const esquema = c.esquema_jornada || 'A definir';
+      const hb = Number(c.horas_base_mes ?? 88);
+      const rec = Number(c.recibo_hs_base ?? 0);
+      const sinRec = Math.max(0, hb - rec);
+
+      const tr = document.createElement('tr');
+      tr.className = "hover:bg-neutral-50/50 transition border-b border-neutral-100";
+      tr.innerHTML = `
+        <td class="py-2.5">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-purple-100 text-purple-900'}">${sucursal}</span>
+        </td>
+        <td class="font-bold text-xs text-neutral-900 py-2.5">
+          <div>${displayName}</div>
+          <div class="text-[10px] text-neutral-400 font-normal">${c.categoria || 'Vendedora'}</div>
+        </td>
+        <td class="py-2.5">
+          <div class="font-bold text-xs text-neutral-900">${esquema}</div>
+        </td>
+        <td class="text-center font-mono font-bold text-xs py-2.5 text-neutral-900">
+          ${hb} hs
+        </td>
+        <td class="text-center font-mono font-bold text-xs py-2.5 text-neutral-800">
+          ${rec} hs
+        </td>
+        <td class="text-center font-mono font-bold text-xs py-2.5 text-neutral-600">
+          ${sinRec} hs
+        </td>
+        <td class="text-center py-2.5">
+          <button type="button" onclick="window.app.openEditEsquemaModal('${c.id}')" class="p-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 hover:text-black transition cursor-pointer flex items-center justify-center mx-auto gap-1 text-xs font-bold" title="Editar esquema contractual y horas base">
+            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Editar</span>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    initLucideIcons();
+  }
+
+  // --- MODAL: EDICIÓN DE ESQUEMA CONTRACTUAL ---
+  function openEditEsquemaModal(colabId) {
+    const modal = document.getElementById('modal-edit-esquema');
+    if (!modal) return;
+
+    const isMaschCov = colabId === 'c-martu_masch';
+    const colab = isMaschCov ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
+    if (!colab) return;
+
+    const displayName = getColabShortName(colabId, colab.nombre_completo);
+    const store = isMaschCov ? 'MASCHWITZ' : (colab.codigo_sucursal || 'TOM');
+
+    document.getElementById('edit-esquema-colab-id').value = colabId;
+    document.getElementById('edit-esquema-title').textContent = `Esquema de ${displayName}`;
+    
+    const badge = document.getElementById('edit-esquema-store-badge');
+    if (badge) {
+      badge.textContent = store;
+      badge.className = `px-2 py-0.5 rounded text-[10px] font-bold ${store === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-purple-100 text-purple-900'}`;
+    }
+
+    document.getElementById('edit-esquema-jornada').value = colab.esquema_jornada || '';
+    document.getElementById('edit-esquema-horas-base').value = colab.horas_base_mes ?? 88;
+    document.getElementById('edit-esquema-recibo-hs').value = colab.recibo_hs_base ?? 0;
+
+    recalcModalEsquemaDiff();
+
+    modal.classList.remove('hidden');
+    initLucideIcons();
+  }
+
+  function recalcModalEsquemaDiff() {
+    const hb = Number(document.getElementById('edit-esquema-horas-base')?.value) || 0;
+    const rec = Number(document.getElementById('edit-esquema-recibo-hs')?.value) || 0;
+    const sinRec = Math.max(0, hb - rec);
+    const diffEl = document.getElementById('edit-esquema-sin-recibo-preview');
+    if (diffEl) diffEl.textContent = `${sinRec} hs`;
+  }
+
+  function closeEditEsquemaModal() {
+    const modal = document.getElementById('modal-edit-esquema');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  async function handleSaveEsquema(e) {
+    if (e) e.preventDefault();
+    const colabId = document.getElementById('edit-esquema-colab-id')?.value;
+    const nuevaJornada = document.getElementById('edit-esquema-jornada')?.value.trim();
+    const nuevasHorasBase = Number(document.getElementById('edit-esquema-horas-base')?.value) || 0;
+    const nuevoReciboHs = Number(document.getElementById('edit-esquema-recibo-hs')?.value) || 0;
+
+    if (!colabId) return;
+
+    if (colabId === 'c-martu_masch') {
+      const mm = getMartuMasch();
+      mm.esquema_jornada = nuevaJornada;
+      mm.horas_base_mes = nuevasHorasBase;
+      mm.recibo_hs_base = nuevoReciboHs;
+      state.martuMasch = mm;
+      localStorage.setItem('nazaria_martu_masch_v2', JSON.stringify(mm));
+    } else {
+      const colab = state.colaboradoras.find(c => c.id === colabId);
+      if (colab) {
+        colab.esquema_jornada = nuevaJornada;
+        colab.horas_base_mes = nuevasHorasBase;
+        colab.recibo_hs_base = nuevoReciboHs;
+        localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(state.colaboradoras));
+      }
+    }
+
+    // Actualizar también el cierre actual del período para impactar en las planillas inmediatamente
+    const key = `${state.currentPeriod}_${colabId}`;
+    if (!state.cierres[key]) {
+      state.cierres[key] = {
+        horas_base: nuevasHorasBase,
+        recibo_hs: nuevoReciboHs,
+        sin_recibo_hs: Math.max(0, nuevasHorasBase - nuevoReciboHs),
+        adicional_hs: 0,
+        feriados_hs: 0,
+        extras_hs: 0,
+        vacaciones_hs: 0,
+        observaciones: '',
+        adicionales_hs: 0,
+        detalle_cobertura: ''
+      };
+    } else {
+      state.cierres[key].horas_base = nuevasHorasBase;
+      state.cierres[key].recibo_hs = nuevoReciboHs;
+      state.cierres[key].sin_recibo_hs = Math.max(0, nuevasHorasBase - nuevoReciboHs);
+    }
+    localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+
+    // Si Supabase está conectado, actualizar colaboradora
+    if (state.supabaseClient && state.isSupabaseConnected && colabId !== 'c-martu_masch') {
+      try {
+        await state.supabaseClient
+          .from('colaboradoras')
+          .update({
+            esquema_jornada: nuevaJornada,
+            horas_base_mes: nuevasHorasBase,
+            recibo_hs_base: nuevoReciboHs
+          })
+          .eq('id', colabId);
+      } catch (err) {
+        console.warn('Error saving esquema to Supabase:', err);
+      }
+    }
+
+    closeEditEsquemaModal();
+
+    // Re-renderizar vistas activas
+    if (state.activeAdminTab === 'consolidado') renderAdminConsolidado();
+    if (state.activeAdminTab === 'horarios') {
+      renderAdminHorarios();
+      renderAdminEsquemasTable(state.adminSelectedHorariosStore);
+    }
+    if (state.currentRole && state.currentRole !== 'ADMIN') renderStoreHoras();
+    updateAdminKPIs();
+
+    showToast('Esquema contractual y horas base guardados con éxito.', 'success');
+  }
+
+  // --- MODAL: ASISTENTE EXPLICATIVO Y CALCULADORA DE VACACIONES ---
+  function openVacacionesCalcModal(targetColabId) {
+    const modal = document.getElementById('modal-calc-vacaciones');
+    if (!modal) return;
+
+    const select = document.getElementById('calc-vac-colab-select');
+    if (!select) return;
+
+    // Lista de colaboradoras según el rol actual o todas para Admin
+    let list = [];
+    if (state.currentRole === 'ADMIN') {
+      const priority = ['c-flavia', 'c-martu_masch', 'c-cami', 'c-juli', 'c-sofi', 'c-esme', 'c-martu', 'c-anto', 'c-cande'];
+      priority.forEach(id => {
+        if (id === 'c-martu_masch') list.push(getMartuMasch());
+        else {
+          const c = state.colaboradoras.find(x => x.id === id);
+          if (c) list.push(c);
+        }
+      });
+    } else if (state.currentRole === 'MASCHWITZ') {
+      list = state.colaboradoras.filter(c => c.codigo_sucursal === 'MASCHWITZ');
+      list.push(getMartuMasch());
+    } else {
+      list = state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM');
+    }
+
+    select.innerHTML = list.map(c => {
+      const isMaschCov = c.id === 'c-martu_masch';
+      const store = isMaschCov ? 'MASCHWITZ' : (c.codigo_sucursal || 'TOM');
+      const name = getColabShortName(c.id, c.nombre_completo);
+      const esquema = c.esquema_jornada || '';
+      return `<option value="${c.id}" data-store="${store}" data-esquema="${esquema}">${name} [${store}] · ${esquema}</option>`;
+    }).join('');
+
+    if (targetColabId) {
+      select.value = targetColabId;
+    }
+
+    handleVacCalcColabChange();
+    modal.classList.remove('hidden');
+    initLucideIcons();
+  }
+
+  function handleVacCalcColabChange() {
+    const select = document.getElementById('calc-vac-colab-select');
+    if (!select) return;
+    const opt = select.options[select.selectedIndex];
+    const store = opt?.getAttribute('data-store') || 'TOM';
+    const esquema = opt?.getAttribute('data-esquema') || '';
+
+    const horasInput = document.getElementById('calc-vac-horas-turno');
+    const hint = document.getElementById('calc-vac-shift-hint');
+
+    // Determinar horas habituales por turno según sucursal
+    let defaultShiftHs = store === 'MASCHWITZ' ? 5.5 : 6.0;
+    if (horasInput) {
+      horasInput.value = defaultShiftHs;
+    }
+    if (hint) {
+      hint.textContent = `Turno habitual: ${defaultShiftHs} hs (${store}) · ${esquema}`;
+    }
+
+    updateVacCalcResult();
+  }
+
+  function updateVacCalcResult() {
+    const turnos = Number(document.getElementById('calc-vac-turnos')?.value) || 0;
+    const horasTurno = Number(document.getElementById('calc-vac-horas-turno')?.value) || 0;
+    const totalVacHs = turnos * horasTurno;
+
+    const formulaEl = document.getElementById('calc-vac-formula-text');
+    const totalEl = document.getElementById('calc-vac-total-hs');
+
+    if (formulaEl) formulaEl.textContent = `${turnos} turnos × ${horasTurno} hs = ${totalVacHs.toFixed(1)} hs`;
+    if (totalEl) totalEl.textContent = `${totalVacHs.toFixed(1)} hs`;
+  }
+
+  function closeVacacionesCalcModal() {
+    const modal = document.getElementById('modal-calc-vacaciones');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function applyVacacionesCalc(e) {
+    if (e) e.preventDefault();
+    const select = document.getElementById('calc-vac-colab-select');
+    if (!select) return;
+    const colabId = select.value;
+    const turnos = Number(document.getElementById('calc-vac-turnos')?.value) || 0;
+    const horasTurno = Number(document.getElementById('calc-vac-horas-turno')?.value) || 0;
+    const totalVacHs = turnos * horasTurno;
+
+    // Inyectar en el input de la vista de Encargada si existe
+    const storeInput = document.getElementById(`hv-${colabId}`);
+    if (storeInput) {
+      storeInput.value = totalVacHs;
+      recalcRowTotal(colabId);
+    }
+
+    // Inyectar en el cierre directamente
+    const key = `${state.currentPeriod}_${colabId}`;
+    if (!state.cierres[key]) {
+      const isMaschCov = colabId === 'c-martu_masch';
+      const colab = isMaschCov ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
+      const hb = colab?.horas_base_mes || 88;
+      const rec = colab?.recibo_hs_base || 0;
+      state.cierres[key] = {
+        horas_base: hb,
+        recibo_hs: rec,
+        sin_recibo_hs: Math.max(0, hb - rec),
+        adicional_hs: 0,
+        feriados_hs: 0,
+        extras_hs: 0,
+        vacaciones_hs: totalVacHs,
+        observaciones: '',
+        adicionales_hs: 0,
+        detalle_cobertura: ''
+      };
+    } else {
+      state.cierres[key].vacaciones_hs = totalVacHs;
+    }
+
+    localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+
+    // Si estamos en la vista de Admin Consolidado, refrescar la tabla
+    if (state.activeAdminTab === 'consolidado') {
+      renderAdminConsolidado();
+    }
+    updateAdminKPIs();
+    closeVacacionesCalcModal();
+
+    showToast(`Se cargaron ${totalVacHs.toFixed(1)} hs de vacaciones (restadas del total trabajado).`, 'success');
   }
 
   async function saveAdminHorarios() {
@@ -2279,6 +2708,9 @@
     localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
     localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(state.horarios_notas));
 
+    state.isAdminGridEditable = false;
+    renderAdminHorariosGridInputs();
+
     if (state.supabaseClient && state.isSupabaseConnected) {
       try {
         await state.supabaseClient
@@ -2297,7 +2729,7 @@
       }
     }
 
-    showToast(`Horarios y directivas de ${storeCode} guardados exitosamente.`, 'success');
+    showToast(`Horarios y directivas de ${storeCode} guardados y fijados.`, 'success');
   }
 
   function toggleModificacionForm(show) {
@@ -2754,7 +3186,7 @@
       [`Período: ${formatPeriodLabel(state.currentPeriod)}`],
       [],
       ['MASCHWITZ', formatPeriodLabel(state.currentPeriod).toUpperCase()],
-      ['NOMBRE', 'RECIBO 5.5 HS', 'ADICIONAL', 'FERIADOS', 'HORAS EXTRA', 'VACACIONES', 'OBSERVACIONES', 'TOTAL HS']
+      ['NOMBRE', 'RECIBO 5.5 HS', 'ADICIONAL', 'FERIADOS', 'HORAS EXTRA', 'VACACIONES', 'TOTAL HS', 'OBSERVACIONES']
     ];
 
     const allKeys = getConsolidadoKeysForPeriod(state.currentPeriod);
@@ -2771,7 +3203,7 @@
     maschKeys.forEach(k => {
       const colabId = k.replace(`${state.currentPeriod}_`, '');
       const isMaschCoverage = colabId === 'c-martu_masch';
-      const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
+      const colab = isMaschCoverage ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
       const rec = state.cierres[k] || {};
       const r = Number(rec.recibo_hs ?? colab?.recibo_hs_base ?? 0);
       const sinRec = Number(rec.sin_recibo_hs ?? Math.max(0, (rec.horas_base ?? colab?.horas_base_mes ?? 0) - r));
@@ -2780,7 +3212,8 @@
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
       const v = Number(rec.vacaciones_hs ?? 0);
-      const tot = r + a + f + e + v;
+      // Regla de Vacaciones: RESTAN del total trabajado
+      const tot = Math.max(0, r + a + f + e - v);
       totMaschRec += r; totMaschAdic += a; totMaschFer += f; totMaschExt += e; totMaschVac += v; totMaschTot += tot;
 
       rowsHoras.push([
@@ -2790,11 +3223,11 @@
         f || '',
         e || '',
         v || '',
-        (rec.observaciones ?? rec.detalle_cobertura ?? '').replace(/\n+/g, ' | '),
-        tot
+        tot,
+        (rec.observaciones ?? rec.detalle_cobertura ?? '').replace(/\n+/g, ' | ')
       ]);
     });
-    rowsHoras.push(['TOTAL MASCHWITZ', totMaschRec, totMaschAdic, totMaschFer, totMaschExt, totMaschVac, '', totMaschTot]);
+    rowsHoras.push(['TOTAL MASCHWITZ', totMaschRec, totMaschAdic, totMaschFer, totMaschExt, totMaschVac, totMaschTot, '']);
 
     rowsHoras.push([]);
     rowsHoras.push(['TOM', formatPeriodLabel(state.currentPeriod).toUpperCase()]);
@@ -2812,7 +3245,8 @@
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
       const v = Number(rec.vacaciones_hs ?? 0);
-      const tot = r + a + f + e + v;
+      // Regla de Vacaciones: RESTAN del total trabajado
+      const tot = Math.max(0, r + a + f + e - v);
       totTomRec += r; totTomAdic += a; totTomFer += f; totTomExt += e; totTomVac += v; totTomTot += tot;
 
       rowsHoras.push([
@@ -2822,11 +3256,11 @@
         f || '',
         e || '',
         v || '',
-        (rec.observaciones ?? rec.detalle_cobertura ?? '').replace(/\n+/g, ' | '),
-        tot
+        tot,
+        (rec.observaciones ?? rec.detalle_cobertura ?? '').replace(/\n+/g, ' | ')
       ]);
     });
-    rowsHoras.push(['TOTAL TOM', totTomRec, totTomAdic, totTomFer, totTomExt, totTomVac, '', totTomTot]);
+    rowsHoras.push(['TOTAL TOM', totTomRec, totTomAdic, totTomFer, totTomExt, totTomVac, totTomTot, '']);
 
     const wsHoras = XLSX.utils.aoa_to_sheet(rowsHoras);
     XLSX.utils.book_append_sheet(wb, wsHoras, 'Sueldos_Consolidado');
@@ -2999,7 +3433,7 @@
     const maschRowsHtml = maschKeys.map(k => {
       const colabId = k.replace(`${currentPeriod}_`, '');
       const isMaschCoverage = colabId === 'c-martu_masch';
-      const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
+      const colab = isMaschCoverage ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
       const rec = state.cierres[k] || {};
 
       const r = Number(rec.recibo_hs ?? colab?.recibo_hs_base ?? 0);
@@ -3009,7 +3443,8 @@
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
       const v = Number(rec.vacaciones_hs ?? 0);
-      const tot = r + a + f + e + v;
+      // Regla de Vacaciones: RESTAN del total trabajado
+      const tot = Math.max(0, r + a + f + e - v);
 
       totMaschRec += r; totMaschAdic += a; totMaschFer += f; totMaschExt += e; totMaschVac += v; totMaschTot += tot;
 
@@ -3050,7 +3485,8 @@
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
       const v = Number(rec.vacaciones_hs ?? 0);
-      const tot = r + a + f + e + v;
+      // Regla de Vacaciones: RESTAN del total trabajado
+      const tot = Math.max(0, r + a + f + e - v);
 
       totTomRec += r; totTomAdic += a; totTomFer += f; totTomExt += e; totTomVac += v; totTomTot += tot;
 
@@ -3149,7 +3585,7 @@
             </tr>
             <tr style="background: #cbd5e1; color: #000000; font-size: 12px; font-weight: 800; text-align: center;">
               <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 140px;">NOMBRE</th>
-              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 115px;">RECIBO 5.5 HS</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 115px;">RECIBO 6 HS</th>
               <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 100px;">ADICIONAL</th>
               <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 90px;">FERIADOS</th>
               <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 100px;">HORAS EXTRA</th>
@@ -3565,7 +4001,22 @@
     viewComprobante,
     closeViewerModal,
     toggleColaboradoraEstado,
-    openAddColaboradoraModal: () => showToast('Padrón centralizado de colaboradoras.', 'info')
+    openAddColaboradoraModal: () => showToast('Padrón centralizado de colaboradoras.', 'info'),
+
+    // Nuevos métodos de edición de grillas y esquemas (Punto 3 y 4)
+    toggleStoreGridEdit,
+    toggleAdminGridEdit,
+    openEditEsquemaModal,
+    recalcModalEsquemaDiff,
+    closeEditEsquemaModal,
+    handleSaveEsquema,
+
+    // Asistente explicativo y calculadora de vacaciones (Punto 1 y 2)
+    openVacacionesCalcModal,
+    handleVacCalcColabChange,
+    updateVacCalcResult,
+    closeVacacionesCalcModal,
+    applyVacacionesCalc
   };
 
   // Inicializar al cargar el DOM
