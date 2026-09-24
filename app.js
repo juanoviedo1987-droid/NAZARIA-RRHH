@@ -20,6 +20,7 @@
       fecha_ingreso: '2024-12-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
+      recibo_hs_base: 22.0,
       estado: 'activa'
     },
     {
@@ -33,6 +34,7 @@
       fecha_ingreso: '2023-11-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
+      recibo_hs_base: 64.0,
       estado: 'activa'
     },
     {
@@ -46,6 +48,7 @@
       fecha_ingreso: '2023-02-17',
       fecha_antiguedad_reconocida: null,
       categoria: 'Encargada de Sucursal',
+      recibo_hs_base: 36.5,
       estado: 'activa'
     },
 
@@ -61,6 +64,7 @@
       fecha_ingreso: '2025-07-05',
       fecha_antiguedad_reconocida: '2018-09-01', // Reconocimiento de antigüedad LCT (21 días disponibles)
       categoria: 'Encargada de Sucursal',
+      recibo_hs_base: 22.0,
       estado: 'activa'
     },
     {
@@ -74,6 +78,7 @@
       fecha_ingreso: '2022-02-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
+      recibo_hs_base: 96.0,
       estado: 'activa'
     },
     {
@@ -87,6 +92,7 @@
       fecha_ingreso: '2024-04-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora (Cubre TOM y Maschwitz)',
+      recibo_hs_base: 22.0,
       estado: 'activa'
     },
     {
@@ -100,6 +106,7 @@
       fecha_ingreso: '2025-12-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
+      recibo_hs_base: 0.0,
       estado: 'activa'
     },
     {
@@ -113,24 +120,25 @@
       fecha_ingreso: '2025-12-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
+      recibo_hs_base: 0.0,
       estado: 'activa'
     }
   ];
 
   // --- 2. PLANILLA DE HORAS Y CIERRES MENSUALES (INICIO TRACKING: SEPTIEMBRE 2026) ---
   const DEFAULT_CIERRES = {
-    // TOM (Septiembre 2026)
-    '2026-09_c-sofi': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-esme': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-martu': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-cande': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-anto': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    
     // MASCHWITZ (Septiembre 2026)
-    '2026-09_c-flavia': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-juli': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-cami': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-martu_masch': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre en Maschwitz' }
+    '2026-09_c-flavia': { recibo_hs: 22.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 22.0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-cami': { recibo_hs: 36.5, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 36.5, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-juli': { recibo_hs: 64.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 64.0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-martu_masch': { recibo_hs: 0.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: 'Cubre en Maschwitz', horas_base: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre en Maschwitz' },
+
+    // TOM (Septiembre 2026)
+    '2026-09_c-sofi': { recibo_hs: 22.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 22.0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-esme': { recibo_hs: 96.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 96.0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-martu': { recibo_hs: 22.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 22.0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-anto': { recibo_hs: 0.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-cande': { recibo_hs: 0.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', horas_base: 0, adicionales_hs: 0, detalle_cobertura: '' }
   };
 
   // --- DETALLE INDIVIDUAL DE HORAS EXTRAS Y ADICIONALES ---
@@ -271,7 +279,7 @@
 
   function initStorageData() {
     // Inicializar o recargar datos con versión para migración limpia
-    const DATA_VERSION = 'v9';
+    const DATA_VERSION = 'v10';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
@@ -1583,6 +1591,16 @@
     initLucideIcons();
   }
 
+  function getCierreTotal(rec) {
+    if (!rec) return 0;
+    const r = Number(rec.recibo_hs ?? rec.horas_base ?? 0);
+    const a = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+    const f = Number(rec.feriados_hs ?? 0);
+    const e = Number(rec.extras_hs ?? 0);
+    const v = Number(rec.vacaciones_hs ?? 0);
+    return r + a + f + e + v;
+  }
+
   function updateAdminKPIs() {
     const activeColabs = state.colaboradoras.filter(c => (c.estado || 'activa') === 'activa').length;
     const totalColabs = state.colaboradoras.length;
@@ -1591,8 +1609,7 @@
     let totalHoras = 0;
     Object.keys(state.cierres).forEach(k => {
       if (k.startsWith(state.currentPeriod)) {
-        const c = state.cierres[k];
-        totalHoras += (Number(c.horas_base) || 0) + (Number(c.feriados_hs) || 0) + (Number(c.extras_hs) || 0) + (Number(c.adicionales_hs) || 0);
+        totalHoras += getCierreTotal(state.cierres[k]);
       }
     });
     document.getElementById('kpi-horas').textContent = `${totalHoras} hs`;
@@ -1606,49 +1623,91 @@
     document.getElementById('kpi-retiros').textContent = retirosPeriod.length;
   }
 
-  // --- HELPER: OBTENER CLAVES CONSOLIDADAS DEL PERÍODO (ORDEN TOM PRIMERO, LUEGO MASCHWITZ) ---
+  // --- HELPER: OBTENER CLAVES CONSOLIDADAS DEL PERÍODO (ORDEN MASCHWITZ PRIMERO, LUEGO TOM) ---
   function getConsolidadoKeysForPeriod(period) {
     let keys = Object.keys(state.cierres).filter(k => k.startsWith(period));
     if (keys.length === 0) {
-      // Si no hay cierres registrados aún para este período, inicializamos con las colaboradoras activas
-      const tomColabs = state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM' && (c.estado || 'activa') === 'activa');
+      // 1. Maschwitz
       const maschColabs = state.colaboradoras.filter(c => c.codigo_sucursal === 'MASCHWITZ' && (c.estado || 'activa') === 'activa');
-      tomColabs.forEach(c => {
-        const k = `${period}_${c.id}`;
-        if (!state.cierres[k]) state.cierres[k] = { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
-        keys.push(k);
-      });
       maschColabs.forEach(c => {
         const k = `${period}_${c.id}`;
-        if (!state.cierres[k]) state.cierres[k] = { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+        if (!state.cierres[k]) {
+          state.cierres[k] = {
+            recibo_hs: c.recibo_hs_base || 0,
+            adicional_hs: 0,
+            feriados_hs: 0,
+            extras_hs: 0,
+            vacaciones_hs: 0,
+            observaciones: '',
+            horas_base: c.recibo_hs_base || 0,
+            adicionales_hs: 0,
+            detalle_cobertura: ''
+          };
+        }
         keys.push(k);
       });
       const maschCovKey = `${period}_c-martu_masch`;
-      if (!state.cierres[maschCovKey]) state.cierres[maschCovKey] = { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre en Maschwitz' };
+      if (!state.cierres[maschCovKey]) {
+        state.cierres[maschCovKey] = {
+          recibo_hs: 0,
+          adicional_hs: 0,
+          feriados_hs: 0,
+          extras_hs: 0,
+          vacaciones_hs: 0,
+          observaciones: 'Cubre en Maschwitz',
+          horas_base: 0,
+          adicionales_hs: 0,
+          detalle_cobertura: 'Cubre en Maschwitz'
+        };
+      }
       keys.push(maschCovKey);
+
+      // 2. TOM
+      const tomColabs = state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM' && (c.estado || 'activa') === 'activa');
+      tomColabs.forEach(c => {
+        const k = `${period}_${c.id}`;
+        if (!state.cierres[k]) {
+          state.cierres[k] = {
+            recibo_hs: c.recibo_hs_base || 0,
+            adicional_hs: 0,
+            feriados_hs: 0,
+            extras_hs: 0,
+            vacaciones_hs: 0,
+            observaciones: '',
+            horas_base: c.recibo_hs_base || 0,
+            adicionales_hs: 0,
+            detalle_cobertura: ''
+          };
+        }
+        keys.push(k);
+      });
     }
 
-    // Ordenar: primero TOM, luego MASCHWITZ, coberturas al final de la sucursal
+    // Orden idéntico a SUELDOS 2:
+    // Maschwitz: Flavia, Martu P., Cami, Juli
+    // TOM: Sofi, Esme, Martu P., Anto, Cande
+    const priority = {
+      'c-flavia': 1,
+      'c-martu_masch': 2,
+      'c-cami': 3,
+      'c-juli': 4,
+      'c-sofi': 10,
+      'c-esme': 11,
+      'c-martu': 12,
+      'c-anto': 13,
+      'c-cande': 14
+    };
+
     return keys.sort((a, b) => {
       const colabIdA = a.replace(`${period}_`, '');
       const colabIdB = b.replace(`${period}_`, '');
-      const isCovA = colabIdA === 'c-martu_masch';
-      const isCovB = colabIdB === 'c-martu_masch';
-      const sucursalA = isCovA ? 'MASCHWITZ' : (state.colaboradoras.find(c => c.id === colabIdA)?.codigo_sucursal || 'TOM');
-      const sucursalB = isCovB ? 'MASCHWITZ' : (state.colaboradoras.find(c => c.id === colabIdB)?.codigo_sucursal || 'TOM');
-
-      if (sucursalA !== sucursalB) {
-        return sucursalA === 'TOM' ? -1 : 1;
-      }
-      if (isCovA) return 1;
-      if (isCovB) return -1;
-      const nameA = state.colaboradoras.find(c => c.id === colabIdA)?.nombre_completo || '';
-      const nameB = state.colaboradoras.find(c => c.id === colabIdB)?.nombre_completo || '';
-      return nameA.localeCompare(nameB);
+      const pA = priority[colabIdA] || 99;
+      const pB = priority[colabIdB] || 99;
+      return pA - pB;
     });
   }
 
-  // --- ADMIN 1: CONSOLIDADO DE HORAS (EDITABLE POR ADMIN) ---
+  // --- ADMIN 1: CONSOLIDADO DE HORAS (EDITABLE POR ADMIN, FORMATO SUELDOS 2) ---
   function renderAdminConsolidado() {
     const tbody = document.getElementById('tbody-admin-consolidado');
     tbody.innerHTML = '';
@@ -1659,54 +1718,94 @@
       return;
     }
 
+    let lastStore = null;
+
     allKeys.forEach(k => {
       const colabId = k.replace(`${state.currentPeriod}_`, '');
       const isMaschCoverage = colabId === 'c-martu_masch';
       const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
       const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
-      const rec = state.cierres[k] || { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+      const rec = state.cierres[k] || {};
 
-      const totalHs = (Number(rec.horas_base) || 0) + (Number(rec.feriados_hs) || 0) + (Number(rec.extras_hs) || 0) + (Number(rec.adicionales_hs) || 0);
+      const reciboHs = Number(rec.recibo_hs ?? rec.horas_base ?? colab?.recibo_hs_base ?? 0);
+      const adicionalHs = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const feriadosHs = Number(rec.feriados_hs ?? 0);
+      const extrasHs = Number(rec.extras_hs ?? 0);
+      const vacacionesHs = Number(rec.vacaciones_hs ?? 0);
+      const observaciones = rec.observaciones ?? rec.detalle_cobertura ?? '';
+
+      const totalHs = reciboHs + adicionalHs + feriadosHs + extrasHs + vacacionesHs;
+
+      // Encabezado visual de sucursal
+      if (sucursal !== lastStore) {
+        lastStore = sucursal;
+        const bannerTr = document.createElement('tr');
+        bannerTr.className = sucursal === 'MASCHWITZ' ? 'bg-[#d8b4e2]/25 border-y-2 border-[#d8b4e2]' : 'bg-[#fed7aa]/35 border-y-2 border-[#fed7aa]';
+        bannerTr.innerHTML = `
+          <td colspan="8" class="py-2.5 px-4 text-xs font-bold text-neutral-900 uppercase tracking-wider">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full ${sucursal === 'MASCHWITZ' ? 'bg-purple-600' : 'bg-amber-600'}"></span>
+                <span>${sucursal} · ${sucursal === 'MASCHWITZ' ? 'Jornada 5.5 hs' : 'Jornada 6.0 hs'}</span>
+              </div>
+              <span class="text-[11px] font-normal text-neutral-500 lowercase">período: ${state.currentPeriod}</span>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(bannerTr);
+      }
 
       const tr = document.createElement('tr');
+      tr.className = "hover:bg-neutral-50/50 transition border-b border-neutral-100";
       tr.innerHTML = `
-        <td class="font-bold text-xs text-neutral-900 whitespace-nowrap">
-          <div class="flex items-center gap-1.5">
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${sucursal}</span>
-            <span>${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.nombre_completo || 'Colaboradora')}</span>
+        <td class="font-bold text-xs text-neutral-900 whitespace-nowrap py-2.5">
+          <div class="flex items-center gap-2">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-purple-100 text-purple-900'}">${sucursal}</span>
+            <span>${isMaschCoverage ? 'MARTU PINTO (Cubre Masch)' : (colab?.alias || colab?.nombre_completo || 'Colaboradora').toUpperCase()}</span>
           </div>
         </td>
-        <td class="text-center">
-          <input type="number" min="0" step="1" value="${rec.horas_base || 0}" 
+        <td class="text-center py-2">
+          <input type="number" min="0" step="0.5" value="${reciboHs}" 
+            title="Horas formales de recibo (base pactada)"
             onfocus="this.select()"
-            onchange="window.app.handleAdminUpdateCierre('${k}', 'horas_base', this.value)"
+            onchange="window.app.handleAdminUpdateCierre('${k}', 'recibo_hs', this.value)"
             class="w-16 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
         </td>
-        <td class="text-center">
-          <input type="number" min="0" step="1" value="${rec.feriados_hs || 0}" 
+        <td class="text-center py-2">
+          <input type="number" min="0" step="0.5" value="${adicionalHs}" 
+            title="Horas adicionales fuera de recibo"
+            onfocus="this.select()"
+            onchange="window.app.handleAdminUpdateCierre('${k}', 'adicional_hs', this.value)"
+            class="w-16 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-amber-900 focus:bg-white focus:border-black focus:outline-none transition">
+        </td>
+        <td class="text-center py-2">
+          <input type="number" min="0" step="0.5" value="${feriadosHs}" 
+            title="Horas de feriados trabajados"
             onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'feriados_hs', this.value)"
             class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
         </td>
-        <td class="text-center">
-          <input type="number" min="0" step="1" value="${rec.extras_hs || 0}" 
+        <td class="text-center py-2">
+          <input type="number" min="0" step="0.5" value="${extrasHs}" 
+            title="Horas extra trabajadas"
             onfocus="this.select()"
             onchange="window.app.handleAdminUpdateCierre('${k}', 'extras_hs', this.value)"
             class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold focus:bg-white focus:border-black focus:outline-none transition">
         </td>
-        <td class="text-center">
-          <input type="number" min="0" step="1" value="${rec.adicionales_hs || 0}" 
+        <td class="text-center py-2">
+          <input type="number" min="0" step="0.5" value="${vacacionesHs}" 
+            title="Horas de vacaciones liquidadas"
             onfocus="this.select()"
-            onchange="window.app.handleAdminUpdateCierre('${k}', 'adicionales_hs', this.value)"
-            class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-amber-900 focus:bg-white focus:border-black focus:outline-none transition">
+            onchange="window.app.handleAdminUpdateCierre('${k}', 'vacaciones_hs', this.value)"
+            class="w-14 text-center text-xs py-1 px-1 rounded bg-[#FAF9F6] border border-neutral-300 font-mono font-bold text-emerald-800 focus:bg-white focus:border-black focus:outline-none transition">
         </td>
-        <td>
-          <input type="text" value="${rec.detalle_cobertura || ''}" placeholder="Detalle cobertura / motivo..."
+        <td class="py-2">
+          <input type="text" value="${observaciones}" placeholder="Observaciones / motivo / cobertura..."
             onfocus="this.select()"
-            onchange="window.app.handleAdminUpdateCierre('${k}', 'detalle_cobertura', this.value)"
+            onchange="window.app.handleAdminUpdateCierre('${k}', 'observaciones', this.value)"
             class="w-full text-xs py-1 px-2.5 rounded bg-[#FAF9F6] border border-neutral-300 focus:bg-white focus:border-black focus:outline-none transition">
         </td>
-        <td class="font-mono font-bold text-sm text-neutral-900 text-right pr-4 whitespace-nowrap" id="admin-total-${k}">
+        <td class="font-mono font-bold text-sm text-neutral-900 text-right pr-4 whitespace-nowrap py-2" id="admin-total-${k}">
           ${totalHs} hs
         </td>
       `;
@@ -1716,22 +1815,38 @@
 
   function handleAdminUpdateCierre(key, field, val) {
     if (!state.cierres[key]) {
-      state.cierres[key] = { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+      const colabId = key.replace(`${state.currentPeriod}_`, '');
+      const isMaschCov = colabId === 'c-martu_masch';
+      const colab = isMaschCov ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
+      state.cierres[key] = {
+        recibo_hs: isMaschCov ? 0 : (colab?.recibo_hs_base || 0),
+        adicional_hs: 0,
+        feriados_hs: 0,
+        extras_hs: 0,
+        vacaciones_hs: 0,
+        observaciones: isMaschCov ? 'Cubre en Maschwitz' : '',
+        horas_base: isMaschCov ? 0 : (colab?.recibo_hs_base || 0),
+        adicionales_hs: 0,
+        detalle_cobertura: isMaschCov ? 'Cubre en Maschwitz' : ''
+      };
     }
-    if (field === 'detalle_cobertura') {
-      state.cierres[key][field] = val.trim();
+    if (field === 'observaciones' || field === 'detalle_cobertura') {
+      state.cierres[key].observaciones = val.trim();
+      state.cierres[key].detalle_cobertura = val.trim();
     } else {
-      state.cierres[key][field] = parseFloat(val) || 0;
+      const numVal = parseFloat(val) || 0;
+      state.cierres[key][field] = numVal;
+      if (field === 'recibo_hs') state.cierres[key].horas_base = numVal;
+      if (field === 'adicional_hs') state.cierres[key].adicionales_hs = numVal;
     }
     localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
 
-    const rec = state.cierres[key];
-    const totalHs = (Number(rec.horas_base) || 0) + (Number(rec.feriados_hs) || 0) + (Number(rec.extras_hs) || 0) + (Number(rec.adicionales_hs) || 0);
+    const totalHs = getCierreTotal(state.cierres[key]);
     const totalEl = document.getElementById(`admin-total-${key}`);
     if (totalEl) totalEl.textContent = `${totalHs} hs`;
 
     updateAdminKPIs();
-    showToast('Ajuste de horas guardado.', 'success');
+    showToast('Ajuste de planilla guardado.', 'success');
   }
 
   function saveAllHorasAdmin() {
@@ -2306,37 +2421,84 @@
     const anioFiscal = parseInt(state.currentPeriod.split('-')[0]) || 2026;
     const wb = XLSX.utils.book_new();
 
-    // 1. SOLAPA: HORAS DEL MES Y LIQUIDACIÓN
+    // 1. SOLAPA: HORAS DEL MES Y LIQUIDACIÓN (FORMATO SUELDOS 2)
     const rowsHoras = [
-      ['NAZARIA - REPORTE MENSUAL PARA LIQUIDACIÓN DE SUELDOS'],
-      [`Período: ${state.currentPeriod}`],
+      ['NAZARIA - PLANILLA DE SUELDOS Y HORAS CONSOLIDADA'],
+      [`Período: ${formatPeriodLabel(state.currentPeriod)}`],
       [],
-      ['Sucursal', 'Colaboradora', 'DNI', 'Horas Base', 'Feriados (Hs)', 'Horas Extras', 'Horas Adicionales', 'Detalle Coberturas', 'Total Hs Liquidación']
+      ['MASCHWITZ', formatPeriodLabel(state.currentPeriod).toUpperCase()],
+      ['NOMBRE', 'RECIBO 5.5 HS', 'ADICIONAL', 'FERIADOS', 'HORAS EXTRA', 'VACACIONES', 'OBSERVACIONES', 'TOTAL HS']
     ];
 
     const allKeys = getConsolidadoKeysForPeriod(state.currentPeriod);
-    allKeys.forEach(k => {
+    const maschKeys = allKeys.filter(k => {
+      const colabId = k.replace(`${state.currentPeriod}_`, '');
+      return colabId === 'c-martu_masch' || state.colaboradoras.find(c => c.id === colabId)?.codigo_sucursal === 'MASCHWITZ';
+    });
+    const tomKeys = allKeys.filter(k => {
+      const colabId = k.replace(`${state.currentPeriod}_`, '');
+      return colabId !== 'c-martu_masch' && state.colaboradoras.find(c => c.id === colabId)?.codigo_sucursal === 'TOM';
+    });
+
+    let totMaschRec = 0, totMaschAdic = 0, totMaschFer = 0, totMaschExt = 0, totMaschVac = 0, totMaschTot = 0;
+    maschKeys.forEach(k => {
       const colabId = k.replace(`${state.currentPeriod}_`, '');
       const isMaschCoverage = colabId === 'c-martu_masch';
       const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
-      const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
-      const rec = state.cierres[k] || { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
-      const total = (Number(rec.horas_base) || 0) + (Number(rec.feriados_hs) || 0) + (Number(rec.extras_hs) || 0) + (Number(rec.adicionales_hs) || 0);
+      const rec = state.cierres[k] || {};
+      const r = Number(rec.recibo_hs ?? rec.horas_base ?? colab?.recibo_hs_base ?? 0);
+      const a = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const f = Number(rec.feriados_hs ?? 0);
+      const e = Number(rec.extras_hs ?? 0);
+      const v = Number(rec.vacaciones_hs ?? 0);
+      const tot = r + a + f + e + v;
+      totMaschRec += r; totMaschAdic += a; totMaschFer += f; totMaschExt += e; totMaschVac += v; totMaschTot += tot;
 
       rowsHoras.push([
-        sucursal,
-        isMaschCoverage ? 'Martu P. (Cobertura Masch)' : (colab?.nombre_completo || 'Colaboradora'),
-        colab?.dni || '',
-        rec.horas_base || 0,
-        rec.feriados_hs || 0,
-        rec.extras_hs || 0,
-        rec.adicionales_hs || 0,
-        rec.detalle_cobertura || '',
-        total
+        isMaschCoverage ? 'MARTU PINTO' : (colab?.alias || colab?.nombre_completo || '').toUpperCase(),
+        r || '',
+        a || '',
+        f || '',
+        e || '',
+        v || '',
+        rec.observaciones ?? rec.detalle_cobertura ?? '',
+        tot
       ]);
     });
+    rowsHoras.push(['TOTAL MASCHWITZ', totMaschRec, totMaschAdic, totMaschFer, totMaschExt, totMaschVac, '', totMaschTot]);
+
+    rowsHoras.push([]);
+    rowsHoras.push(['TOM', formatPeriodLabel(state.currentPeriod).toUpperCase()]);
+    rowsHoras.push(['NOMBRE', 'RECIBO 6 HS', 'ADICIONAL', 'FERIADOS', 'HORAS EXTRA', 'VACACIONES', 'OBSERVACIONES', 'TOTAL HS']);
+
+    let totTomRec = 0, totTomAdic = 0, totTomFer = 0, totTomExt = 0, totTomVac = 0, totTomTot = 0;
+    tomKeys.forEach(k => {
+      const colabId = k.replace(`${state.currentPeriod}_`, '');
+      const colab = state.colaboradoras.find(c => c.id === colabId);
+      const rec = state.cierres[k] || {};
+      const r = Number(rec.recibo_hs ?? rec.horas_base ?? colab?.recibo_hs_base ?? 0);
+      const a = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const f = Number(rec.feriados_hs ?? 0);
+      const e = Number(rec.extras_hs ?? 0);
+      const v = Number(rec.vacaciones_hs ?? 0);
+      const tot = r + a + f + e + v;
+      totTomRec += r; totTomAdic += a; totTomFer += f; totTomExt += e; totTomVac += v; totTomTot += tot;
+
+      rowsHoras.push([
+        (colab?.alias || colab?.nombre_completo || '').toUpperCase(),
+        r || '',
+        a || '',
+        f || '',
+        e || '',
+        v || '',
+        rec.observaciones ?? rec.detalle_cobertura ?? '',
+        tot
+      ]);
+    });
+    rowsHoras.push(['TOTAL TOM', totTomRec, totTomAdic, totTomFer, totTomExt, totTomVac, '', totTomTot]);
+
     const wsHoras = XLSX.utils.aoa_to_sheet(rowsHoras);
-    XLSX.utils.book_append_sheet(wb, wsHoras, 'Horas_Liquidacion');
+    XLSX.utils.book_append_sheet(wb, wsHoras, 'Sueldos_Consolidado');
 
     // 2. SOLAPA: DETALLE DE EXTRAS Y ADICIONALES
     const rowsHorasDetalle = [
@@ -2444,7 +2606,7 @@
   }
 
   // ============================================================================
-  // EXPORTACIÓN DE IMAGEN PARA WHATSAPP / LIQUIDADOR (HTML2CANVAS)
+  // EXPORTACIÓN DE IMAGEN PARA WHATSAPP / LIQUIDADOR (HTML2CANVAS - FORMATO SUELDOS 2)
   // ============================================================================
   async function exportSummaryImage() {
     if (!window.html2canvas) {
@@ -2459,205 +2621,239 @@
 
     const currentPeriod = state.currentPeriod;
     const allKeys = getConsolidadoKeysForPeriod(currentPeriod);
-    const vacPeriod = state.novedades.filter(n => n.tipo === 'Vacaciones' && (
-      (n.fecha_inicio && n.fecha_inicio.startsWith(currentPeriod)) ||
-      (n.fecha_fin && n.fecha_fin.startsWith(currentPeriod))
-    ));
-    vacPeriod.sort((a, b) => (a.fecha_inicio || '').localeCompare(b.fecha_inicio || ''));
 
-    const novedadesPeriod = state.novedades.filter(n => n.tipo !== 'Vacaciones' && (
-      (n.fecha_inicio && n.fecha_inicio.startsWith(currentPeriod)) ||
-      (n.creado_en && n.creado_en.startsWith(currentPeriod))
-    ));
-    novedadesPeriod.sort((a, b) => (a.fecha_inicio || '').localeCompare(b.fecha_inicio || ''));
+    // Mapeo de meses en mayúsculas para encabezados
+    const monthNames = [
+      'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+      'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+    ];
+    const [yNum, mNum] = currentPeriod.split('-').map(Number);
+    const monthLabel = monthNames[(mNum || 9) - 1] || 'SEPTIEMBRE';
 
-    let totalHorasRed = 0;
-    let totalBaseRed = 0;
-    let totalFeriadosRed = 0;
-    let totalExtrasRed = 0;
-    let totalAdicRed = 0;
+    // Helper de formato decimal argentino (vacío si es 0 para limpieza visual estilo Excel)
+    function formatHsCell(val, showZero = false) {
+      if (val === null || val === undefined || val === '') return '';
+      const n = Number(val);
+      if (isNaN(n)) return '';
+      if (n === 0 && !showZero) return '';
+      return n.toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    }
 
-    const horasRowsHtml = allKeys.map(k => {
+    // Estilos visuales exactos por colaboradora según planilla real
+    const COLAB_VISUALS = {
+      'c-flavia': { bg: '#caa0db', color: '#000000', label: 'FLAVIA' },
+      'c-martu_masch': { bg: '#9900e6', color: '#ffffff', label: 'MARTU PINTO' },
+      'c-cami': { bg: '#00e5ff', color: '#000000', label: 'CAMI VERA' },
+      'c-juli': { bg: '#ff8a00', color: '#000000', label: 'JULIETA' },
+      'c-sofi': { bg: '#a4d88e', color: '#000000', label: 'SOFI' },
+      'c-esme': { bg: '#ffffff', color: '#000000', label: 'ESMERALDA' },
+      'c-martu': { bg: '#9900e6', color: '#ffffff', label: 'MARTU PINTO' },
+      'c-anto': { bg: '#f9cbd6', color: '#000000', label: 'ANTONELLA' },
+      'c-cande': { bg: '#d6d3e6', color: '#000000', label: 'CANDELA' }
+    };
+
+    // Separación estricta por sucursales activas (Maschwitz y TOM - Champagnat excluida)
+    const maschKeys = allKeys.filter(k => {
+      const colabId = k.replace(`${currentPeriod}_`, '');
+      return colabId === 'c-martu_masch' || state.colaboradoras.find(c => c.id === colabId)?.codigo_sucursal === 'MASCHWITZ';
+    });
+
+    const tomKeys = allKeys.filter(k => {
+      const colabId = k.replace(`${currentPeriod}_`, '');
+      return colabId !== 'c-martu_masch' && state.colaboradoras.find(c => c.id === colabId)?.codigo_sucursal === 'TOM';
+    });
+
+    // 1. FILAS MASCHWITZ
+    let totMaschRec = 0, totMaschAdic = 0, totMaschFer = 0, totMaschExt = 0, totMaschVac = 0, totMaschTot = 0;
+    const maschRowsHtml = maschKeys.map(k => {
       const colabId = k.replace(`${currentPeriod}_`, '');
       const isMaschCoverage = colabId === 'c-martu_masch';
       const colab = isMaschCoverage ? state.colaboradoras.find(c => c.id === 'c-martu') : state.colaboradoras.find(c => c.id === colabId);
-      const sucursal = isMaschCoverage ? 'MASCHWITZ' : (colab?.codigo_sucursal || 'TOM');
-      const rec = state.cierres[k] || { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' };
+      const rec = state.cierres[k] || {};
 
-      const b = Number(rec.horas_base) || 0;
-      const f = Number(rec.feriados_hs) || 0;
-      const ex = Number(rec.extras_hs) || 0;
-      const ad = Number(rec.adicionales_hs) || 0;
-      const tot = b + f + ex + ad;
+      const r = Number(rec.recibo_hs ?? rec.horas_base ?? colab?.recibo_hs_base ?? 0);
+      const a = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const f = Number(rec.feriados_hs ?? 0);
+      const e = Number(rec.extras_hs ?? 0);
+      const v = Number(rec.vacaciones_hs ?? 0);
+      const tot = r + a + f + e + v;
 
-      totalBaseRed += b;
-      totalFeriadosRed += f;
-      totalExtrasRed += ex;
-      totalAdicRed += ad;
-      totalHorasRed += tot;
+      totMaschRec += r; totMaschAdic += a; totMaschFer += f; totMaschExt += e; totMaschVac += v; totMaschTot += tot;
+
+      const visual = COLAB_VISUALS[colabId] || {
+        bg: '#f1f5f9',
+        color: '#000000',
+        label: (isMaschCoverage ? 'MARTU PINTO' : (colab?.alias || colab?.nombre_completo || 'COLABORADORA')).toUpperCase()
+      };
+
+      const obs = rec.observaciones ?? rec.detalle_cobertura ?? '';
 
       return `
-        <tr style="border-bottom: 1px solid #e2e8f0; font-size: 13px;">
-          <td style="padding: 9px 10px;">
-            <span style="background: ${sucursal === 'TOM' ? '#E6D5C3' : '#0f172a'}; color: ${sucursal === 'TOM' ? '#1e1e1e' : '#ffffff'}; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 800;">${sucursal}</span>
+        <tr>
+          <td style="border: 1px solid #000000; padding: 6px 10px; background: ${visual.bg}; color: ${visual.color}; font-weight: 800; font-size: 13px; text-transform: uppercase;">
+            ${visual.label}
           </td>
-          <td style="padding: 9px 10px; font-weight: 700; color: #0f172a;">
-            <div>${isMaschCoverage ? 'Martu P. (Cubre Masch)' : (colab?.nombre_completo || 'Colaboradora')}</div>
-            ${colab?.dni ? `<div style="font-size: 10px; color: #64748b; font-family: monospace; font-weight: normal; margin-top: 1px;">DNI ${colab.dni}</div>` : ''}
-          </td>
-          <td style="padding: 9px 10px; text-align: center; font-family: monospace; font-size: 13px;">${b}</td>
-          <td style="padding: 9px 10px; text-align: center; font-family: monospace; font-size: 13px;">${f}</td>
-          <td style="padding: 9px 10px; text-align: center; font-family: monospace; font-size: 13px;">${ex}</td>
-          <td style="padding: 9px 10px; text-align: center; font-family: monospace; font-size: 13px; font-weight: 800; color: #92400e;">${ad}</td>
-          <td style="padding: 9px 10px; font-size: 12px; color: #475569;">${rec.detalle_cobertura || '-'}</td>
-          <td style="padding: 9px 10px; text-align: right; font-weight: 800; font-family: monospace; font-size: 14px; color: #0f172a;">${tot} hs</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(r)}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(a)}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(f)}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(e)}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(v)}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: left; font-size: 12px; color: #000000;">${obs}</td>
         </tr>
       `;
     }).join('');
 
-    let vacHtml = '<p style="font-size: 12px; color: #94a3b8; font-style: italic; margin: 8px 0;">Sin vacaciones gozadas registradas en este período.</p>';
-    if (vacPeriod.length > 0) {
-      vacHtml = `
-        <table style="width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px;">
-          <thead>
-            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left; color: #475569; font-size: 11px;">
-              <th style="padding: 6px 8px;">Colaboradora</th>
-              <th style="padding: 6px 8px;">Sucursal</th>
-              <th style="padding: 6px 8px;">Tramo Fechas</th>
-              <th style="padding: 6px 8px; text-align: center;">Días</th>
-              <th style="padding: 6px 8px;">Detalle</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${vacPeriod.map(n => {
-              const c = state.colaboradoras.find(col => col.id === n.colaboradora_id);
-              return `
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                  <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${c?.nombre_completo || 'Colaboradora'}</td>
-                  <td style="padding: 6px 8px;"><span style="background: ${n.codigo_sucursal === 'TOM' ? '#E6D5C3' : '#0f172a'}; color: ${n.codigo_sucursal === 'TOM' ? '#1e1e1e' : '#ffffff'}; padding: 2px 5px; border-radius: 4px; font-size: 10px; font-weight: bold;">${n.codigo_sucursal}</span></td>
-                  <td style="padding: 6px 8px; font-family: monospace; color: #334155;">${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)}</td>
-                  <td style="padding: 6px 8px; font-weight: bold; text-align: center; color: #065f46; font-size: 13px;">${n.dias_computados}d</td>
-                  <td style="padding: 6px 8px; color: #475569;">${n.observaciones || 'Vacaciones anuales'}</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      `;
-    }
+    // 2. FILAS TOM
+    let totTomRec = 0, totTomAdic = 0, totTomFer = 0, totTomExt = 0, totTomVac = 0, totTomTot = 0;
+    const tomRowsHtml = tomKeys.map(k => {
+      const colabId = k.replace(`${currentPeriod}_`, '');
+      const colab = state.colaboradoras.find(c => c.id === colabId);
+      const rec = state.cierres[k] || {};
 
-    let novsHtml = '<p style="font-size: 12px; color: #94a3b8; font-style: italic; margin: 8px 0;">Sin ausencias ni faltas registradas en este período.</p>';
-    if (novedadesPeriod.length > 0) {
-      novsHtml = `
-        <table style="width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px;">
-          <thead>
-            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left; color: #475569; font-size: 11px;">
-              <th style="padding: 6px 8px;">Colaboradora</th>
-              <th style="padding: 6px 8px;">Sucursal</th>
-              <th style="padding: 6px 8px;">Tipo</th>
-              <th style="padding: 6px 8px;">Rango Fechas</th>
-              <th style="padding: 6px 8px; text-align: center;">Días</th>
-              <th style="padding: 6px 8px;">Justificación</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${novedadesPeriod.map(n => {
-              const c = state.colaboradoras.find(col => col.id === n.colaboradora_id);
-              const isFalta = n.tipo.toLowerCase().includes('falta') || n.tipo.toLowerCase().includes('injustificada');
-              return `
-                <tr style="border-bottom: 1px solid #f1f5f9;">
-                  <td style="padding: 6px 8px; font-weight: 700; color: #0f172a;">${c?.nombre_completo || 'Colaboradora'}</td>
-                  <td style="padding: 6px 8px;"><span style="background: #e2e8f0; padding: 2px 5px; border-radius: 4px; font-size: 10px; font-weight: bold;">${n.codigo_sucursal}</span></td>
-                  <td style="padding: 6px 8px; font-weight: 700; color: ${isFalta ? '#b91c1c' : '#0369a1'};">${n.tipo}</td>
-                  <td style="padding: 6px 8px; font-family: monospace; color: #475569;">${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)}</td>
-                  <td style="padding: 6px 8px; font-weight: bold; text-align: center; color: #0f172a;">${n.dias_computados}d</td>
-                  <td style="padding: 6px 8px; color: #334155;">${n.observaciones || '-'}</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
+      const r = Number(rec.recibo_hs ?? rec.horas_base ?? colab?.recibo_hs_base ?? 0);
+      const a = Number(rec.adicional_hs ?? rec.adicionales_hs ?? 0);
+      const f = Number(rec.feriados_hs ?? 0);
+      const e = Number(rec.extras_hs ?? 0);
+      const v = Number(rec.vacaciones_hs ?? 0);
+      const tot = r + a + f + e + v;
+
+      totTomRec += r; totTomAdic += a; totTomFer += f; totTomExt += e; totTomVac += v; totTomTot += tot;
+
+      const visual = COLAB_VISUALS[colabId] || {
+        bg: '#f1f5f9',
+        color: '#000000',
+        label: (colab?.alias || colab?.nombre_completo || 'COLABORADORA').toUpperCase()
+      };
+
+      const obs = rec.observaciones ?? rec.detalle_cobertura ?? '';
+
+      return `
+        <tr>
+          <td style="border: 1px solid #000000; padding: 6px 10px; background: ${visual.bg}; color: ${visual.color}; font-weight: 800; font-size: 13px; text-transform: uppercase;">
+            ${visual.label}
+          </td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(r)}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(a)}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(f)}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(e)}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: center; font-size: 13px; font-weight: 500;">${formatHsCell(v)}</td>
+          <td style="border: 1px solid #000000; padding: 6px 10px; text-align: left; font-size: 12px; color: #000000;">${obs}</td>
+        </tr>
       `;
-    }
+    }).join('');
+
+    // TOTALES CONSOLIDADOS
+    const grandRec = totMaschRec + totTomRec;
+    const grandAdic = totMaschAdic + totTomAdic;
+    const grandFer = totMaschFer + totTomFer;
+    const grandExt = totMaschExt + totTomExt;
+    const grandVac = totMaschVac + totTomVac;
+    const grandTotal = totMaschTot + totTomTot;
 
     const todayStr = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
     container.innerHTML = `
-      <div id="capture-card" style="background: #ffffff; padding: 32px 36px; border: 1px solid #cbd5e1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; width: 1020px; box-sizing: border-box;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 20px;">
+      <div id="capture-card" style="background: #ffffff; padding: 26px 30px; border: 1.5px solid #cbd5e1; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Calibri, Arial, sans-serif; color: #000000; width: 1040px; box-sizing: border-box;">
+        
+        <!-- ENCABEZADO OFICIAL NAZARIA -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000000; padding-bottom: 12px; margin-bottom: 18px;">
           <div style="display: flex; align-items: center; gap: 14px;">
-            <img src="favicon.png" alt="Nazaria" style="width: 46px; height: 46px; border-radius: 8px; object-fit: contain; border: 1px solid #cbd5e1; background: #ffffff; padding: 2px;">
+            <img src="favicon.png" alt="Nazaria" style="width: 44px; height: 44px; border-radius: 6px; object-fit: contain; border: 1px solid #000000; background: #ffffff; padding: 2px;">
             <div>
-              <h1 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">NAZARIA RETAIL</h1>
-              <p style="margin: 2px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Reporte Oficial de Pre-Liquidación Mensual · TOM & Maschwitz</p>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: #000000;">NAZARIA RETAIL</h1>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #475569; font-weight: 600;">Planilla Consolidada de Sueldos y Horas a Liquidar · TOM & Maschwitz</p>
             </div>
           </div>
           <div style="text-align: right;">
-            <div style="background: #E6D5C3; color: #1e1e1e; font-weight: 800; font-size: 13px; padding: 4px 12px; border-radius: 6px; display: inline-block; text-transform: uppercase;">
-              Período: ${currentPeriod}
+            <div style="background: #fcd34d; color: #000000; font-weight: 900; font-size: 13px; padding: 5px 14px; border-radius: 4px; border: 1px solid #000000; display: inline-block; text-transform: uppercase;">
+              Período: ${formatPeriodLabel(currentPeriod).toUpperCase()}
             </div>
-            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Emisión: ${todayStr}</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px; font-weight: 500;">Emisión: ${todayStr}</div>
           </div>
         </div>
 
-        <div style="margin-bottom: 24px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h2 style="margin: 0; font-size: 14px; font-weight: 800; text-transform: uppercase; color: #0f172a;">
-              1. Horas Trabajadas a Liquidar
-            </h2>
-            <span style="font-size: 12px; color: #64748b;">${allKeys.length} colaboradoras registradas</span>
-          </div>
+        <!-- 1. BLOQUE MASCHWITZ (FORMATO SUELDOS 2) -->
+        <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #000000; margin-bottom: 22px;">
+          <thead>
+            <tr>
+              <th style="background: #caa0ba; border: 1.5px solid #000000; padding: 7px 10px; font-weight: 900; font-size: 13px; text-transform: uppercase; color: #000000; text-align: center; width: 140px;">MASCHWITZ</th>
+              <th style="background: #fcd34d; border: 1.5px solid #000000; padding: 7px 10px; font-weight: 900; font-size: 13px; text-transform: uppercase; color: #000000; text-align: center; width: 115px;">${monthLabel}</th>
+              <th colspan="5" style="border: 1.5px solid #000000; background: #ffffff;"></th>
+            </tr>
+            <tr style="background: #cbd5e1; color: #000000; font-size: 12px; font-weight: 800; text-align: center;">
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 140px;">NOMBRE</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 115px;">RECIBO 5.5 HS</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 100px;">ADICIONAL</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 90px;">FERIADOS</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 100px;">HORAS EXTRA</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 100px;">VACACIONES</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px;">OBSERVACIONES</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${maschRowsHtml}
+            <tr style="background: #f1f5f9; font-weight: 800; font-size: 12px;">
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: right; text-transform: uppercase;">TOTAL MASCHWITZ</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: center; font-weight: 800;">${formatHsCell(totMaschRec, true)}</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: center; font-weight: 800;">${formatHsCell(totMaschAdic, true)}</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: center; font-weight: 800;">${formatHsCell(totMaschFer, true)}</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: center; font-weight: 800;">${formatHsCell(totMaschExt, true)}</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: center; font-weight: 800;">${formatHsCell(totMaschVac, true)}</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: left; font-weight: 800; color: #000000;">Total Sucursal: ${formatHsCell(totMaschTot, true)} hs</td>
+            </tr>
+          </tbody>
+        </table>
 
-          <table style="width: 100%; border-collapse: collapse; border: 1px solid #cbd5e1;">
-            <thead>
-              <tr style="background: #0f172a; color: #ffffff; font-size: 12px; text-align: left;">
-                <th style="padding: 8px 10px; width: 90px;">Sucursal</th>
-                <th style="padding: 8px 10px;">Colaboradora & Documento</th>
-                <th style="padding: 8px 10px; text-align: center; width: 75px;">Hs Base</th>
-                <th style="padding: 8px 10px; text-align: center; width: 75px;">Feriados</th>
-                <th style="padding: 8px 10px; text-align: center; width: 75px;">Extras</th>
-                <th style="padding: 8px 10px; text-align: center; width: 85px;">Adicionales</th>
-                <th style="padding: 8px 10px;">Motivo / Cobertura</th>
-                <th style="padding: 8px 10px; text-align: right; width: 100px;">Total Hs</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${horasRowsHtml}
-              <tr style="background: #f8fafc; border-top: 2px solid #0f172a; font-weight: 800; font-size: 13px;">
-                <td colspan="2" style="padding: 10px; text-align: right; text-transform: uppercase;">TOTALES RED:</td>
-                <td style="padding: 10px; text-align: center; font-family: monospace;">${totalBaseRed} hs</td>
-                <td style="padding: 10px; text-align: center; font-family: monospace;">${totalFeriadosRed} hs</td>
-                <td style="padding: 10px; text-align: center; font-family: monospace;">${totalExtrasRed} hs</td>
-                <td style="padding: 10px; text-align: center; font-family: monospace; color: #92400e;">${totalAdicRed} hs</td>
-                <td style="padding: 10px;"></td>
-                <td style="padding: 10px; text-align: right; font-family: monospace; font-size: 15px; color: #0f172a;">${totalHorasRed} hs</td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- 2. BLOQUE TOM (FORMATO SUELDOS 2) -->
+        <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #000000; margin-bottom: 22px;">
+          <thead>
+            <tr>
+              <th style="background: #caa0ba; border: 1.5px solid #000000; padding: 7px 10px; font-weight: 900; font-size: 13px; text-transform: uppercase; color: #000000; text-align: center; width: 140px;">TOM</th>
+              <th style="background: #fcd34d; border: 1.5px solid #000000; padding: 7px 10px; font-weight: 900; font-size: 13px; text-transform: uppercase; color: #000000; text-align: center; width: 115px;">${monthLabel}</th>
+              <th colspan="5" style="border: 1.5px solid #000000; background: #ffffff;"></th>
+            </tr>
+            <tr style="background: #cbd5e1; color: #000000; font-size: 12px; font-weight: 800; text-align: center;">
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 140px;">NOMBRE</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 115px;">RECIBO 5.5 HS</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 100px;">ADICIONAL</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 90px;">FERIADOS</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 100px;">HORAS EXTRA</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px; width: 100px;">VACACIONES</th>
+              <th style="border: 1.5px solid #000000; padding: 6px 8px;">OBSERVACIONES</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tomRowsHtml}
+            <tr style="background: #f1f5f9; font-weight: 800; font-size: 12px;">
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: right; text-transform: uppercase;">TOTAL TOM</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: center; font-weight: 800;">${formatHsCell(totTomRec, true)}</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: center; font-weight: 800;">${formatHsCell(totTomAdic, true)}</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: center; font-weight: 800;">${formatHsCell(totTomFer, true)}</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: center; font-weight: 800;">${formatHsCell(totTomExt, true)}</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: center; font-weight: 800;">${formatHsCell(totTomVac, true)}</td>
+              <td style="border: 1.5px solid #000000; padding: 6px 8px; text-align: left; font-weight: 800; color: #000000;">Total Sucursal: ${formatHsCell(totTomTot, true)} hs</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- TOTAL GENERAL CONSOLIDADO RED NAZARIA -->
+        <div style="border: 1.5px solid #000000; background: #fafafa; padding: 12px 16px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="font-weight: 900; font-size: 13px; text-transform: uppercase; color: #000000;">
+            TOTAL RED NAZARIA (TOM + MASCHWITZ):
+          </div>
+          <div style="display: flex; gap: 14px; font-size: 12px; font-weight: 700; align-items: center;">
+            <div>Recibo: <span style="font-weight: 900; color: #000000;">${formatHsCell(grandRec, true)} hs</span></div>
+            <div>Adicional: <span style="font-weight: 900; color: #000000;">${formatHsCell(grandAdic, true)} hs</span></div>
+            <div>Feriados: <span style="font-weight: 900; color: #000000;">${formatHsCell(grandFer, true)} hs</span></div>
+            <div>Extras: <span style="font-weight: 900; color: #000000;">${formatHsCell(grandExt, true)} hs</span></div>
+            <div>Vacaciones: <span style="font-weight: 900; color: #000000;">${formatHsCell(grandVac, true)} hs</span></div>
+            <div style="background: #000000; color: #ffffff; padding: 3px 9px; border-radius: 4px; font-size: 13px; font-weight: 900;">TOTAL: ${formatHsCell(grandTotal, true)} hs</div>
+          </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
-          <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; background: #fafafa;">
-            <h3 style="margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #0f172a;">
-              2. Vacaciones Gozadas en el Mes
-            </h3>
-            <p style="margin: 0 0 8px; font-size: 11px; color: #64748b;">Días computados tomados en el período.</p>
-            ${vacHtml}
-          </div>
-
-          <div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; background: #fafafa;">
-            <h3 style="margin: 0 0 4px; font-size: 13px; font-weight: 800; text-transform: uppercase; color: #0f172a; display: flex; align-items: center; justify-content: space-between;">
-              <span>3. Novedades, Licencias y Faltas</span>
-              <span style="font-size: 10px; background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Descuentos / Certificados</span>
-            </h3>
-            <p style="margin: 0 0 8px; font-size: 11px; color: #64748b;">Faltas a descontar y licencias justificadas con certificado médico.</p>
-            ${novsHtml}
-          </div>
-        </div>
-
-        <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b;">
-          <div>Resumen validado por Administración · Nazaria Retail</div>
-          <div style="font-weight: 600;">Documento oficial para liquidación de haberes (Estudio Contable)</div>
+        <div style="border-top: 1px solid #cbd5e1; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b;">
+          <div>Documento oficial generado para liquidación de haberes · Estudio Contable · Nazaria Retail</div>
+          <div>Reporte generado automáticamente vía App RRHH Nazaria</div>
         </div>
       </div>
     `;
