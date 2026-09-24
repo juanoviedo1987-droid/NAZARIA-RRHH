@@ -252,6 +252,18 @@
             </button>
           </div>
 
+          <!-- Banner explicativo de Vacaciones -->
+          <div class="bg-emerald-50/80 border border-emerald-200 rounded-lg p-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-emerald-950 mt-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="info" class="w-4 h-4 text-emerald-700 shrink-0"></i>
+              <span><strong>Regla de Vacaciones:</strong> Las horas de vacaciones <strong>restan</strong> del total trabajado (<code>Base + Adicional + Feriados + Extras - Vacaciones</code>) porque se liquidan aparte por ley (LCT 20.744).</span>
+            </div>
+            <button type="button" onclick="window.app.openVacacionesCalcModal()" class="px-2.5 py-1 rounded bg-white border border-emerald-300 text-emerald-900 font-bold hover:bg-emerald-100 transition text-[11px] flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs">
+              <i data-lucide="calculator" class="w-3 h-3 text-emerald-700"></i>
+              <span>Calculadora de Vacaciones</span>
+            </button>
+          </div>
+
           <!-- Indicador de desplazamiento horizontal en celulares -->
           <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
             <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
@@ -267,7 +279,14 @@
                   <th class="w-24 text-center">Adicional</th>
                   <th class="w-20 text-center">Feriados</th>
                   <th class="w-20 text-center">Horas Extra</th>
-                  <th class="w-20 text-center">Vacaciones</th>
+                  <th class="w-28 text-center" title="Horas de turnos no asistidos por vacaciones (restan del total trabajado)">
+                    <div class="flex items-center justify-center gap-1 text-emerald-800">
+                      <span>Vacaciones (-)</span>
+                      <button type="button" onclick="window.app.openVacacionesCalcModal()" class="p-0.5 rounded text-emerald-700 hover:text-emerald-950 hover:bg-emerald-100 transition cursor-pointer" title="Abrir calculadora y asistente de vacaciones">
+                        <i data-lucide="calculator" class="w-3 h-3"></i>
+                      </button>
+                    </div>
+                  </th>
                   <th class="w-24 text-right">Total Hs</th>
                   <th class="min-w-[220px]">Observaciones</th>
                 </tr>
@@ -355,12 +374,18 @@
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-neutral-200 gap-3">
             <div>
               <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Grilla de Turnos Semanales (Lunes a Domingo)</h3>
-              <p class="text-xs text-neutral-500">Asignación de turnos Mañana y Tarde. Podés ingresar una colaboradora o turnos compartidos (ej: ESME/CANDE).</p>
+              <p class="text-xs text-neutral-500">Asignación de turnos Mañana y Tarde. Grilla protegida: usá el botón de edición para modificar.</p>
             </div>
-            <button onclick="window.app.saveHorariosStore()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm">
-              <i data-lucide="save" class="w-4 h-4"></i>
-              <span>Guardar Horarios</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button type="button" id="btn-toggle-store-grid-edit" onclick="window.app.toggleStoreGridEdit()" class="px-3 py-2 rounded-lg border border-neutral-300 text-xs font-bold bg-[#FAF9F6] text-neutral-700 hover:bg-neutral-100 flex items-center gap-1.5 transition cursor-pointer">
+                <i data-lucide="pencil" class="w-3.5 h-3.5 text-neutral-500"></i>
+                <span id="btn-toggle-store-grid-edit-text">Modificar Grilla</span>
+              </button>
+              <button onclick="window.app.saveHorariosStore()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                <i data-lucide="save" class="w-4 h-4 text-[#E6D5C3]"></i>
+                <span>Guardar Horarios</span>
+              </button>
+            </div>
           </div>
 
           <!-- Indicador de desplazamiento horizontal en celulares -->
@@ -386,23 +411,23 @@
               <tbody>
                 <tr>
                   <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5]">Mañana</td>
-                  <td><input type="text" id="h-man-lun" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="SOFI"></td>
-                  <td><input type="text" id="h-man-mar" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="SOFI"></td>
-                  <td><input type="text" id="h-man-mie" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="ESME"></td>
-                  <td><input type="text" id="h-man-jue" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="ESME"></td>
-                  <td><input type="text" id="h-man-vie" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="ESME/CANDE"></td>
-                  <td><input type="text" id="h-man-sab" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="ESME/ANTO"></td>
-                  <td><input type="text" id="h-man-dom" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="SOFI/CANDE"></td>
+                  <td><input type="text" id="h-man-lun" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="SOFI"></td>
+                  <td><input type="text" id="h-man-mar" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="SOFI"></td>
+                  <td><input type="text" id="h-man-mie" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="ESME"></td>
+                  <td><input type="text" id="h-man-jue" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="ESME"></td>
+                  <td><input type="text" id="h-man-vie" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="ESME/CANDE"></td>
+                  <td><input type="text" id="h-man-sab" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="ESME/ANTO"></td>
+                  <td><input type="text" id="h-man-dom" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="SOFI/CANDE"></td>
                 </tr>
                 <tr>
                   <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5]">Tarde</td>
-                  <td><input type="text" id="h-tar-lun" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="ESME"></td>
-                  <td><input type="text" id="h-tar-mar" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="MARTU"></td>
-                  <td><input type="text" id="h-tar-mie" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="MARTU/CANDE"></td>
-                  <td><input type="text" id="h-tar-jue" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="SOFI/ANTO"></td>
-                  <td><input type="text" id="h-tar-vie" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="SOFI/ANTO"></td>
-                  <td><input type="text" id="h-tar-sab" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="SOFI/CANDE"></td>
-                  <td><input type="text" id="h-tar-dom" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black" placeholder="ESME/ANTO"></td>
+                  <td><input type="text" id="h-tar-lun" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="ESME"></td>
+                  <td><input type="text" id="h-tar-mar" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="MARTU"></td>
+                  <td><input type="text" id="h-tar-mie" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="MARTU/CANDE"></td>
+                  <td><input type="text" id="h-tar-jue" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="SOFI/ANTO"></td>
+                  <td><input type="text" id="h-tar-vie" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="SOFI/ANTO"></td>
+                  <td><input type="text" id="h-tar-sab" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="SOFI/CANDE"></td>
+                  <td><input type="text" id="h-tar-dom" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="ESME/ANTO"></td>
                 </tr>
               </tbody>
             </table>
@@ -971,6 +996,18 @@
             </div>
           </div>
 
+          <!-- Banner explicativo de Vacaciones -->
+          <div class="bg-emerald-50/80 border border-emerald-200 rounded-lg p-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-emerald-950 mt-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="info" class="w-4 h-4 text-emerald-700 shrink-0"></i>
+              <span><strong>Regla de Vacaciones:</strong> Las horas de vacaciones <strong>restan</strong> del total de horas trabajadas (<code>Recibo + Sin Recibo + Adicional + Feriados + Extras - Vacaciones</code>) para liquidarse aparte por LCT.</span>
+            </div>
+            <button type="button" onclick="window.app.openVacacionesCalcModal()" class="px-2.5 py-1 rounded bg-white border border-emerald-300 text-emerald-900 font-bold hover:bg-emerald-100 transition text-[11px] flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs">
+              <i data-lucide="calculator" class="w-3 h-3 text-emerald-700"></i>
+              <span>Calculadora de Vacaciones</span>
+            </button>
+          </div>
+
           <!-- Indicador de desplazamiento horizontal en celulares -->
           <div class="flex items-center justify-end text-[11px] text-neutral-400 sm:hidden gap-1 mt-2 font-medium">
             <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i>
@@ -987,7 +1024,14 @@
                   <th class="text-center w-24">Adicional</th>
                   <th class="text-center w-20">Feriados</th>
                   <th class="text-center w-20">Horas Extra</th>
-                  <th class="text-center w-20">Vacaciones</th>
+                  <th class="text-center w-28" title="Horas de turnos no trabajados por vacaciones (restan del total trabajado para liquidarse aparte)">
+                    <div class="flex items-center justify-center gap-1 text-emerald-800">
+                      <span>Vacaciones (-)</span>
+                      <button type="button" onclick="window.app.openVacacionesCalcModal()" class="p-0.5 rounded text-emerald-700 hover:text-emerald-950 hover:bg-emerald-100 transition cursor-pointer" title="Abrir calculadora y asistente de vacaciones">
+                        <i data-lucide="calculator" class="w-3 h-3"></i>
+                      </button>
+                    </div>
+                  </th>
                   <th class="text-right w-24">Total Hs</th>
                   <th class="min-w-[240px]">Observaciones</th>
                 </tr>
@@ -1036,12 +1080,18 @@
                 Grilla de Turnos Semanales · TOM
                 <span id="admin-hor-updated-badge" class="text-[10px] font-medium bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded">Sincronizado en la nube</span>
               </h4>
-              <p class="text-xs text-neutral-500 mt-0.5">Turnos habituales de Lunes a Domingo. Podés editar o validar directamente en pantalla.</p>
+              <p class="text-xs text-neutral-500 mt-0.5">Turnos habituales de Lunes a Domingo. Grilla fija con lápiz de edición para evitar alteraciones accidentales.</p>
             </div>
-            <button onclick="window.app.saveAdminHorarios()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
-              <i data-lucide="save" class="w-4 h-4 text-[#E6D5C3]"></i>
-              <span>Guardar Horarios de la Sucursal</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button type="button" id="btn-toggle-admin-grid-edit" onclick="window.app.toggleAdminGridEdit()" class="px-3.5 py-2 rounded-lg border border-neutral-300 text-xs font-bold bg-[#FAF9F6] text-neutral-700 hover:bg-neutral-100 flex items-center gap-1.5 transition cursor-pointer">
+                <i data-lucide="pencil" class="w-3.5 h-3.5 text-neutral-500"></i>
+                <span id="btn-toggle-admin-grid-edit-text">Modificar Grilla</span>
+              </button>
+              <button onclick="window.app.saveAdminHorarios()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                <i data-lucide="save" class="w-4 h-4 text-[#E6D5C3]"></i>
+                <span>Guardar Horarios de la Sucursal</span>
+              </button>
+            </div>
           </div>
 
           <div class="table-scroll-container">
@@ -1061,23 +1111,23 @@
               <tbody>
                 <tr>
                   <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5]">Mañana</td>
-                  <td><input type="text" id="admin-h-man-lun" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-man-mar" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-man-mie" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-man-jue" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-man-vie" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-man-sab" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-man-dom" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-lun" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-mar" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-mie" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-jue" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-vie" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-sab" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-dom" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
                 </tr>
                 <tr>
                   <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5]">Tarde</td>
-                  <td><input type="text" id="admin-h-tar-lun" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-tar-mar" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-tar-mie" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-tar-jue" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-tar-vie" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-tar-sab" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
-                  <td><input type="text" id="admin-h-tar-dom" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-lun" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-mar" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-mie" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-jue" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-vie" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-sab" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-dom" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
                 </tr>
               </tbody>
             </table>
@@ -1090,7 +1140,41 @@
           </div>
         </div>
 
-        <!-- 2. Bitácora de Modificaciones, Reemplazos y Coberturas -->
+        <!-- 2. Esquemas Contractuales y Horas Base Habituales (Editable con Lápiz) -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-neutral-200 gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold">
+                  <i data-lucide="clock" class="w-4 h-4"></i>
+                </div>
+                <h4 class="font-bold text-neutral-900 text-sm sm:text-base">Esquemas Contractuales y Horas Base Habituales</h4>
+              </div>
+              <p class="text-xs text-neutral-500 mt-1">Definición de jornadas semanales, horas base del mes y distribución recibo/sin recibo. Hacé clic en el lápiz ✏️ para editar y sincronizar en todos los paneles.</p>
+            </div>
+          </div>
+
+          <div class="table-scroll-container">
+            <table class="w-full min-w-[720px] text-left table-sop">
+              <thead>
+                <tr>
+                  <th class="w-28">Sucursal</th>
+                  <th>Colaboradora</th>
+                  <th>Esquema Contractual (Días / Turnos)</th>
+                  <th class="text-center w-28">Horas Base</th>
+                  <th class="text-center w-28">Recibo (Hs)</th>
+                  <th class="text-center w-28">Sin Recibo</th>
+                  <th class="w-20 text-center">Editar</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-esquemas">
+                <!-- Inyectado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. Bitácora de Modificaciones, Reemplazos y Coberturas -->
         <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-neutral-200 gap-3">
             <div>
@@ -1536,6 +1620,151 @@
           <span>Guardar Observaciones</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 5: ASISTENTE EXPLICATIVO Y CALCULADORA DE VACACIONES
+       ========================================================================= -->
+  <div id="modal-calc-vacaciones" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop fade-in">
+    <div class="bg-white border border-neutral-200 rounded-2xl p-4 sm:p-6 max-w-lg w-full shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-neutral-200 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold">
+            <i data-lucide="calculator" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Asistente de Horas de Vacaciones</h3>
+            <p class="text-xs text-neutral-500">Cómputo en horas y descuento de la jornada habitual</p>
+          </div>
+        </div>
+        <button onclick="window.app.closeVacacionesCalcModal()" class="text-neutral-400 hover:text-black text-lg font-bold p-1 cursor-pointer">✕</button>
+      </div>
+
+      <!-- Explicación Pedagógica -->
+      <div class="bg-emerald-50/80 border border-emerald-200 rounded-xl p-3.5 text-xs text-emerald-950 flex flex-col gap-2">
+        <div class="font-bold flex items-center gap-1.5 text-emerald-900">
+          <i data-lucide="info" class="w-4 h-4 text-emerald-700"></i>
+          <span>¿Por qué las vacaciones RESTAN del total de horas?</span>
+        </div>
+        <p class="leading-relaxed">
+          Las <strong>Horas Base</strong> ya contemplan el mes completo. Al tomarse vacaciones, la colaboradora <strong>no asiste a sus turnos de trabajo</strong>, por lo que esas horas se restan de las horas normales trabajadas para liquidarse aparte en el recibo como <strong>Plus Vacacional (LCT 20.744 art. 155 con divisor 25)</strong>.
+        </p>
+        <div class="bg-white/80 p-2.5 rounded-lg border border-emerald-200/80 font-sans text-[11px] leading-relaxed">
+          <strong>📌 Días corridos de ley vs. Horas en la planilla:</strong><br>
+          La ley fija las vacaciones en <em>días corridos continuos</em> (14, 21 o 28 días desde un lunes). Pero en esta planilla de sueldos solo debés cargar las <strong>horas de los turnos programados que NO trabajó</strong> (ej: si trabaja turnos de 5.5 hs y se ausentó a 2 turnos = <strong>11 horas</strong> a restar de su mes).
+        </div>
+      </div>
+
+      <!-- Formulario Calculador Interactivo -->
+      <form onsubmit="window.app.applyVacacionesCalc(event)" class="flex flex-col gap-3">
+        <div>
+          <label class="block text-xs font-bold text-neutral-700 mb-1">Colaboradora:</label>
+          <select id="calc-vac-colab-select" onchange="window.app.handleVacCalcColabChange()" class="w-full bg-[#FAF9F6] border border-neutral-300 rounded-lg p-2 text-xs font-semibold text-neutral-900 focus:outline-none focus:border-black">
+            <!-- Inyectado dinámicamente -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-neutral-700 mb-1">Turnos No Trabajados:</label>
+            <input type="number" id="calc-vac-turnos" min="0.5" step="0.5" value="2" oninput="window.app.updateVacCalcResult()" required class="w-full bg-[#FAF9F6] border border-neutral-300 rounded-lg p-2 text-xs font-bold text-center font-mono text-neutral-900 focus:outline-none focus:border-black">
+            <span class="text-[10px] text-neutral-500 mt-0.5 block">Días de su horario habitual</span>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-neutral-700 mb-1">Horas por Turno:</label>
+            <input type="number" id="calc-vac-horas-turno" min="1" max="12" step="0.5" value="5.5" oninput="window.app.updateVacCalcResult()" required class="w-full bg-[#FAF9F6] border border-neutral-300 rounded-lg p-2 text-xs font-bold text-center font-mono text-neutral-900 focus:outline-none focus:border-black">
+            <span id="calc-vac-shift-hint" class="text-[10px] text-neutral-500 mt-0.5 block">5.5 hs en Masch · 6 hs en TOM</span>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Resultado en Vivo -->
+        <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-bold text-neutral-500 uppercase tracking-wide">Cálculo resultante:</div>
+            <div id="calc-vac-formula-text" class="text-xs text-neutral-700 font-medium mt-0.5">2 turnos × 5.5 hs = 11 hs</div>
+          </div>
+          <div class="text-right">
+            <div id="calc-vac-total-hs" class="text-xl font-black font-mono text-emerald-800">11.0 hs</div>
+            <div class="text-[10px] text-emerald-700 font-bold uppercase">Resta del mes (-)</div>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-neutral-200 mt-1">
+          <button type="button" onclick="window.app.closeVacacionesCalcModal()" class="px-4 py-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold transition cursor-pointer">
+            Cancelar
+          </button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            <span>Cargar en la Planilla</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 6: EDICIÓN DE ESQUEMA CONTRACTUAL Y HORAS BASE
+       ========================================================================= -->
+  <div id="modal-edit-esquema" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop fade-in">
+    <div class="bg-white border border-neutral-200 rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-neutral-200 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 id="edit-esquema-title" class="font-bold text-neutral-900 text-sm sm:text-base">Esquema Contractual</h3>
+            <p class="text-xs text-neutral-500">Definí días, horas base mensuales y recibo</p>
+          </div>
+        </div>
+        <button onclick="window.app.closeEditEsquemaModal()" class="text-neutral-400 hover:text-black text-lg font-bold p-1 cursor-pointer">✕</button>
+      </div>
+
+      <form onsubmit="window.app.handleSaveEsquema(event)" class="flex flex-col gap-3.5">
+        <input type="hidden" id="edit-esquema-colab-id">
+
+        <div class="flex items-center justify-between bg-[#FAF9F6] p-2.5 rounded-lg border border-neutral-200">
+          <span class="text-xs font-bold text-neutral-700">Sucursal asignada:</span>
+          <span id="edit-esquema-store-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E6D5C3] text-neutral-900">TOM</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-neutral-700 mb-1">Esquema de Jornada / Días Semanales *</label>
+          <input type="text" id="edit-esquema-jornada" required placeholder="Ej: 5 días / 5,5 hs (paga 8 hs)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-semibold text-neutral-900 focus:outline-none focus:border-black">
+          <span class="text-[10px] text-neutral-500 mt-1 block">Aparece debajo del nombre en las planillas de sueldos y horarios.</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-neutral-700 mb-1">Horas Base Mes *</label>
+            <input type="number" id="edit-esquema-horas-base" step="0.5" min="0" required oninput="window.app.recalcModalEsquemaDiff()" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-bold text-center font-mono text-neutral-900 focus:outline-none focus:border-black">
+            <span class="text-[10px] text-neutral-500 mt-1 block">Jornada total mensual</span>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-neutral-700 mb-1">Recibo (Hs) *</label>
+            <input type="number" id="edit-esquema-recibo-hs" step="0.5" min="0" required oninput="window.app.recalcModalEsquemaDiff()" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-bold text-center font-mono text-neutral-900 focus:outline-none focus:border-black">
+            <span class="text-[10px] text-neutral-500 mt-1 block">Horas formales en blanco</span>
+          </div>
+        </div>
+
+        <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-3 flex items-center justify-between">
+          <span class="text-xs font-medium text-neutral-600">Base fuera de recibo (Sin Recibo):</span>
+          <span id="edit-esquema-sin-recibo-preview" class="font-mono font-bold text-sm text-neutral-900">0 hs</span>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-neutral-200 mt-1">
+          <button type="button" onclick="window.app.closeEditEsquemaModal()" class="px-4 py-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold transition cursor-pointer">
+            Cancelar
+          </button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+            <i data-lucide="check" class="w-3.5 h-3.5 text-[#E6D5C3]"></i>
+            <span>Guardar Esquema</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
