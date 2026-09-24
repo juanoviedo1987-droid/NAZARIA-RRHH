@@ -183,6 +183,52 @@
     'MASCHWITZ': 'Cami se toma vacaciones pendientes del 09/08 al 13/08. Cande de TOM cubre a Martu por vacaciones el día 09/08. Flavia cubre a Cami por vacaciones el día 09/08. Anto de TOM cubre el 10/08 por vacaciones de Cami. Martu cubre a Cami los días 11/08 y 13/08. Flavia se toma el 15/08 como franco, cubre Martu. Flavia ausente el día 29/08 (descontar el día) cubre Martu.'
   };
 
+  // --- BITÁCORA DE MODIFICACIONES Y COBERTURAS (Punto 2) ---
+  const DEFAULT_HORARIOS_MODIFICACIONES = [
+    {
+      id: 'mod-1',
+      sucursal: 'TOM',
+      periodo: '2026-10',
+      fecha: '2026-10-09',
+      turno: 'Mañana',
+      colaboradora_origen_id: 'c-martu',
+      colaboradora_origen: 'Martu Pinto',
+      colaboradora_reemplazo_id: 'c-cande',
+      colaboradora_reemplazo: 'Candela Almiron',
+      motivo: 'Cande cubre a Martu por examen de facultad',
+      creado_por: 'Sofi',
+      creado_en: '2026-10-09T08:30:00Z'
+    },
+    {
+      id: 'mod-2',
+      sucursal: 'MASCHWITZ',
+      periodo: '2026-10',
+      fecha: '2026-10-15',
+      turno: 'Tarde',
+      colaboradora_origen_id: 'c-flavia',
+      colaboradora_origen: 'Flavia Gómez',
+      colaboradora_reemplazo_id: 'c-martu',
+      colaboradora_reemplazo: 'Martina Pinto (TOM)',
+      motivo: 'Franco compensatorio de Flavia. Cobertura intersucursal de Martu',
+      creado_por: 'Flavia',
+      creado_en: '2026-10-15T09:00:00Z'
+    },
+    {
+      id: 'mod-3',
+      sucursal: 'MASCHWITZ',
+      periodo: '2026-08',
+      fecha: '2026-08-09',
+      turno: 'Tarde',
+      colaboradora_origen_id: 'c-martu',
+      colaboradora_origen: 'Pinto Martina',
+      colaboradora_reemplazo_id: 'c-cande',
+      colaboradora_reemplazo: 'Almiron Miranda Candela Anahi',
+      motivo: 'Cande cubre a Martu por vacaciones (TOM a Maschwitz)',
+      creado_por: 'Juan (Admin)',
+      creado_en: '2026-08-09T08:00:00Z'
+    }
+  ];
+
   // --- MOCK SVG CERTIFICADO MÉDICO REALISTA PARA AUDITORÍA ---
   const SAMPLE_CERT_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="780" viewBox="0 0 600 780" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;"><rect width="600" height="780" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/><rect x="25" y="25" width="550" height="730" fill="#fcfcfc" stroke="#e2e8f0" stroke-width="1.5" rx="8"/><rect x="25" y="25" width="550" height="90" fill="#f8fafc" rx="8"/><text x="50" y="65" font-size="16" font-weight="bold" fill="#0f172a">CENTRO MÉDICO PILAR</text><text x="50" y="85" font-size="11" fill="#64748b">Medicina Laboral y Guardia 24hs · Av. Tratado del Pilar 450</text><line x1="45" y1="115" x2="555" y2="115" stroke="#0f172a" stroke-width="2"/><text x="300" y="165" font-size="20" font-weight="bold" text-anchor="middle" fill="#0f172a">CERTIFICADO MÉDICO</text><text x="50" y="220" font-size="13" fill="#475569">Fecha de emisión: 14 de Octubre de 2026</text><text x="50" y="255" font-size="13" fill="#1e293b">Por la presente certifico que he examinado a la colaboradora:</text><rect x="45" y="275" width="510" height="40" fill="#f1f5f9" rx="4"/><text x="60" y="300" font-size="15" font-weight="bold" fill="#0f172a">GÓMEZ FLAVIA MARIANELA (DNI 37.102.934)</text><text x="50" y="355" font-size="13" fill="#334155">Diagnóstico clínico presuntivo:</text><text x="50" y="380" font-size="15" font-weight="bold" fill="#b91c1c">FARINGOAMIGDALITIS AGUDA CON REGISTRO FEBRIL</text><text x="50" y="435" font-size="13" fill="#334155">Indicación médica:</text><text x="50" y="460" font-size="14" font-weight="bold" fill="#0f172a">REPOSO LABORAL POR 48 HORAS (14/10/2026 al 16/10/2026).</text><text x="50" y="485" font-size="12" fill="#64748b">Pudiendo reintegrarse a sus tareas el día 17 de Octubre de 2026.</text><g transform="translate(330, 580)"><path d="M 20 40 Q 60 5 110 35 T 190 25" stroke="#1d4ed8" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="15" y="45" width="200" height="65" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="3 3" rx="4"/><text x="115" y="65" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a8a">DRA. MARIANA S. CASTILLO</text><text x="115" y="80" font-size="10" text-anchor="middle" fill="#334155">Médica Clínica - M.N. 148.922</text><text x="115" y="95" font-size="9" text-anchor="middle" fill="#64748b">Esp. en Medicina del Trabajo</text></g></svg>');
 
@@ -240,7 +286,8 @@
     currentRole: null,          // 'TOM' | 'MASCHWITZ' | 'ADMIN'
     currentPeriod: '2026-10',   // YYYY-MM
     activeStoreTab: 'horas',    // 'horas' | 'horarios' | 'novedades' | 'retiros' | 'vacaciones'
-    activeAdminTab: 'consolidado', // 'consolidado' | 'vacaciones' | 'retiros' | 'novedades' | 'colaboradoras'
+    activeAdminTab: 'consolidado', // 'consolidado' | 'horarios' | 'vacaciones' | 'retiros' | 'novedades' | 'colaboradoras'
+    adminSelectedHorariosStore: 'TOM', // 'TOM' | 'MASCHWITZ'
     adminNovedadesFilter: 'todas',
     selectedPinTarget: null,
     currentSelectedFile: null,
@@ -253,7 +300,8 @@
     retiros: [],
     horarios: {},
     fechas_especiales: [],
-    horarios_notas: {}
+    horarios_notas: {},
+    horarios_modificaciones: []
   };
 
   // ============================================================================
@@ -275,7 +323,7 @@
 
   function initStorageData() {
     // Inicializar o recargar datos con versión para migración limpia
-    const DATA_VERSION = 'v6';
+    const DATA_VERSION = 'v7';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
@@ -284,6 +332,7 @@
       localStorage.setItem('nazaria_horarios_v2', JSON.stringify(DEFAULT_HORARIOS));
       localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(DEFAULT_FECHAS_ESPECIALES));
       localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(DEFAULT_HORARIOS_NOTAS));
+      localStorage.setItem('nazaria_horarios_modificaciones_v2', JSON.stringify(DEFAULT_HORARIOS_MODIFICACIONES));
       localStorage.setItem('nazaria_retiros_v2', JSON.stringify(DEFAULT_RETIROS));
       localStorage.setItem('nazaria_novedades_v2', JSON.stringify(DEFAULT_NOVEDADES));
       localStorage.setItem(verKey, DATA_VERSION);
@@ -295,6 +344,7 @@
     state.horarios = JSON.parse(localStorage.getItem('nazaria_horarios_v2') || JSON.stringify(DEFAULT_HORARIOS));
     state.fechas_especiales = JSON.parse(localStorage.getItem('nazaria_fechas_especiales_v2') || JSON.stringify(DEFAULT_FECHAS_ESPECIALES));
     state.horarios_notas = JSON.parse(localStorage.getItem('nazaria_horarios_notas_v2') || JSON.stringify(DEFAULT_HORARIOS_NOTAS));
+    state.horarios_modificaciones = JSON.parse(localStorage.getItem('nazaria_horarios_modificaciones_v2') || JSON.stringify(DEFAULT_HORARIOS_MODIFICACIONES));
     state.retiros = JSON.parse(localStorage.getItem('nazaria_retiros_v2') || JSON.stringify(DEFAULT_RETIROS));
     state.novedades = JSON.parse(localStorage.getItem('nazaria_novedades_v2') || JSON.stringify(DEFAULT_NOVEDADES));
   }
@@ -313,11 +363,90 @@
           dbBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-50 border border-emerald-200 text-emerald-800";
           dbStatusText.textContent = "Supabase Conectado";
         }
+        syncFromSupabase();
       } catch (err) {
         setLocalModeBadge();
       }
     } else {
       setLocalModeBadge();
+    }
+  }
+
+  async function syncFromSupabase() {
+    if (!state.supabaseClient || !state.isSupabaseConnected) return;
+
+    try {
+      // 1. Horarios de sucursales
+      const { data: remoteHorarios, error: errH } = await state.supabaseClient
+        .from('horarios_sucursal')
+        .select('*');
+
+      if (!errH && remoteHorarios && remoteHorarios.length > 0) {
+        remoteHorarios.forEach(row => {
+          const code = row.sucursal_codigo;
+          if (row.manana && row.tarde) {
+            state.horarios[code] = { manana: row.manana, tarde: row.tarde };
+          }
+          if (row.notas) {
+            state.horarios_notas[code] = row.notas;
+          }
+        });
+        localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
+        localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(state.horarios_notas));
+      }
+
+      // 2. Fechas especiales
+      const { data: remoteFechas, error: errF } = await state.supabaseClient
+        .from('fechas_especiales')
+        .select('*');
+
+      if (!errF && remoteFechas && remoteFechas.length > 0) {
+        state.fechas_especiales = remoteFechas.map(r => ({
+          id: r.id,
+          sucursal: r.sucursal_codigo,
+          fecha_evento: r.evento || r.fecha_evento,
+          manana: r.manana,
+          tarde: r.tarde,
+          observacion: r.observacion
+        }));
+        localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(state.fechas_especiales));
+      }
+
+      // 3. Bitácora de modificaciones
+      const { data: remoteMods, error: errM } = await state.supabaseClient
+        .from('horarios_modificaciones')
+        .select('*')
+        .order('fecha', { ascending: false });
+
+      if (!errM && remoteMods && remoteMods.length > 0) {
+        state.horarios_modificaciones = remoteMods.map(r => ({
+          id: r.id,
+          sucursal: r.sucursal_codigo,
+          periodo: r.periodo || state.currentPeriod,
+          fecha: r.fecha,
+          turno: r.turno,
+          colaboradora_origen_id: r.colaboradora_origen_id || r.colaboradora_origen,
+          colaboradora_origen: r.colaboradora_origen,
+          colaboradora_reemplazo_id: r.colaboradora_reemplazo_id || r.colaboradora_reemplazo,
+          colaboradora_reemplazo: r.colaboradora_reemplazo,
+          motivo: r.motivo,
+          creado_por: r.creado_por,
+          creado_en: r.creado_en || r.created_at
+        }));
+        localStorage.setItem('nazaria_horarios_modificaciones_v2', JSON.stringify(state.horarios_modificaciones));
+      }
+
+      // Refrescar vistas si ya están activas
+      if (state.currentRole === 'ADMIN') {
+        if (state.activeAdminTab === 'horarios') renderAdminHorarios();
+      } else if (state.currentRole) {
+        if (state.activeStoreTab === 'horarios') {
+          renderStoreHorarios();
+          renderStoreFechasEspeciales();
+        }
+      }
+    } catch (err) {
+      console.warn('Sync from Supabase fallback to local:', err);
     }
   }
 
@@ -782,9 +911,12 @@
     if (notasEl) {
       notasEl.value = state.horarios_notas[storeCode] || '';
     }
+
+    populateStoreModificacionSelects(storeCode);
+    renderStoreModificaciones();
   }
 
-  function saveHorariosStore() {
+  async function saveHorariosStore() {
     const storeCode = state.currentRole;
     const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
     const manana = {};
@@ -797,7 +929,26 @@
 
     state.horarios[storeCode] = { manana, tarde };
     localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
-    showToast('Grilla de horarios guardada.', 'success');
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      try {
+        await state.supabaseClient
+          .from('horarios_sucursal')
+          .upsert({
+            sucursal_codigo: storeCode,
+            periodo: state.currentPeriod,
+            manana: manana,
+            tarde: tarde,
+            notas: state.horarios_notas[storeCode] || '',
+            actualizado_por: storeCode === 'TOM' ? 'Sofi' : 'Flavia',
+            actualizado_en: new Date().toISOString()
+          }, { onConflict: 'sucursal_codigo,periodo' });
+      } catch (err) {
+        console.warn('Error saving store horarios to Supabase:', err);
+      }
+    }
+
+    showToast('Grilla de horarios guardada y sincronizada.', 'success');
   }
 
   function renderStoreFechasEspeciales() {
@@ -806,7 +957,7 @@
     tbody.innerHTML = '';
     const storeCode = state.currentRole;
 
-    const list = state.fechas_especiales.filter(f => f.sucursal === storeCode);
+    const list = state.fechas_especiales.filter(f => f.sucursal === storeCode || f.sucursal_codigo === storeCode);
     if (list.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-neutral-400 text-xs">No hay fechas especiales cargadas este mes.</td></tr>`;
       return;
@@ -831,7 +982,7 @@
     initLucideIcons();
   }
 
-  function handleAddFechaEspecial(event) {
+  async function handleAddFechaEspecial(event) {
     event.preventDefault();
     const evento = document.getElementById('fe-evento').value.trim();
     const manana = document.getElementById('fe-manana').value.trim().toUpperCase();
@@ -850,26 +1001,231 @@
     state.fechas_especiales.push(newFe);
     localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(state.fechas_especiales));
 
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      try {
+        await state.supabaseClient
+          .from('fechas_especiales')
+          .insert({
+            sucursal_codigo: state.currentRole,
+            periodo: state.currentPeriod,
+            evento: evento,
+            manana: manana,
+            tarde: tarde,
+            observacion: obs
+          });
+      } catch (err) {
+        console.warn('Error inserting fecha especial in Supabase:', err);
+      }
+    }
+
     document.getElementById('form-fecha-especial').reset();
     showToast('Fecha especial agregada al anexo.', 'success');
     renderStoreFechasEspeciales();
+    if (state.currentRole === 'ADMIN') renderAdminFechasEspeciales();
   }
 
-  function handleDeleteFechaEspecial(id) {
+  async function handleDeleteFechaEspecial(id) {
     const item = state.fechas_especiales.find(f => f.id === id);
     if (!item) return;
     state.fechas_especiales = state.fechas_especiales.filter(f => f.id !== id);
     localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(state.fechas_especiales));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      try {
+        await state.supabaseClient
+          .from('fechas_especiales')
+          .delete()
+          .eq('id', id);
+      } catch (err) {
+        console.warn('Error deleting fecha especial from Supabase:', err);
+      }
+    }
+
     renderStoreFechasEspeciales();
+    if (state.currentRole === 'ADMIN') renderAdminFechasEspeciales();
     setUndoableDelete('fecha_especial', item, 'Fecha especial eliminada.');
   }
 
-  function saveHorariosNotas() {
+  async function saveHorariosNotas() {
     const storeCode = state.currentRole;
     const txt = document.getElementById('store-horarios-notas')?.value.trim() || '';
     state.horarios_notas[storeCode] = txt;
     localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(state.horarios_notas));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      try {
+        const h = state.horarios[storeCode] || { manana: {}, tarde: {} };
+        await state.supabaseClient
+          .from('horarios_sucursal')
+          .upsert({
+            sucursal_codigo: storeCode,
+            periodo: state.currentPeriod,
+            manana: h.manana || {},
+            tarde: h.tarde || {},
+            notas: txt,
+            actualizado_por: storeCode === 'TOM' ? 'Sofi' : 'Flavia',
+            actualizado_en: new Date().toISOString()
+          }, { onConflict: 'sucursal_codigo,periodo' });
+      } catch (err) {
+        console.warn('Error syncing notas to Supabase:', err);
+      }
+    }
+
     showToast('Observaciones y coberturas guardadas.', 'success');
+  }
+
+  // --- SUBVISTA 2.B: BITÁCORA DE MODIFICACIONES EN TIENDA ---
+  function populateStoreModificacionSelects(storeCode) {
+    const selOrigen = document.getElementById('store-mod-colab-origen');
+    const selReemplazo = document.getElementById('store-mod-colab-reemplazo');
+    if (!selOrigen || !selReemplazo) return;
+
+    const buildOpts = () => {
+      const opts = ['<option value="">-- Seleccionar colaboradora --</option>'];
+      const localColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
+      opts.push(`<optgroup label="Equipo ${storeCode}">`);
+      localColabs.forEach(c => {
+        opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.nombre_completo})</option>`);
+      });
+      opts.push(`</optgroup>`);
+
+      const otherColabs = state.colaboradoras.filter(c => c.codigo_sucursal !== storeCode);
+      if (otherColabs.length > 0) {
+        opts.push(`<optgroup label="Colaboradoras de otra sucursal">`);
+        otherColabs.forEach(c => {
+          opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.codigo_sucursal})</option>`);
+        });
+        opts.push(`</optgroup>`);
+      }
+      return opts.join('');
+    };
+
+    const html = buildOpts();
+    selOrigen.innerHTML = html;
+    selReemplazo.innerHTML = html;
+  }
+
+  function toggleStoreModificacionForm(show) {
+    const card = document.getElementById('card-store-form-modificacion');
+    if (card) {
+      card.classList.toggle('hidden', !show);
+    }
+    if (show) {
+      const dateEl = document.getElementById('store-mod-fecha');
+      if (dateEl && !dateEl.value) {
+        dateEl.value = new Date().toISOString().split('T')[0];
+      }
+    }
+  }
+
+  async function handleSaveStoreModificacion(e) {
+    e.preventDefault();
+    const fecha = document.getElementById('store-mod-fecha')?.value;
+    const turno = document.getElementById('store-mod-turno')?.value;
+    const origId = document.getElementById('store-mod-colab-origen')?.value;
+    const repId = document.getElementById('store-mod-colab-reemplazo')?.value;
+    const motivo = document.getElementById('store-mod-motivo')?.value.trim();
+
+    if (!fecha || !turno || !origId || !repId || !motivo) {
+      showToast('Por favor completá todos los campos obligatorios.', 'error');
+      return;
+    }
+
+    const colabOrig = state.colaboradoras.find(c => c.id === origId);
+    const colabRep = state.colaboradoras.find(c => c.id === repId);
+    const storeCode = state.currentRole;
+    const authorName = storeCode === 'TOM' ? 'Sofi' : 'Flavia';
+
+    const newRecord = {
+      id: 'mod-' + Date.now(),
+      sucursal: storeCode,
+      periodo: state.currentPeriod,
+      fecha: fecha,
+      turno: turno,
+      colaboradora_origen_id: origId,
+      colaboradora_origen: colabOrig ? (colabOrig.alias || colabOrig.nombre_completo) : 'Colaboradora',
+      colaboradora_reemplazo_id: repId,
+      colaboradora_reemplazo: colabRep ? (colabRep.alias || colabRep.nombre_completo) : 'Reemplazo',
+      motivo: motivo,
+      creado_por: authorName,
+      creado_en: new Date().toISOString()
+    };
+
+    state.horarios_modificaciones.unshift(newRecord);
+    localStorage.setItem('nazaria_horarios_modificaciones_v2', JSON.stringify(state.horarios_modificaciones));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      try {
+        await state.supabaseClient
+          .from('horarios_modificaciones')
+          .insert({
+            sucursal_codigo: storeCode,
+            periodo: state.currentPeriod,
+            fecha: fecha,
+            turno: turno,
+            colaboradora_origen: newRecord.colaboradora_origen,
+            colaboradora_reemplazo: newRecord.colaboradora_reemplazo,
+            motivo: motivo,
+            creado_por: authorName
+          });
+      } catch (err) {
+        console.warn('Error saving modificacion to Supabase:', err);
+      }
+    }
+
+    document.getElementById('store-mod-motivo').value = '';
+    toggleStoreModificacionForm(false);
+    renderStoreModificaciones();
+    showToast('Modificación registrada y notificada a Administración.', 'success');
+  }
+
+  function renderStoreModificaciones() {
+    const tbody = document.getElementById('tbody-store-modificaciones');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const storeCode = state.currentRole;
+
+    const list = state.horarios_modificaciones.filter(m => m.sucursal === storeCode || m.sucursal_codigo === storeCode);
+    list.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-neutral-400 text-xs">No hay modificaciones ni cambios de turno registrados en este local.</td></tr>`;
+      return;
+    }
+
+    list.forEach(m => {
+      const colabOrig = state.colaboradoras.find(c => c.id === m.colaboradora_origen_id);
+      const colabRep = state.colaboradoras.find(c => c.id === m.colaboradora_reemplazo_id);
+      const origName = colabOrig ? (colabOrig.alias || colabOrig.nombre_completo) : (m.colaboradora_origen || '-');
+      const repName = colabRep ? (colabRep.alias || colabRep.nombre_completo) : (m.colaboradora_reemplazo || '-');
+
+      const turnoBadge = m.turno === 'Mañana' 
+        ? 'bg-amber-100 text-amber-900 border border-amber-200'
+        : m.turno === 'Tarde'
+        ? 'bg-indigo-50 text-indigo-800 border border-indigo-200'
+        : 'bg-neutral-100 text-neutral-800 border border-neutral-200';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="font-mono text-xs text-neutral-700">${formatDateShort(m.fecha)}</td>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${turnoBadge}">${m.turno}</span></td>
+        <td class="font-bold text-xs text-neutral-900">${origName}</td>
+        <td class="font-bold text-xs text-neutral-900 flex items-center gap-1.5 pt-3">
+          <span class="text-neutral-400">→</span>
+          <span class="bg-[#E6D5C3]/40 border border-[#E6D5C3] px-2 py-0.5 rounded text-neutral-900">${repName}</span>
+        </td>
+        <td class="text-xs text-neutral-700 max-w-[240px] truncate" title="${m.motivo || ''}">${m.motivo || '-'}</td>
+        <td><span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-neutral-100 text-neutral-700">${m.creado_por || 'Encargada'}</span></td>
+        <td class="text-right">
+          <button onclick="window.app.handleDeleteModificacion('${m.id}')" class="text-neutral-400 hover:text-red-600 p-1" title="Eliminar registro">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    initLucideIcons();
   }
 
   // --- SUBVISTA 3: NOVEDADES & FALTAS (Ordenado por Fecha y Colaboradora - Punto 3) ---
@@ -1208,7 +1564,7 @@
 
   function switchAdminTab(tab) {
     state.activeAdminTab = tab;
-    const tabs = ['consolidado', 'vacaciones', 'novedades', 'retiros', 'colaboradoras'];
+    const tabs = ['consolidado', 'horarios', 'vacaciones', 'novedades', 'retiros', 'colaboradoras'];
     tabs.forEach(t => {
       const btn = document.getElementById(`tab-admin-${t}`);
       const view = document.getElementById(`subview-admin-${t}`);
@@ -1222,6 +1578,7 @@
     });
 
     if (tab === 'consolidado') renderAdminConsolidado();
+    if (tab === 'horarios') renderAdminHorarios();
     if (tab === 'vacaciones') renderAdminVacaciones();
     if (tab === 'novedades') renderAdminNovedades();
     if (tab === 'retiros') renderAdminRetiros();
@@ -1387,7 +1744,302 @@
     showToast('Planilla de horas consolidada y guardada.', 'success');
   }
 
-  // --- ADMIN 2: VACACIONES LCT (Sábana de 7 columnas sin scroll horizontal) ---
+  // --- ADMIN 2: HORARIOS Y BITÁCORA DE TURNOS POR SUCURSAL ---
+  function switchAdminHorariosStore(storeCode) {
+    state.adminSelectedHorariosStore = storeCode;
+
+    const btnTom = document.getElementById('admin-hor-btn-tom');
+    const btnMasch = document.getElementById('admin-hor-btn-masch');
+    if (btnTom && btnMasch) {
+      if (storeCode === 'TOM') {
+        btnTom.className = "px-4 py-2 rounded-lg text-xs font-bold bg-black text-white shadow-sm transition flex items-center gap-2";
+        btnMasch.className = "px-4 py-2 rounded-lg text-xs font-bold text-neutral-600 hover:text-black transition flex items-center gap-2";
+      } else {
+        btnMasch.className = "px-4 py-2 rounded-lg text-xs font-bold bg-black text-white shadow-sm transition flex items-center gap-2";
+        btnTom.className = "px-4 py-2 rounded-lg text-xs font-bold text-neutral-600 hover:text-black transition flex items-center gap-2";
+      }
+    }
+
+    const titleEl = document.getElementById('admin-hor-title');
+    if (titleEl) {
+      titleEl.innerHTML = `Grilla de Turnos Semanales · ${storeCode === 'TOM' ? 'TOM' : 'Maschwitz'}
+        <span id="admin-hor-updated-badge" class="text-[10px] font-medium bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded">Sincronizado en la nube</span>`;
+    }
+
+    populateAdminModificacionSelects(storeCode);
+    renderAdminHorarios();
+    renderAdminModificaciones();
+    renderAdminFechasEspeciales();
+    initLucideIcons();
+  }
+
+  function populateAdminModificacionSelects(storeCode) {
+    const selOrigen = document.getElementById('mod-colab-origen');
+    const selReemplazo = document.getElementById('mod-colab-reemplazo');
+    if (!selOrigen || !selReemplazo) return;
+
+    const opts = ['<option value="">-- Seleccionar colaboradora --</option>'];
+    const localColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
+    opts.push(`<optgroup label="Colaboradoras de ${storeCode}">`);
+    localColabs.forEach(c => {
+      opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.nombre_completo})</option>`);
+    });
+    opts.push(`</optgroup>`);
+
+    const otherColabs = state.colaboradoras.filter(c => c.codigo_sucursal !== storeCode);
+    if (otherColabs.length > 0) {
+      opts.push(`<optgroup label="Colaboradoras de otra sucursal">`);
+      otherColabs.forEach(c => {
+        opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.codigo_sucursal})</option>`);
+      });
+      opts.push(`</optgroup>`);
+    }
+
+    const html = opts.join('');
+    selOrigen.innerHTML = html;
+    selReemplazo.innerHTML = html;
+  }
+
+  function renderAdminHorarios() {
+    const storeCode = state.adminSelectedHorariosStore || 'TOM';
+    const h = state.horarios[storeCode] || { manana: {}, tarde: {} };
+
+    const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    days.forEach(d => {
+      const elMan = document.getElementById(`admin-h-man-${d}`);
+      const elTar = document.getElementById(`admin-h-tar-${d}`);
+      if (elMan) elMan.value = h.manana[d] || '';
+      if (elTar) elTar.value = h.tarde[d] || '';
+    });
+
+    const notasEl = document.getElementById('admin-hor-notas');
+    if (notasEl) {
+      notasEl.value = state.horarios_notas[storeCode] || '';
+    }
+
+    populateAdminModificacionSelects(storeCode);
+    renderAdminModificaciones();
+    renderAdminFechasEspeciales();
+  }
+
+  async function saveAdminHorarios() {
+    const storeCode = state.adminSelectedHorariosStore || 'TOM';
+    const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    const manana = {};
+    const tarde = {};
+
+    days.forEach(d => {
+      manana[d] = document.getElementById(`admin-h-man-${d}`)?.value.trim().toUpperCase() || '';
+      tarde[d] = document.getElementById(`admin-h-tar-${d}`)?.value.trim().toUpperCase() || '';
+    });
+
+    const notas = document.getElementById('admin-hor-notas')?.value.trim() || '';
+
+    state.horarios[storeCode] = { manana, tarde };
+    state.horarios_notas[storeCode] = notas;
+
+    localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
+    localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(state.horarios_notas));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      try {
+        await state.supabaseClient
+          .from('horarios_sucursal')
+          .upsert({
+            sucursal_codigo: storeCode,
+            periodo: state.currentPeriod,
+            manana: manana,
+            tarde: tarde,
+            notas: notas,
+            actualizado_por: 'Juan (Admin)',
+            actualizado_en: new Date().toISOString()
+          }, { onConflict: 'sucursal_codigo,periodo' });
+      } catch (err) {
+        console.warn('Error saving admin horarios to Supabase:', err);
+      }
+    }
+
+    showToast(`Horarios y directivas de ${storeCode} guardados exitosamente.`, 'success');
+  }
+
+  function toggleModificacionForm(show) {
+    const card = document.getElementById('card-form-modificacion');
+    if (card) {
+      card.classList.toggle('hidden', !show);
+    }
+    if (show) {
+      const dateEl = document.getElementById('mod-fecha');
+      if (dateEl && !dateEl.value) {
+        dateEl.value = new Date().toISOString().split('T')[0];
+      }
+    }
+  }
+
+  async function handleSaveModificacion(e) {
+    e.preventDefault();
+    const fecha = document.getElementById('mod-fecha')?.value;
+    const turno = document.getElementById('mod-turno')?.value;
+    const origId = document.getElementById('mod-colab-origen')?.value;
+    const repId = document.getElementById('mod-colab-reemplazo')?.value;
+    const motivo = document.getElementById('mod-motivo')?.value.trim();
+
+    if (!fecha || !turno || !origId || !repId || !motivo) {
+      showToast('Por favor completá todos los campos obligatorios.', 'error');
+      return;
+    }
+
+    const colabOrig = state.colaboradoras.find(c => c.id === origId);
+    const colabRep = state.colaboradoras.find(c => c.id === repId);
+    const storeCode = state.adminSelectedHorariosStore || 'TOM';
+
+    const newRecord = {
+      id: 'mod-' + Date.now(),
+      sucursal: storeCode,
+      periodo: state.currentPeriod,
+      fecha: fecha,
+      turno: turno,
+      colaboradora_origen_id: origId,
+      colaboradora_origen: colabOrig ? (colabOrig.alias || colabOrig.nombre_completo) : 'Colaboradora',
+      colaboradora_reemplazo_id: repId,
+      colaboradora_reemplazo: colabRep ? (colabRep.alias || colabRep.nombre_completo) : 'Reemplazo',
+      motivo: motivo,
+      creado_por: 'Juan (Admin)',
+      creado_en: new Date().toISOString()
+    };
+
+    state.horarios_modificaciones.unshift(newRecord);
+    localStorage.setItem('nazaria_horarios_modificaciones_v2', JSON.stringify(state.horarios_modificaciones));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      try {
+        await state.supabaseClient
+          .from('horarios_modificaciones')
+          .insert({
+            sucursal_codigo: storeCode,
+            periodo: state.currentPeriod,
+            fecha: fecha,
+            turno: turno,
+            colaboradora_origen: newRecord.colaboradora_origen,
+            colaboradora_reemplazo: newRecord.colaboradora_reemplazo,
+            motivo: motivo,
+            creado_por: 'Juan (Admin)'
+          });
+      } catch (err) {
+        console.warn('Error saving admin modificacion to Supabase:', err);
+      }
+    }
+
+    document.getElementById('mod-motivo').value = '';
+    toggleModificacionForm(false);
+    renderAdminModificaciones();
+    renderStoreModificaciones();
+    showToast('Cambio de turno registrado en la bitácora.', 'success');
+  }
+
+  async function handleDeleteModificacion(id) {
+    const item = state.horarios_modificaciones.find(m => m.id === id);
+    if (!item) return;
+
+    state.horarios_modificaciones = state.horarios_modificaciones.filter(m => m.id !== id);
+    localStorage.setItem('nazaria_horarios_modificaciones_v2', JSON.stringify(state.horarios_modificaciones));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      try {
+        await state.supabaseClient
+          .from('horarios_modificaciones')
+          .delete()
+          .eq('id', id);
+      } catch (err) {
+        console.warn('Error deleting modificacion from Supabase:', err);
+      }
+    }
+
+    renderAdminModificaciones();
+    renderStoreModificaciones();
+    setUndoableDelete('horario_modificacion', item, 'Modificación eliminada.');
+  }
+
+  function renderAdminModificaciones() {
+    const tbody = document.getElementById('tbody-admin-modificaciones');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const storeCode = state.adminSelectedHorariosStore || 'TOM';
+
+    const list = state.horarios_modificaciones.filter(m => m.sucursal === storeCode || m.sucursal_codigo === storeCode);
+    list.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-neutral-400 text-xs">No hay modificaciones ni cambios de turno asentados para ${storeCode}.</td></tr>`;
+      return;
+    }
+
+    list.forEach(m => {
+      const colabOrig = state.colaboradoras.find(c => c.id === m.colaboradora_origen_id);
+      const colabRep = state.colaboradoras.find(c => c.id === m.colaboradora_reemplazo_id);
+      const origName = colabOrig ? (colabOrig.alias || colabOrig.nombre_completo) : (m.colaboradora_origen || '-');
+      const repName = colabRep ? (colabRep.alias || colabRep.nombre_completo) : (m.colaboradora_reemplazo || '-');
+
+      const turnoBadge = m.turno === 'Mañana' 
+        ? 'bg-amber-100 text-amber-900 border border-amber-200'
+        : m.turno === 'Tarde'
+        ? 'bg-indigo-50 text-indigo-800 border border-indigo-200'
+        : 'bg-neutral-100 text-neutral-800 border border-neutral-200';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="font-mono text-xs text-neutral-700">${formatDateShort(m.fecha)}</td>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${turnoBadge}">${m.turno}</span></td>
+        <td class="font-bold text-xs text-neutral-900">${origName}</td>
+        <td class="font-bold text-xs text-neutral-900 flex items-center gap-1.5 pt-3">
+          <span class="text-neutral-400">→</span>
+          <span class="bg-[#E6D5C3]/40 border border-[#E6D5C3] px-2 py-0.5 rounded text-neutral-900">${repName}</span>
+        </td>
+        <td class="text-xs text-neutral-700 max-w-[240px] truncate" title="${m.motivo || ''}">${m.motivo || '-'}</td>
+        <td><span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-neutral-100 text-neutral-700">${m.creado_por || 'Encargada'}</span></td>
+        <td class="text-right">
+          <button onclick="window.app.handleDeleteModificacion('${m.id}')" class="text-neutral-400 hover:text-red-600 p-1" title="Eliminar registro">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    initLucideIcons();
+  }
+
+  function renderAdminFechasEspeciales() {
+    const tbody = document.getElementById('tbody-admin-fechas-especiales');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const storeCode = state.adminSelectedHorariosStore || 'TOM';
+
+    const list = state.fechas_especiales.filter(f => f.sucursal === storeCode || f.sucursal_codigo === storeCode);
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-neutral-400 text-xs">No hay fechas especiales cargadas para ${storeCode}.</td></tr>`;
+      return;
+    }
+
+    list.forEach(f => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="font-bold text-xs text-neutral-900">${f.fecha_evento}</td>
+        <td class="font-mono text-xs uppercase">${f.manana}</td>
+        <td class="font-mono text-xs uppercase">${f.tarde}</td>
+        <td class="text-xs text-neutral-600">${f.observacion || '-'}</td>
+        <td class="text-right">
+          <button onclick="window.app.handleDeleteFechaEspecial('${f.id}')" class="text-neutral-400 hover:text-red-600 p-1" title="Eliminar">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    initLucideIcons();
+  }
+
+  // --- ADMIN 3: VACACIONES LCT (Sábana de 7 columnas sin scroll horizontal) ---
   function renderAdminVacaciones() {
     const tbody = document.getElementById('tbody-admin-vacaciones');
     tbody.innerHTML = '';
@@ -2273,6 +2925,17 @@
       state.fechas_especiales.push(data);
       localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(state.fechas_especiales));
       renderStoreFechasEspeciales();
+      if (state.currentRole === 'ADMIN') renderAdminFechasEspeciales();
+    } else if (type === 'horario_modificacion') {
+      state.horarios_modificaciones.unshift(data);
+      localStorage.setItem('nazaria_horarios_modificaciones_v2', JSON.stringify(state.horarios_modificaciones));
+      if (state.supabaseClient && state.isSupabaseConnected) {
+        try {
+          state.supabaseClient.from('horarios_modificaciones').insert(data);
+        } catch (e) {}
+      }
+      renderStoreModificaciones();
+      renderAdminModificaciones();
     }
 
     lastDeletedItem = null;
@@ -2281,7 +2944,7 @@
 
   function setDefaultDates() {
     const today = new Date().toISOString().split('T')[0];
-    const inputs = ['ret-fecha', 'hd-fecha', 'nov-fecha-inicio', 'nov-fecha-fin', 'vac-desde', 'vac-hasta'];
+    const inputs = ['ret-fecha', 'hd-fecha', 'nov-fecha-inicio', 'nov-fecha-fin', 'vac-desde', 'vac-hasta', 'mod-fecha', 'store-mod-fecha'];
     inputs.forEach(id => {
       const el = document.getElementById(id);
       if (el && !el.value) el.value = today;
@@ -2333,6 +2996,13 @@
     changePeriod,
     switchStoreTab,
     switchAdminTab,
+    switchAdminHorariosStore,
+    saveAdminHorarios,
+    toggleModificacionForm,
+    handleSaveModificacion,
+    toggleStoreModificacionForm,
+    handleSaveStoreModificacion,
+    handleDeleteModificacion,
     saveAllHorasStore,
     recalcRowTotal,
     handleAddHoraDetalle,
