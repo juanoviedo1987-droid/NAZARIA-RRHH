@@ -117,46 +117,24 @@
     }
   ];
 
-  // --- 2. DATOS REALES DE HORAS Y CIERRES ---
+  // --- 2. PLANILLA DE HORAS Y CIERRES MENSUALES (INICIO TRACKING: SEPTIEMBRE 2026) ---
   const DEFAULT_CIERRES = {
-    // TOM (Octubre 2026)
-    '2026-10_c-sofi': { horas_base: 144, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-10_c-esme': { horas_base: 160, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-10_c-martu': { horas_base: 48, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre 22hs en Maschwitz' },
-    '2026-10_c-anto': { horas_base: 96, feriados_hs: 0, extras_hs: 0, adicionales_hs: 18, detalle_cobertura: 'Guardia + Cobertura Maschwitz' },
-    '2026-10_c-cande': { horas_base: 96, feriados_hs: 6, extras_hs: 0, adicionales_hs: 6, detalle_cobertura: 'Cubre a Martu por vacaciones' },
+    // TOM (Septiembre 2026)
+    '2026-09_c-sofi': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-esme': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-martu': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-cande': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-anto': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
     
-    // MASCHWITZ (Octubre 2026)
-    '2026-10_c-cami': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Vacaciones del 09 al 13' },
-    '2026-10_c-juli': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-10_c-flavia': { horas_base: 120, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami; Licencia Médica 48hs' },
-    '2026-10_c-martu_masch': { horas_base: 22, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami y Flavia en Maschwitz' },
-
-    // TOM (Agosto 2026)
-    '2026-08_c-sofi': { horas_base: 144, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-08_c-esme': { horas_base: 160, feriados_hs: 6, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-08_c-martu': { horas_base: 48, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre 22hs en Maschwitz' },
-    '2026-08_c-anto': { horas_base: 96, feriados_hs: 0, extras_hs: 0, adicionales_hs: 18, detalle_cobertura: 'Guardia + Cobertura Maschwitz 10/8' },
-    '2026-08_c-cande': { horas_base: 96, feriados_hs: 6, extras_hs: 0, adicionales_hs: 6, detalle_cobertura: 'Cubre a Martu por vacaciones 09/08' },
-    
-    // MASCHWITZ (Agosto 2026)
-    '2026-08_c-cami': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Vacaciones del 09/08 al 13/08' },
-    '2026-08_c-juli': { horas_base: 88, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-08_c-flavia': { horas_base: 120, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami 9/8; Ausente 29/8' },
-    '2026-08_c-martu_masch': { horas_base: 22, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre a Cami y Flavia en Maschwitz' }
+    // MASCHWITZ (Septiembre 2026)
+    '2026-09_c-flavia': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-juli': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-cami': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: '' },
+    '2026-09_c-martu_masch': { horas_base: 0, feriados_hs: 0, extras_hs: 0, adicionales_hs: 0, detalle_cobertura: 'Cubre en Maschwitz' }
   };
 
-  // --- DETALLE INDIVIDUAL DE HORAS EXTRAS Y ADICIONALES (Punto 1) ---
-  const DEFAULT_HORAS_DETALLE = [
-    { id: 'hd-1', colaboradora_id: 'c-anto', sucursal: 'TOM', fecha: '2026-08-04', tipo: 'Hora Adicional', horas: 6, motivo: 'Hora adicional en TOM' },
-    { id: 'hd-2', colaboradora_id: 'c-cande', sucursal: 'TOM', fecha: '2026-08-09', tipo: 'Hora Adicional', horas: 6, motivo: 'Cubre a Martu por vacaciones' },
-    { id: 'hd-3', colaboradora_id: 'c-anto', sucursal: 'TOM', fecha: '2026-08-10', tipo: 'Hora Adicional', horas: 6, motivo: 'Cobertura en Maschwitz por vacaciones Cami' },
-    { id: 'hd-4', colaboradora_id: 'c-anto', sucursal: 'TOM', fecha: '2026-08-11', tipo: 'Hora Adicional', horas: 6, motivo: 'Hora adicional en TOM' },
-    { id: 'hd-5', colaboradora_id: 'c-sofi', sucursal: 'TOM', fecha: '2026-08-17', tipo: 'Hora Extra', horas: 6, motivo: 'Feriado nacional 17 de agosto' },
-    { id: 'hd-6', colaboradora_id: 'c-esme', sucursal: 'TOM', fecha: '2026-08-17', tipo: 'Hora Extra', horas: 6, motivo: 'Feriado nacional 17 de agosto' },
-    { id: 'hd-7', colaboradora_id: 'c-cande', sucursal: 'TOM', fecha: '2026-08-17', tipo: 'Hora Extra', horas: 6, motivo: 'Feriado nacional 17 de agosto' },
-    { id: 'hd-8', colaboradora_id: 'c-anto', sucursal: 'TOM', fecha: '2026-08-30', tipo: 'Hora Adicional', horas: 6, motivo: 'Guardia especial de domingo' }
-  ];
+  // --- DETALLE INDIVIDUAL DE HORAS EXTRAS Y ADICIONALES ---
+  const DEFAULT_HORAS_DETALLE = [];
 
   // --- 3. HORARIOS SEMANALES OFICIALES (Grilla de Turnos de Excel) ---
   const DEFAULT_HORARIOS = {
@@ -171,61 +149,71 @@
   };
 
   // --- ANEXO: FECHAS ESPECIALES Y EXCEPCIONES (Punto 2) ---
-  const DEFAULT_FECHAS_ESPECIALES = [
-    { id: 'fe-1', sucursal: 'TOM', fecha_evento: '19/10 - Día de la Madre', manana: 'ESME / CANDE (10 a 16hs)', tarde: 'SOFI / ANTO (16 a 23hs)', observacion: 'Apertura extendida shopping' },
-    { id: 'fe-2', sucursal: 'TOM', fecha_evento: '17/08 - Feriado San Martín', manana: 'SOFI (11 a 17hs)', tarde: 'ESME / CANDE (17 a 22hs)', observacion: 'Feriado nacional trabajado' },
-    { id: 'fe-3', sucursal: 'MASCHWITZ', fecha_evento: '09/08 - Cobertura Especial', manana: 'FLAVIA (10 a 16hs)', tarde: 'CANDE (Cubre Martu 16 a 21hs)', observacion: 'Cobertura por vacaciones Cami' }
-  ];
+  const DEFAULT_FECHAS_ESPECIALES = [];
 
   // --- NOTAS GENERALES DE COBERTURAS DEL MES ---
   const DEFAULT_HORARIOS_NOTAS = {
-    'TOM': 'Anto de TOM cubre el 10/08 por vacaciones de Cami en Maschwitz. Cande cubre a Martu el 09/08.',
-    'MASCHWITZ': 'Cami se toma vacaciones pendientes del 09/08 al 13/08. Cande de TOM cubre a Martu por vacaciones el día 09/08. Flavia cubre a Cami por vacaciones el día 09/08. Anto de TOM cubre el 10/08 por vacaciones de Cami. Martu cubre a Cami los días 11/08 y 13/08. Flavia se toma el 15/08 como franco, cubre Martu. Flavia ausente el día 29/08 (descontar el día) cubre Martu.'
+    'TOM': 'Sofi encargada turno mañana lun/mar. Martu cubre francos.',
+    'MASCHWITZ': 'Martu Pinto viene a cubrir domingos según rotación.'
   };
 
   // --- BITÁCORA DE MODIFICACIONES Y COBERTURAS (Punto 2) ---
   const DEFAULT_HORARIOS_MODIFICACIONES = [
     {
-      id: 'mod-1',
-      sucursal: 'TOM',
-      periodo: '2026-10',
-      fecha: '2026-10-09',
+      id: 'f2805d63-5355-4452-9553-e50e8c436757',
+      sucursal: 'MASCHWITZ',
+      periodo: '2026-09',
+      fecha: '2026-09-14',
       turno: 'Mañana',
-      colaboradora_origen_id: 'c-martu',
-      colaboradora_origen: 'Martu Pinto',
-      colaboradora_reemplazo_id: 'c-cande',
-      colaboradora_reemplazo: 'Candela Almiron',
-      motivo: 'Cande cubre a Martu por examen de facultad',
-      creado_por: 'Sofi',
-      creado_en: '2026-10-09T08:30:00Z'
-    },
-    {
-      id: 'mod-2',
-      sucursal: 'MASCHWITZ',
-      periodo: '2026-10',
-      fecha: '2026-10-15',
-      turno: 'Tarde',
-      colaboradora_origen_id: 'c-flavia',
-      colaboradora_origen: 'Flavia Gómez',
-      colaboradora_reemplazo_id: 'c-martu',
-      colaboradora_reemplazo: 'Martina Pinto (TOM)',
-      motivo: 'Franco compensatorio de Flavia. Cobertura intersucursal de Martu',
+      colaboradora_origen_id: 'Juli Vera',
+      colaboradora_origen: 'Juli Vera',
+      colaboradora_reemplazo_id: 'Martu P.',
+      colaboradora_reemplazo: 'Martu P.',
+      motivo: 'vacaciones pendientes verano 2025',
       creado_por: 'Flavia',
-      creado_en: '2026-10-15T09:00:00Z'
+      creado_en: '2026-09-24T14:14:17.201768+00:00'
     },
     {
-      id: 'mod-3',
+      id: 'd7ea6053-51bf-4981-8e08-7be287210cc0',
       sucursal: 'MASCHWITZ',
-      periodo: '2026-08',
-      fecha: '2026-08-09',
+      periodo: '2026-09',
+      fecha: '2026-09-16',
       turno: 'Tarde',
-      colaboradora_origen_id: 'c-martu',
-      colaboradora_origen: 'Pinto Martina',
-      colaboradora_reemplazo_id: 'c-cande',
-      colaboradora_reemplazo: 'Almiron Miranda Candela Anahi',
-      motivo: 'Cande cubre a Martu por vacaciones (TOM a Maschwitz)',
-      creado_por: 'Juan (Admin)',
-      creado_en: '2026-08-09T08:00:00Z'
+      colaboradora_origen_id: 'Juli Vera',
+      colaboradora_origen: 'Juli Vera',
+      colaboradora_reemplazo_id: 'Martu P.',
+      colaboradora_reemplazo: 'Martu P.',
+      motivo: 'vacaciones pendientes verano 2025',
+      creado_por: 'Flavia',
+      creado_en: '2026-09-24T14:14:37.241948+00:00'
+    },
+    {
+      id: '38597cc1-cd5c-4972-a655-827e104c0dae',
+      sucursal: 'MASCHWITZ',
+      periodo: '2026-09',
+      fecha: '2026-09-18',
+      turno: 'Tarde',
+      colaboradora_origen_id: 'Juli Vera',
+      colaboradora_origen: 'Juli Vera',
+      colaboradora_reemplazo_id: 'Martu P.',
+      colaboradora_reemplazo: 'Martu P.',
+      motivo: 'vacaciones pendientes verano 2025',
+      creado_por: 'Flavia',
+      creado_en: '2026-09-24T14:14:54.967738+00:00'
+    },
+    {
+      id: 'afbf6043-e5a7-40ed-bdef-295e822a61aa',
+      sucursal: 'MASCHWITZ',
+      periodo: '2026-09',
+      fecha: '2026-09-19',
+      turno: 'Tarde',
+      colaboradora_origen_id: 'Juli Vera',
+      colaboradora_origen: 'Juli Vera',
+      colaboradora_reemplazo_id: 'Martu P.',
+      colaboradora_reemplazo: 'Martu P.',
+      motivo: 'vacaciones pendientes verano 2025',
+      creado_por: 'Flavia',
+      creado_en: '2026-09-24T14:18:04.469453+00:00'
     }
   ];
 
@@ -233,58 +221,17 @@
   const SAMPLE_CERT_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="780" viewBox="0 0 600 780" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;"><rect width="600" height="780" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/><rect x="25" y="25" width="550" height="730" fill="#fcfcfc" stroke="#e2e8f0" stroke-width="1.5" rx="8"/><rect x="25" y="25" width="550" height="90" fill="#f8fafc" rx="8"/><text x="50" y="65" font-size="16" font-weight="bold" fill="#0f172a">CENTRO MÉDICO PILAR</text><text x="50" y="85" font-size="11" fill="#64748b">Medicina Laboral y Guardia 24hs · Av. Tratado del Pilar 450</text><line x1="45" y1="115" x2="555" y2="115" stroke="#0f172a" stroke-width="2"/><text x="300" y="165" font-size="20" font-weight="bold" text-anchor="middle" fill="#0f172a">CERTIFICADO MÉDICO</text><text x="50" y="220" font-size="13" fill="#475569">Fecha de emisión: 14 de Octubre de 2026</text><text x="50" y="255" font-size="13" fill="#1e293b">Por la presente certifico que he examinado a la colaboradora:</text><rect x="45" y="275" width="510" height="40" fill="#f1f5f9" rx="4"/><text x="60" y="300" font-size="15" font-weight="bold" fill="#0f172a">GÓMEZ FLAVIA MARIANELA (DNI 32.826.228)</text><text x="50" y="355" font-size="13" fill="#334155">Diagnóstico clínico presuntivo:</text><text x="50" y="380" font-size="15" font-weight="bold" fill="#b91c1c">FARINGOAMIGDALITIS AGUDA CON REGISTRO FEBRIL</text><text x="50" y="435" font-size="13" fill="#334155">Indicación médica:</text><text x="50" y="460" font-size="14" font-weight="bold" fill="#0f172a">REPOSO LABORAL POR 48 HORAS (14/10/2026 al 16/10/2026).</text><text x="50" y="485" font-size="12" fill="#64748b">Pudiendo reintegrarse a sus tareas el día 17 de Octubre de 2026.</text><g transform="translate(330, 580)"><path d="M 20 40 Q 60 5 110 35 T 190 25" stroke="#1d4ed8" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="15" y="45" width="200" height="65" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="3 3" rx="4"/><text x="115" y="65" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a8a">DRA. MARIANA S. CASTILLO</text><text x="115" y="80" font-size="10" text-anchor="middle" fill="#334155">Médica Clínica - M.N. 148.922</text><text x="115" y="95" font-size="9" text-anchor="middle" fill="#64748b">Esp. en Medicina del Trabajo</text></g></svg>');
 
   // --- 4. RETIROS DE CALZADO Y PAR DE TEMPORADA ---
-  const DEFAULT_RETIROS = [
-    // Retiros Octubre 2026
-    { id: 'ret-oct-1', colaboradora_id: 'c-sofi', sucursal: 'TOM', tipo: 'Retiro', articulo: 'N1400', talle_color: 'NEGRO GAM 40', fecha: '2026-10-05' },
-    { id: 'ret-oct-2', colaboradora_id: 'c-flavia', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'FPRAGA', talle_color: '36 BEIGE', fecha: '2026-10-12' },
-    { id: 'ret-oct-3', colaboradora_id: 'c-cande', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F700', talle_color: 'NEGRO PU 35', fecha: '2026-10-01' },
-    { id: 'ret-oct-4', colaboradora_id: 'c-cami', sucursal: 'MASCHWITZ', tipo: 'Par de Temporada', articulo: 'F725', talle_color: '39 BEIGE', fecha: '2026-10-02' },
-
-    // Retiros Agosto 2026 TOM
-    { id: 'ret-1', colaboradora_id: 'c-cande', sucursal: 'TOM', tipo: 'Retiro', articulo: 'N22/L', talle_color: 'NEGRO 35', fecha: '2026-08-10' },
-    { id: 'ret-2', colaboradora_id: 'c-sofi', sucursal: 'TOM', tipo: 'Retiro', articulo: 'N1400', talle_color: 'NEGRO GAM 40', fecha: '2026-08-15' },
-    // Retiros Agosto 2026 Maschwitz
-    { id: 'ret-3', colaboradora_id: 'c-cami', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'FPRAGA', talle_color: '39 BEIGE', fecha: '2026-08-02' },
-    { id: 'ret-4', colaboradora_id: 'c-flavia', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'F725', talle_color: '35 NEGR', fecha: '2026-08-08' },
-    { id: 'ret-5', colaboradora_id: 'c-flavia', sucursal: 'MASCHWITZ', tipo: 'Retiro', articulo: 'ULMELODY', talle_color: '36 HIELO', fecha: '2026-08-28' },
-    // Pares de Temporada Agosto 2026
-    { id: 'ret-6', colaboradora_id: 'c-sofi', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F700', talle_color: 'NEGRO PU 40', fecha: '2026-08-01' },
-    { id: 'ret-7', colaboradora_id: 'c-esme', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F490', talle_color: 'NEGRO PU 38', fecha: '2026-08-01' },
-    { id: 'ret-8', colaboradora_id: 'c-anto', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F700', talle_color: 'NEGRO PU 38', fecha: '2026-08-01' },
-    { id: 'ret-9', colaboradora_id: 'c-cande', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F700', talle_color: 'NEGRO GAM 35', fecha: '2026-08-01' },
-    { id: 'ret-10', colaboradora_id: 'c-martu', sucursal: 'TOM', tipo: 'Par de Temporada', articulo: 'F725', talle_color: 'NEGRO PU 36', fecha: '2026-08-01' }
-  ];
+  const DEFAULT_RETIROS = [];
 
   // --- 5. NOVEDADES, FALTAS Y TRAMOS DE VACACIONES ---
-  const DEFAULT_NOVEDADES = [
-    // Novedades Octubre 2026 (con certificado médico auditable)
-    { id: 'nov-oct-1', colaboradora_id: 'c-flavia', codigo_sucursal: 'MASCHWITZ', tipo: 'Licencia Médica', fecha_inicio: '2026-10-14', fecha_fin: '2026-10-16', dias_computados: 2, certificado_url: SAMPLE_CERT_SVG, observaciones: 'Faringoamigdalitis aguda con reposo 48hs indicado por guardia médica (Dra. Castillo M.N. 148.922)', creado_en: '2026-10-14T10:30:00Z' },
-    { id: 'nov-oct-2', colaboradora_id: 'c-esme', codigo_sucursal: 'TOM', tipo: 'Día de Estudio', fecha_inicio: '2026-10-20', fecha_fin: '2026-10-20', dias_computados: 1, certificado_url: '', observaciones: 'Examen final universitario de Comercialización', creado_en: '2026-10-20T09:00:00Z' },
-
-    // Novedades Agosto 2026
-    { id: 'nov-1', colaboradora_id: 'c-esme', codigo_sucursal: 'TOM', tipo: 'Día de Estudio', fecha_inicio: '2026-08-28', fecha_fin: '2026-08-28', dias_computados: 1, certificado_url: '', observaciones: 'Día de estudio para examen universitario', creado_en: '2026-08-28T09:00:00Z' },
-    { id: 'nov-2', colaboradora_id: 'c-anto', codigo_sucursal: 'TOM', tipo: 'Guardia', fecha_inicio: '2026-08-30', fecha_fin: '2026-08-30', dias_computados: 1, certificado_url: '', observaciones: 'Guardia especial de tienda', creado_en: '2026-08-30T10:00:00Z' },
-    { id: 'nov-3', colaboradora_id: 'c-anto', codigo_sucursal: 'TOM', tipo: 'Cobertura Adicional', fecha_inicio: '2026-08-10', fecha_fin: '2026-08-10', dias_computados: 1, certificado_url: '', observaciones: 'Cubre en Maschwitz por vacaciones de Cami (6 hs adicionales)', creado_en: '2026-08-10T09:00:00Z' },
-    { id: 'nov-4', colaboradora_id: 'c-cande', codigo_sucursal: 'TOM', tipo: 'Cobertura Adicional', fecha_inicio: '2026-08-09', fecha_fin: '2026-08-09', dias_computados: 1, certificado_url: '', observaciones: 'Cubre a Martu por vacaciones (6 hs adicionales)', creado_en: '2026-08-09T09:00:00Z' },
-    { id: 'nov-5', colaboradora_id: 'c-cami', codigo_sucursal: 'MASCHWITZ', tipo: 'Vacaciones', fecha_inicio: '2026-08-09', fecha_fin: '2026-08-13', dias_computados: 5, certificado_url: '', observaciones: 'Vacaciones pendientes tomadas del 09/08 al 13/08 (restan 0)', creado_en: '2026-08-09T08:00:00Z' },
-    { id: 'nov-6', colaboradora_id: 'c-flavia', codigo_sucursal: 'MASCHWITZ', tipo: 'Franco Compensatorio', fecha_inicio: '2026-08-15', fecha_fin: '2026-08-15', dias_computados: 1, certificado_url: '', observaciones: 'Franco tomado el 15/08, cubre Martu', creado_en: '2026-08-15T09:00:00Z' },
-    { id: 'nov-7', colaboradora_id: 'c-flavia', codigo_sucursal: 'MASCHWITZ', tipo: 'Falta Injustificada', fecha_inicio: '2026-08-29', fecha_fin: '2026-08-29', dias_computados: 1, certificado_url: '', observaciones: 'Ausente el 29/08 (descontar día), cubre Martu', creado_en: '2026-08-29T09:00:00Z' },
-    // Tramos de Vacaciones TOM
-    { id: 'nov-8', colaboradora_id: 'c-sofi', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-09-24', fecha_fin: '2026-10-01', dias_computados: 8, certificado_url: '', observaciones: 'Tramo 1: 24 sep al 1 oct (8 días)', creado_en: '2026-09-24T09:00:00Z' },
-    { id: 'nov-9', colaboradora_id: 'c-sofi', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-03-19', fecha_fin: '2026-03-24', dias_computados: 6, certificado_url: '', observaciones: 'Tramo 2: 19 al 24 de marzo (6 días) -> Total 14d', creado_en: '2026-03-19T09:00:00Z' },
-    { id: 'nov-10', colaboradora_id: 'c-esme', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-09-24', fecha_fin: '2026-10-01', dias_computados: 8, certificado_url: '', observaciones: 'Tramo 1: 24 sep al 1 oct (8 días)', creado_en: '2026-09-24T09:00:00Z' },
-    { id: 'nov-11', colaboradora_id: 'c-esme', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-02-12', fecha_fin: '2026-02-19', dias_computados: 8, certificado_url: '', observaciones: 'Tramo 2: 12 al 19 feb (8 días) -> Total 16d', creado_en: '2026-02-12T09:00:00Z' },
-    { id: 'nov-12', colaboradora_id: 'c-martu', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-09-24', fecha_fin: '2026-10-01', dias_computados: 3, certificado_url: '', observaciones: 'Tramo 1: 24 sep al 1 oct (3 días)', creado_en: '2026-09-24T09:00:00Z' },
-    { id: 'nov-13', colaboradora_id: 'c-martu', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-02-04', fecha_fin: '2026-02-09', dias_computados: 7, certificado_url: '', observaciones: 'Tramo 2: 4 al 9 feb (7 días)', creado_en: '2026-02-04T09:00:00Z' },
-    { id: 'nov-14', colaboradora_id: 'c-martu', codigo_sucursal: 'TOM', tipo: 'Vacaciones', fecha_inicio: '2026-08-04', fecha_fin: '2026-08-05', dias_computados: 2, certificado_url: '', observaciones: 'Tramo 3: 4 y 5 de agosto (2 días) -> Total 12d', creado_en: '2026-08-04T09:00:00Z' }
-  ];
+  const DEFAULT_NOVEDADES = [];
 
   // --- ESTADO GLOBAL ---
   const state = {
     supabaseClient: null,
     isSupabaseConnected: false,
     currentRole: null,          // 'TOM' | 'MASCHWITZ' | 'ADMIN'
-    currentPeriod: '2026-10',   // YYYY-MM
+    currentPeriod: '2026-09',   // YYYY-MM
     activeStoreTab: 'horas',    // 'horas' | 'horarios' | 'novedades' | 'retiros' | 'vacaciones'
     activeAdminTab: 'consolidado', // 'consolidado' | 'horarios' | 'vacaciones' | 'retiros' | 'novedades' | 'colaboradoras'
     adminSelectedHorariosStore: 'TOM', // 'TOM' | 'MASCHWITZ'
@@ -310,6 +257,7 @@
   function init() {
     initLucideIcons();
     initStorageData();
+    renderPeriodSelectors();
     initSupabase();
     setupDropzone();
     restoreSession();
@@ -323,7 +271,7 @@
 
   function initStorageData() {
     // Inicializar o recargar datos con versión para migración limpia
-    const DATA_VERSION = 'v8';
+    const DATA_VERSION = 'v9';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
@@ -568,14 +516,62 @@
     showToast('Sesión finalizada.', 'info');
   }
 
+  // --- GESTIÓN DINÁMICA DE PERÍODOS (INICIO SEPTIEMBRE 2026) ---
+  const SYSTEM_START_PERIOD = '2026-09';
+
+  function getAvailablePeriods() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1 a 12
+    const [startYear, startMonth] = SYSTEM_START_PERIOD.split('-').map(Number);
+    const totalStart = startYear * 12 + startMonth;
+    const totalCurrent = Math.max(totalStart, currentYear * 12 + currentMonth);
+    const periods = [];
+    for (let t = totalCurrent; t >= totalStart; t--) {
+      const y = Math.floor((t - 1) / 12);
+      const m = ((t - 1) % 12) + 1;
+      periods.push(`${y}-${String(m).padStart(2, '0')}`);
+    }
+    return periods;
+  }
+
+  function formatPeriodLabel(period) {
+    const [y, m] = period.split('-').map(Number);
+    const months = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    return `${months[m - 1]} ${y}`;
+  }
+
+  function renderPeriodSelectors() {
+    const available = getAvailablePeriods();
+    if (!available.includes(state.currentPeriod)) {
+      state.currentPeriod = available[0];
+    }
+    ['select-store-period', 'select-admin-period'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = available
+        .map(p => `<option value="${p}">${formatPeriodLabel(p)}</option>`)
+        .join('');
+      el.value = state.currentPeriod;
+    });
+  }
+
   function changePeriod(newPeriod) {
+    const available = getAvailablePeriods();
+    if (!available.includes(newPeriod)) {
+      showToast('Período no disponible aún.', 'error');
+      return;
+    }
     state.currentPeriod = newPeriod;
     const s1 = document.getElementById('select-store-period');
     const s2 = document.getElementById('select-admin-period');
     if (s1) s1.value = newPeriod;
     if (s2) s2.value = newPeriod;
     renderCurrentView();
-    showToast(`Período actualizado a ${newPeriod}`, 'info');
+    showToast(`Período actualizado a ${formatPeriodLabel(newPeriod)}`, 'info');
   }
 
   // ============================================================================
@@ -633,7 +629,7 @@
     const storeTitle = document.getElementById('store-title');
     storeTitle.textContent = storeCode === 'TOM' ? 'Tortugas Open Mall (TOM)' : 'Maschwitz Mall';
 
-    document.getElementById('select-store-period').value = state.currentPeriod;
+    renderPeriodSelectors();
 
     // Poblar selects de colaboradoras para todos los formularios
     populateStoreColaboradorasSelects(storeCode);
@@ -1557,7 +1553,7 @@
   // PANEL DE ADMINISTRACIÓN (ADMIN VIEW)
   // ============================================================================
   function renderAdminView() {
-    document.getElementById('select-admin-period').value = state.currentPeriod;
+    renderPeriodSelectors();
     updateAdminKPIs();
     switchAdminTab(state.activeAdminTab);
   }
