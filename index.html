@@ -479,6 +479,88 @@
 
         </div>
 
+        <!-- Bitácora de Modificaciones y Coberturas del Local -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-neutral-200 gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold">
+                  <i data-lucide="git-branch" class="w-4 h-4"></i>
+                </div>
+                <h4 class="font-bold text-neutral-900 text-sm sm:text-base">Bitácora de Modificaciones & Coberturas</h4>
+              </div>
+              <p class="text-xs text-neutral-500 mt-1">Registrá cuando alguien cambie de turno o cubra a una compañera para informar a Administración.</p>
+            </div>
+            <button onclick="window.app.toggleStoreModificacionForm(true)" class="bg-neutral-900 hover:bg-black text-white text-xs font-bold px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+              <i data-lucide="plus" class="w-4 h-4 text-[#E6D5C3]"></i>
+              <span>+ Notificar Modificación</span>
+            </button>
+          </div>
+
+          <!-- Formulario Store Modificación -->
+          <div id="card-store-form-modificacion" class="hidden bg-[#FAF9F6] border border-neutral-200 rounded-xl p-4 transition-all">
+            <div class="flex items-center justify-between mb-3 border-b border-neutral-200 pb-2">
+              <h5 class="font-bold text-xs text-neutral-900 uppercase tracking-wide">Asentar Cambio de Turno / Cobertura</h5>
+              <button onclick="window.app.toggleStoreModificacionForm(false)" class="text-xs text-neutral-400 hover:text-black font-bold cursor-pointer">✕ Cerrar</button>
+            </div>
+            <form onsubmit="window.app.handleSaveStoreModificacion(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+              <div class="sm:col-span-3">
+                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Fecha del Cambio *</label>
+                <input type="date" id="store-mod-fecha" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black font-mono">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Turno *</label>
+                <select id="store-mod-turno" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
+                  <option value="Mañana">Mañana</option>
+                  <option value="Tarde">Tarde</option>
+                  <option value="Completo">Completo</option>
+                </select>
+              </div>
+              <div class="sm:col-span-3">
+                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Titular Original *</label>
+                <select id="store-mod-colab-origen" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
+                  <!-- Llenado dinámico -->
+                </select>
+              </div>
+              <div class="sm:col-span-4">
+                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Quién Cubre / Reemplaza *</label>
+                <select id="store-mod-colab-reemplazo" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
+                  <!-- Llenado dinámico -->
+                </select>
+              </div>
+              <div class="sm:col-span-9">
+                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Motivo / Explicación del Cambio *</label>
+                <input type="text" id="store-mod-motivo" required placeholder="Ej: Examen de facultad, franco compensatorio, refuerzo por cobertura..." class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
+              </div>
+              <div class="sm:col-span-3 flex items-end">
+                <button type="submit" class="w-full bg-black hover:bg-neutral-800 text-white text-xs font-bold py-2 px-3 rounded flex items-center justify-center gap-1.5 transition cursor-pointer">
+                  <i data-lucide="check" class="w-3.5 h-3.5"></i> Guardar y Notificar
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabla Store Modificaciones -->
+          <div class="table-scroll-container">
+            <table class="w-full min-w-[700px] text-left table-sop">
+              <thead>
+                <tr>
+                  <th class="w-28">Fecha</th>
+                  <th class="w-24">Turno</th>
+                  <th>Titular Original</th>
+                  <th>Reemplazo / Cobertura</th>
+                  <th>Motivo</th>
+                  <th class="w-32">Registrado por</th>
+                  <th class="w-12"></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-store-modificaciones">
+                <!-- Inyectado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
       <!-- ===================================================================
@@ -843,21 +925,25 @@
           <i data-lucide="layout-grid" class="w-4 h-4"></i>
           <span>1. Horas a Liquidar</span>
         </button>
+        <button id="tab-admin-horarios" onclick="window.app.switchAdminTab('horarios')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
+          <i data-lucide="calendar" class="w-4 h-4"></i>
+          <span>2. Horarios y Turnos</span>
+        </button>
         <button id="tab-admin-vacaciones" onclick="window.app.switchAdminTab('vacaciones')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
           <i data-lucide="palmtree" class="w-4 h-4"></i>
-          <span>2. Vacaciones</span>
+          <span>3. Vacaciones</span>
         </button>
         <button id="tab-admin-novedades" onclick="window.app.switchAdminTab('novedades')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
           <i data-lucide="file-check" class="w-4 h-4"></i>
-          <span>3. Novedades y Faltas</span>
+          <span>4. Novedades y Faltas</span>
         </button>
         <button id="tab-admin-retiros" onclick="window.app.switchAdminTab('retiros')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
           <i data-lucide="shopping-bag" class="w-4 h-4"></i>
-          <span>4. Retiros y Temporada</span>
+          <span>5. Retiros y Temporada</span>
         </button>
         <button id="tab-admin-colaboradoras" onclick="window.app.switchAdminTab('colaboradoras')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
           <i data-lucide="users" class="w-4 h-4"></i>
-          <span>5. Padrón</span>
+          <span>6. Padrón</span>
         </button>
       </div>
 
@@ -915,7 +1001,211 @@
         </div>
       </div>
 
-      <!-- SUBVISTA ADMIN 2: VACACIONES -->
+      <!-- ===================================================================
+           SUBVISTA ADMIN 2: HORARIOS Y TURNOS DE SUCURSALES
+           =================================================================== -->
+      <div id="subview-admin-horarios" class="hidden flex flex-col gap-6">
+
+        <!-- Selector de Sucursal y Acciones de Horarios -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[11px] font-bold rounded bg-[#E6D5C3] text-neutral-900 uppercase">Control de Turnos</span>
+              <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Horarios y Modificaciones por Sucursal</h3>
+            </div>
+            <p class="text-xs text-neutral-500">Supervisión de rotaciones semanales, excepciones y bitácora de coberturas en tiempo real.</p>
+          </div>
+
+          <!-- Selector de Sucursal TOM vs Maschwitz -->
+          <div class="flex items-center gap-2 bg-[#FAF9F6] p-1.5 rounded-xl border border-neutral-200">
+            <button id="admin-hor-btn-tom" onclick="window.app.switchAdminHorariosStore('TOM')" class="px-4 py-2 rounded-lg text-xs font-bold bg-black text-white shadow-sm transition flex items-center gap-2">
+              <i data-lucide="store" class="w-3.5 h-3.5"></i>
+              <span>Tortugas Open Mall (TOM)</span>
+            </button>
+            <button id="admin-hor-btn-masch" onclick="window.app.switchAdminHorariosStore('MASCHWITZ')" class="px-4 py-2 rounded-lg text-xs font-bold text-neutral-600 hover:text-black transition flex items-center gap-2">
+              <i data-lucide="store" class="w-3.5 h-3.5"></i>
+              <span>Maschwitz Mall</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Grilla Semanal de la Sucursal Seleccionada -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-neutral-200 gap-3">
+            <div>
+              <h4 id="admin-hor-title" class="font-bold text-neutral-900 text-sm sm:text-base flex items-center gap-2">
+                Grilla de Turnos Semanales · TOM
+                <span id="admin-hor-updated-badge" class="text-[10px] font-medium bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded">Sincronizado en la nube</span>
+              </h4>
+              <p class="text-xs text-neutral-500 mt-0.5">Turnos habituales de Lunes a Domingo. Podés editar o validar directamente en pantalla.</p>
+            </div>
+            <button onclick="window.app.saveAdminHorarios()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+              <i data-lucide="save" class="w-4 h-4 text-[#E6D5C3]"></i>
+              <span>Guardar Horarios de la Sucursal</span>
+            </button>
+          </div>
+
+          <div class="table-scroll-container">
+            <table class="w-full min-w-[650px] text-center table-sop">
+              <thead>
+                <tr>
+                  <th class="text-left w-28">Turno</th>
+                  <th>Lunes</th>
+                  <th>Martes</th>
+                  <th>Miércoles</th>
+                  <th>Jueves</th>
+                  <th>Viernes</th>
+                  <th>Sábado</th>
+                  <th>Domingo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5]">Mañana</td>
+                  <td><input type="text" id="admin-h-man-lun" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-mar" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-mie" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-jue" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-vie" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-sab" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-man-dom" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                </tr>
+                <tr>
+                  <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5]">Tarde</td>
+                  <td><input type="text" id="admin-h-tar-lun" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-mar" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-mie" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-jue" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-vie" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-sab" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                  <td><input type="text" id="admin-h-tar-dom" onfocus="this.select()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase focus:border-black focus:bg-white"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Observaciones de la Sucursal -->
+          <div class="border-t border-neutral-200 pt-3">
+            <label class="block text-xs font-bold text-neutral-700 mb-1">Notas y Directivas de Horario del Local:</label>
+            <textarea id="admin-hor-notas" rows="2" placeholder="Notas operativas del local..." class="w-full bg-[#FAF9F6] border border-neutral-200 rounded-lg p-2.5 text-xs text-neutral-900 focus:outline-none focus:border-black resize-none" onfocus="this.select()"></textarea>
+          </div>
+        </div>
+
+        <!-- 2. Bitácora de Modificaciones, Reemplazos y Coberturas -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-neutral-200 gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold">
+                  <i data-lucide="git-branch" class="w-4 h-4"></i>
+                </div>
+                <h4 class="font-bold text-neutral-900 text-sm sm:text-base">Bitácora de Modificaciones & Coberturas</h4>
+              </div>
+              <p class="text-xs text-neutral-500 mt-1">Historial cronológico de cambios de turno, quién cubrió a quién y motivos informados.</p>
+            </div>
+
+            <!-- Botón para registrar modificación rápida -->
+            <button onclick="window.app.toggleModificacionForm(true)" class="bg-neutral-900 hover:bg-black text-white text-xs font-bold px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+              <i data-lucide="plus" class="w-4 h-4 text-[#E6D5C3]"></i>
+              <span>+ Registrar Modificación</span>
+            </button>
+          </div>
+
+          <!-- Formulario para agregar modificación (oculto por defecto o visible con botón) -->
+          <div id="card-form-modificacion" class="hidden bg-[#FAF9F6] border border-neutral-200 rounded-xl p-4 transition-all">
+            <div class="flex items-center justify-between mb-3 border-b border-neutral-200 pb-2">
+              <h5 class="font-bold text-xs text-neutral-900 uppercase tracking-wide">Asentar Nuevo Cambio de Turno / Cobertura</h5>
+              <button onclick="window.app.toggleModificacionForm(false)" class="text-xs text-neutral-400 hover:text-black font-bold cursor-pointer">✕ Cerrar</button>
+            </div>
+            <form onsubmit="window.app.handleSaveModificacion(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+              <div class="sm:col-span-3">
+                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Fecha del Cambio *</label>
+                <input type="date" id="mod-fecha" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black font-mono">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Turno *</label>
+                <select id="mod-turno" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
+                  <option value="Mañana">Mañana</option>
+                  <option value="Tarde">Tarde</option>
+                  <option value="Completo">Completo</option>
+                </select>
+              </div>
+              <div class="sm:col-span-3">
+                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Titular Original *</label>
+                <select id="mod-colab-origen" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
+                  <!-- Llenado dinámico -->
+                </select>
+              </div>
+              <div class="sm:col-span-4">
+                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Quién Cubre / Reemplaza *</label>
+                <select id="mod-colab-reemplazo" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
+                  <!-- Llenado dinámico -->
+                </select>
+              </div>
+              <div class="sm:col-span-9">
+                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Motivo / Explicación del Cambio *</label>
+                <input type="text" id="mod-motivo" required placeholder="Ej: Examen de facultad, franco compensatorio, refuerzo por cobertura..." class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
+              </div>
+              <div class="sm:col-span-3 flex items-end">
+                <button type="submit" class="w-full bg-black hover:bg-neutral-800 text-white text-xs font-bold py-2 px-3 rounded flex items-center justify-center gap-1.5 transition cursor-pointer">
+                  <i data-lucide="check" class="w-3.5 h-3.5"></i> Guardar Cambio
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabla de Modificaciones -->
+          <div class="table-scroll-container">
+            <table class="w-full min-w-[700px] text-left table-sop">
+              <thead>
+                <tr>
+                  <th class="w-28">Fecha</th>
+                  <th class="w-24">Turno</th>
+                  <th>Titular Original</th>
+                  <th>Reemplazo / Cobertura</th>
+                  <th>Motivo</th>
+                  <th class="w-36">Registrado por</th>
+                  <th class="w-12"></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-modificaciones">
+                <!-- Inyectado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. Fechas Especiales y Excepciones de la Sucursal -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
+          <div class="flex items-center justify-between pb-3 border-b border-neutral-200">
+            <div>
+              <h4 class="font-bold text-neutral-900 text-sm sm:text-base">Fechas Especiales y Eventos de Shopping</h4>
+              <p class="text-xs text-neutral-500">Refuerzos o cambios por fechas comerciales (Día de la Madre, Navidad, etc.).</p>
+            </div>
+          </div>
+
+          <!-- Tabla Fechas Especiales de la Sucursal seleccionada -->
+          <div class="table-scroll-container">
+            <table class="w-full min-w-[650px] text-left table-sop">
+              <thead>
+                <tr>
+                  <th>Fecha / Evento Especial</th>
+                  <th>Turno Mañana</th>
+                  <th>Turno Tarde</th>
+                  <th>Observación</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-fechas-especiales">
+                <!-- Inyectado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SUBVISTA ADMIN 3: VACACIONES -->
       <div id="subview-admin-vacaciones" class="hidden flex flex-col gap-6">
         <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-neutral-200 gap-3">
