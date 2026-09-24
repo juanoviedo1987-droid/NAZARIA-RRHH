@@ -268,8 +268,8 @@
                   <th class="w-20 text-center">Feriados</th>
                   <th class="w-20 text-center">Horas Extra</th>
                   <th class="w-20 text-center">Vacaciones</th>
-                  <th>Observaciones</th>
-                  <th class="w-28 text-right pr-4">Total Hs</th>
+                  <th class="w-24 text-right">Total Hs</th>
+                  <th class="min-w-[220px]">Observaciones</th>
                 </tr>
               </thead>
               <tbody id="tbody-store-horas">
@@ -988,8 +988,8 @@
                   <th class="text-center w-20">Feriados</th>
                   <th class="text-center w-20">Horas Extra</th>
                   <th class="text-center w-20">Vacaciones</th>
-                  <th class="min-w-[200px]">Observaciones</th>
-                  <th class="text-right w-24 pr-4">Total Hs</th>
+                  <th class="text-right w-24">Total Hs</th>
+                  <th class="min-w-[240px]">Observaciones</th>
                 </tr>
               </thead>
               <tbody id="tbody-admin-consolidado">
@@ -1479,6 +1479,62 @@
             </a>
           </div>
         </div>
+      </div>
+    </div>
+  <!-- =========================================================================
+       MODAL 4: EDITOR AMPLIO DE OBSERVACIONES Y REGISTRO DE DÍAS
+       ========================================================================= -->
+  <div id="modal-observaciones" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop fade-in">
+    <div class="bg-white border border-neutral-200 rounded-2xl p-4 sm:p-5 max-w-lg w-full shadow-2xl flex flex-col gap-3">
+      <div class="flex items-center justify-between border-b border-neutral-200 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 id="modal-obs-colab-name" class="font-bold text-neutral-900 text-sm">Observaciones & Registro de Días</h3>
+            <p id="modal-obs-subtitle" class="text-xs text-neutral-500">Cargá fechas, guardias, coberturas o justificaciones</p>
+          </div>
+        </div>
+        <button onclick="window.app.closeObservacionesModal()" class="text-neutral-400 hover:text-black text-lg font-bold p-1">✕</button>
+      </div>
+
+      <!-- Botones de inserción rápida de tags/días -->
+      <div>
+        <label class="block text-[11px] font-bold text-neutral-600 mb-1.5 uppercase tracking-wide">Plantillas rápidas para agregar renglón:</label>
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" onclick="window.app.appendObsTag('Guardia')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition cursor-pointer">
+            + Guardia
+          </button>
+          <button type="button" onclick="window.app.appendObsTag('Estudio')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100 transition cursor-pointer">
+            + Día Estudio
+          </button>
+          <button type="button" onclick="window.app.appendObsTag('Cobertura')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-purple-50 text-purple-900 border border-purple-200 hover:bg-purple-100 transition cursor-pointer">
+            + Cobertura
+          </button>
+          <button type="button" onclick="window.app.appendObsTag('Vacaciones')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-900 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
+            + Vacaciones
+          </button>
+          <button type="button" onclick="window.app.appendObsTag('Franco')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-neutral-100 text-neutral-800 border border-neutral-300 hover:bg-neutral-200 transition cursor-pointer">
+            + Franco
+          </button>
+        </div>
+      </div>
+
+      <!-- Área de texto principal amplia -->
+      <div>
+        <textarea id="modal-obs-textarea" rows="6" placeholder="Escribí cada fecha o novedad en un renglón distinto, ej:&#10;• 14/09: Cubre a Juli por vacaciones (5.5 hs)&#10;• 20/09: Guardia domingo (6 hs)&#10;• 28/09: Día de estudio" class="w-full bg-[#FAF9F6] border border-neutral-300 rounded-xl p-3 text-xs text-neutral-900 focus:outline-none focus:border-black focus:bg-white resize-y leading-relaxed font-sans"></textarea>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-neutral-200">
+        <button type="button" onclick="window.app.closeObservacionesModal()" class="px-4 py-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold transition cursor-pointer">
+          Cancelar
+        </button>
+        <button type="button" onclick="window.app.saveObservacionesModal()" class="px-4 py-2 rounded-lg bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+          <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Guardar Observaciones</span>
+        </button>
       </div>
     </div>
   </div>
