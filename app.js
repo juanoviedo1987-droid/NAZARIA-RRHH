@@ -150,7 +150,7 @@
     nombre_completo: 'Pinto Martina (Maschwitz)',
     dni: '44102987',
     cuil: '27-44102987-9',
-    categoria: 'Vendedora (Cobertura domingos Maschwitz)',
+    categoria: 'Vendedora',
     esquema_jornada: '1 día / 5,5 hs',
     horas_base_mes: 22.0,
     recibo_hs_base: 0.0,
@@ -165,7 +165,7 @@
     '2026-09_c-flavia': { horas_base: 160.0, recibo_hs: 22.0, sin_recibo_hs: 138.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
     '2026-09_c-cami': { horas_base: 88.0, recibo_hs: 64.0, sin_recibo_hs: 24.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
     '2026-09_c-juli': { horas_base: 88.0, recibo_hs: 64.0, sin_recibo_hs: 24.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
-    '2026-09_c-martu_masch': { horas_base: 22.0, recibo_hs: 0.0, sin_recibo_hs: 22.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: 'Cubre domingos Maschwitz', adicionales_hs: 0, detalle_cobertura: 'Cubre domingos Maschwitz' },
+    '2026-09_c-martu_masch': { horas_base: 22.0, recibo_hs: 0.0, sin_recibo_hs: 22.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
 
     // TOM (Septiembre 2026)
     '2026-09_c-sofi': { horas_base: 192.0, recibo_hs: 22.0, sin_recibo_hs: 170.0, adicional_hs: 0, feriados_hs: 0, extras_hs: 0, vacaciones_hs: 0, observaciones: '', adicionales_hs: 0, detalle_cobertura: '' },
@@ -344,6 +344,15 @@
     state.colaboradoras = JSON.parse(localStorage.getItem('nazaria_colaboradoras_v2') || JSON.stringify(DEFAULT_COLABORADORAS));
     state.martuMasch = JSON.parse(localStorage.getItem('nazaria_martu_masch_v2') || JSON.stringify(DEFAULT_MARTU_MASCH));
     state.cierres = JSON.parse(localStorage.getItem('nazaria_cierres_v2') || JSON.stringify(DEFAULT_CIERRES));
+    // Limpieza de texto de cobertura residual en observaciones
+    Object.keys(state.cierres).forEach(k => {
+      if (state.cierres[k]?.observaciones === 'Cubre domingos Maschwitz') {
+        state.cierres[k].observaciones = '';
+      }
+      if (state.cierres[k]?.detalle_cobertura === 'Cubre domingos Maschwitz') {
+        state.cierres[k].detalle_cobertura = '';
+      }
+    });
     state.horas_detalle = JSON.parse(localStorage.getItem('nazaria_horas_detalle_v2') || JSON.stringify(DEFAULT_HORAS_DETALLE));
     state.horarios = JSON.parse(localStorage.getItem('nazaria_horarios_v2') || JSON.stringify(DEFAULT_HORARIOS));
     state.fechas_especiales = JSON.parse(localStorage.getItem('nazaria_fechas_especiales_v2') || JSON.stringify(DEFAULT_FECHAS_ESPECIALES));
@@ -1826,9 +1835,9 @@
           feriados_hs: 0,
           extras_hs: 0,
           vacaciones_hs: 0,
-          observaciones: 'Cubre domingos Maschwitz',
+          observaciones: '',
           adicionales_hs: 0,
-          detalle_cobertura: 'Cubre domingos Maschwitz'
+          detalle_cobertura: ''
         };
       }
       keys.push(maschCovKey);
@@ -2064,9 +2073,9 @@
         feriados_hs: 0,
         extras_hs: 0,
         vacaciones_hs: 0,
-        observaciones: isMaschCov ? 'Cubre domingos Maschwitz' : '',
+        observaciones: '',
         adicionales_hs: 0,
-        detalle_cobertura: isMaschCov ? 'Cubre domingos Maschwitz' : ''
+        detalle_cobertura: ''
       };
     }
     if (field === 'observaciones' || field === 'detalle_cobertura') {
