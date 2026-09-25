@@ -3506,7 +3506,10 @@
       const adic = Number(rec.adicional_hs ?? 0);
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
-      const obs = rec.observaciones ?? rec.detalle_cobertura ?? '';
+      let obs = (rec.observaciones ?? rec.detalle_cobertura ?? '').trim();
+      if (colabId === 'c-martu_masch' && obs.toLowerCase().includes('cubre domingos')) {
+        obs = '';
+      }
 
       const totColab = Math.max(0, baseNeta + adic + f + e);
 
@@ -3525,11 +3528,8 @@
         <tr style="background: #ffffff;">
           <td style="border: 1px solid #E5E7EB; padding: 7px 10px; vertical-align: middle;">
             <div style="display: flex; align-items: center; gap: 7px;">
-              <span style="background: #EDE9FE; color: #5B21B6; font-size: 9px; font-weight: 800; padding: 1.5px 5px; border-radius: 4px; letter-spacing: 0.3px;">MASCH</span>
-              <div>
-                <div style="font-weight: 700; font-size: 12px; color: #111827;">${colabName}</div>
-                ${colab?.categoria ? `<div style="font-size: 9.5px; color: #9CA3AF; font-weight: 500;">${colab.categoria}</div>` : ''}
-              </div>
+              <span style="background: #EDE9FE; color: #5B21B6; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.3px;">MASCH</span>
+              <span style="font-weight: 700; font-size: 12px; color: #111827;">${colabName}</span>
             </div>
           </td>
           <td style="border: 1px solid #E5E7EB; padding: 7px 6px; text-align: center; font-size: 12px; font-weight: 600; font-family: 'SF Mono', Consolas, monospace; color: #374151;">${formatHsCell(r)}</td>
@@ -3539,7 +3539,7 @@
           <td style="border: 1px solid #E5E7EB; padding: 7px 6px; text-align: center; font-size: 12px; font-weight: 600; font-family: 'SF Mono', Consolas, monospace; color: #374151;">${formatHsCell(f)}</td>
           <td style="border: 1px solid #E5E7EB; padding: 7px 6px; text-align: center; font-size: 12px; font-weight: 600; font-family: 'SF Mono', Consolas, monospace; color: #374151;">${formatHsCell(e)}</td>
           <td style="border: 1px solid #E5E7EB; padding: 7px 6px; text-align: center; font-size: 12px; font-weight: 700; font-family: 'SF Mono', Consolas, monospace; color: #047857;">${formatHsCell(v)}</td>
-          <td style="border: 1px solid #E5E7EB; padding: 7px 8px; text-align: left; font-size: 10.5px; color: #4B5563; font-family: 'Inter', sans-serif; line-height: 1.35;">${obs ? obs.replace(/\n/g, '<br>') : ''}</td>
+          <td style="border: 1px solid #E5E7EB; padding: 7px 8px; text-align: left; font-size: 11px; color: #1F2937; font-family: 'Inter', sans-serif; line-height: 1.35;">${obs ? obs.replace(/\n/g, '<br>') : ''}</td>
         </tr>
       `;
     }).join('');
@@ -3559,7 +3559,10 @@
       const adic = Number(rec.adicional_hs ?? 0);
       const f = Number(rec.feriados_hs ?? 0);
       const e = Number(rec.extras_hs ?? 0);
-      const obs = rec.observaciones ?? rec.detalle_cobertura ?? '';
+      let obs = (rec.observaciones ?? rec.detalle_cobertura ?? '').trim();
+      if (colabId === 'c-martu_masch' && obs.toLowerCase().includes('cubre domingos')) {
+        obs = '';
+      }
 
       const totColab = Math.max(0, baseNeta + adic + f + e);
 
@@ -3578,11 +3581,8 @@
         <tr style="background: #ffffff;">
           <td style="border: 1px solid #E5E7EB; padding: 7px 10px; vertical-align: middle;">
             <div style="display: flex; align-items: center; gap: 7px;">
-              <span style="background: #E6D5C3; color: #1A1A1A; font-size: 9px; font-weight: 800; padding: 1.5px 5px; border-radius: 4px; letter-spacing: 0.3px;">TOM</span>
-              <div>
-                <div style="font-weight: 700; font-size: 12px; color: #111827;">${colabName}</div>
-                ${colab?.categoria ? `<div style="font-size: 9.5px; color: #9CA3AF; font-weight: 500;">${colab.categoria}</div>` : ''}
-              </div>
+              <span style="background: #E6D5C3; color: #1A1A1A; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.3px;">TOM</span>
+              <span style="font-weight: 700; font-size: 12px; color: #111827;">${colabName}</span>
             </div>
           </td>
           <td style="border: 1px solid #E5E7EB; padding: 7px 6px; text-align: center; font-size: 12px; font-weight: 600; font-family: 'SF Mono', Consolas, monospace; color: #374151;">${formatHsCell(r)}</td>
@@ -3592,7 +3592,7 @@
           <td style="border: 1px solid #E5E7EB; padding: 7px 6px; text-align: center; font-size: 12px; font-weight: 600; font-family: 'SF Mono', Consolas, monospace; color: #374151;">${formatHsCell(f)}</td>
           <td style="border: 1px solid #E5E7EB; padding: 7px 6px; text-align: center; font-size: 12px; font-weight: 600; font-family: 'SF Mono', Consolas, monospace; color: #374151;">${formatHsCell(e)}</td>
           <td style="border: 1px solid #E5E7EB; padding: 7px 6px; text-align: center; font-size: 12px; font-weight: 700; font-family: 'SF Mono', Consolas, monospace; color: #047857;">${formatHsCell(v)}</td>
-          <td style="border: 1px solid #E5E7EB; padding: 7px 8px; text-align: left; font-size: 10.5px; color: #4B5563; font-family: 'Inter', sans-serif; line-height: 1.35;">${obs ? obs.replace(/\n/g, '<br>') : ''}</td>
+          <td style="border: 1px solid #E5E7EB; padding: 7px 8px; text-align: left; font-size: 11px; color: #1F2937; font-family: 'Inter', sans-serif; line-height: 1.35;">${obs ? obs.replace(/\n/g, '<br>') : ''}</td>
         </tr>
       `;
     }).join('');
@@ -3619,13 +3619,13 @@
               <span style="width: 8px; height: 8px; border-radius: 50%; background: #E6D5C3; display: inline-block;"></span>
               <h1 style="margin: 0; font-size: 18px; font-weight: 900; letter-spacing: -0.01em; color: #111827; text-transform: uppercase;">CONTROL MENSUAL DE HORAS</h1>
             </div>
-            <p style="margin: 4px 0 0; font-size: 12px; color: #6B7280; font-weight: 500;">Resumen Operativo de Jornadas, Adicionales y Liquidación · Maschwitz y TOM</p>
+            <p style="margin: 4px 0 0; font-size: 12px; color: #374151; font-weight: 600;">Resumen Operativo de Jornadas, Adicionales y Liquidación · Maschwitz y TOM</p>
           </div>
           <div style="text-align: right;">
             <div style="background: #E6D5C3; color: #1A1A1A; font-weight: 800; font-size: 12px; padding: 5px 14px; border-radius: 6px; border: 1px solid #D4C3B0; display: inline-block; text-transform: uppercase; letter-spacing: 0.3px;">
               Período: ${monthLabel} ${yNum}
             </div>
-            <div style="font-size: 10.5px; color: #9CA3AF; margin-top: 4px; font-weight: 500;">Emisión: ${todayStr}</div>
+            <div style="font-size: 11px; color: #4B5563; margin-top: 4px; font-weight: 600;">Emisión: ${todayStr}</div>
           </div>
         </div>
 
@@ -3635,10 +3635,7 @@
             <tr>
               <th colspan="9" style="background: #FAF9F6; border: 1px solid #E5E7EB; border-bottom: none; border-radius: 8px 8px 0 0; padding: 8px 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="background: #EDE9FE; color: #5B21B6; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 5px; border: 1px solid #DDD6FE;">MASCHWITZ MALL</span>
-                    <span style="font-size: 11px; font-weight: 600; color: #4B5563;">Liquidación de Sucursal</span>
-                  </div>
+                  <span style="background: #EDE9FE; color: #5B21B6; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 5px; border: 1px solid #DDD6FE;">MASCHWITZ MALL</span>
                   <span style="background: #F4EBE2; color: #451A03; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 5px;">${monthLabel} ${yNum}</span>
                 </div>
               </th>
@@ -3679,10 +3676,7 @@
             <tr>
               <th colspan="9" style="background: #FAF9F6; border: 1px solid #E5E7EB; border-bottom: none; border-radius: 8px 8px 0 0; padding: 8px 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="background: #E6D5C3; color: #1A1A1A; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 5px; border: 1px solid #D4C3B0;">TORTUGAS OPEN MALL (TOM)</span>
-                    <span style="font-size: 11px; font-weight: 600; color: #4B5563;">Liquidación de Sucursal</span>
-                  </div>
+                  <span style="background: #E6D5C3; color: #1A1A1A; font-weight: 800; font-size: 11px; padding: 3px 8px; border-radius: 5px; border: 1px solid #D4C3B0;">TORTUGAS OPEN MALL (TOM)</span>
                   <span style="background: #F4EBE2; color: #451A03; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 5px;">${monthLabel} ${yNum}</span>
                 </div>
               </th>
@@ -3718,28 +3712,20 @@
         </table>
 
         <!-- TOTAL GENERAL CONSOLIDADO -->
-        <div style="border: 1px solid #E5E7EB; border-left: 4px solid #E6D5C3; background: #FAF9F6; padding: 14px 18px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-          <div>
-            <div style="font-weight: 800; font-size: 12px; text-transform: uppercase; color: #111827; letter-spacing: 0.3px;">
-              TOTAL GENERAL CONSOLIDADO (TOM + MASCHWITZ):
-            </div>
-            <div style="font-size: 10.5px; color: #6B7280; margin-top: 2px;">Cómputo neto de horas operativas del período</div>
+        <div style="border: 1px solid #E5E7EB; border-left: 4px solid #E6D5C3; background: #FAF9F6; padding: 14px 18px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-weight: 800; font-size: 12px; text-transform: uppercase; color: #111827; letter-spacing: 0.3px;">
+            TOTAL GENERAL CONSOLIDADO (TOM + MASCHWITZ):
           </div>
           <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; align-items: center;">
-            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: #4B5563;">Recibo: <strong style="color: #111827; font-family: monospace;">${formatHsCell(grandRec, true)} hs</strong></div>
-            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: #4B5563;">Ajuste Base: <strong style="color: #111827; font-family: monospace;">${formatHsCell(grandSinRec, true)} hs</strong></div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: #111827;">Recibo: <strong style="color: #111827; font-family: monospace;">${formatHsCell(grandRec, true)} hs</strong></div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: #111827;">Ajuste Base: <strong style="color: #111827; font-family: monospace;">${formatHsCell(grandSinRec, true)} hs</strong></div>
             <div style="background: #F4EBE2; border: 1px solid #D4C3B0; padding: 4px 8px; border-radius: 6px; font-weight: 700; color: #1A1A1A;">Total Base: <strong style="color: #1A1A1A; font-family: monospace;">${formatHsCell(grandBaseNeta, true)} hs</strong></div>
-            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: #4B5563;">Adicional: <strong style="color: ${grandAdic < 0 ? '#DC2626' : (grandAdic > 0 ? '#B45309' : '#111827')}; font-family: monospace;">${formatAdicCell(grandAdic, true)} hs</strong></div>
-            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: #4B5563;">Feriados: <strong style="color: #111827; font-family: monospace;">${formatHsCell(grandFer, true)} hs</strong></div>
-            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: #4B5563;">Extras: <strong style="color: #111827; font-family: monospace;">${formatHsCell(grandExt, true)} hs</strong></div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: #111827;">Adicional: <strong style="color: ${grandAdic < 0 ? '#DC2626' : (grandAdic > 0 ? '#B45309' : '#111827')}; font-family: monospace;">${formatAdicCell(grandAdic, true)} hs</strong></div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: #111827;">Feriados: <strong style="color: #111827; font-family: monospace;">${formatHsCell(grandFer, true)} hs</strong></div>
+            <div style="background: #FFFFFF; border: 1px solid #E5E7EB; padding: 4px 8px; border-radius: 6px; font-weight: 600; color: #111827;">Extras: <strong style="color: #111827; font-family: monospace;">${formatHsCell(grandExt, true)} hs</strong></div>
             <div style="background: #ECFDF5; border: 1px solid #A7F3D0; padding: 4px 8px; border-radius: 6px; font-weight: 700; color: #047857;">Vacaciones: <strong style="color: #047857; font-family: monospace;">${formatHsCell(grandVac, true)} hs</strong></div>
             <div style="background: #1A1A1A; color: #FFFFFF; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 900; letter-spacing: 0.5px;">TOTAL: ${formatHsCell(grandTotal, true)} hs</div>
           </div>
-        </div>
-
-        <div style="border-top: 1px solid #E5E7EB; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #9CA3AF;">
-          <div>Planilla operativa de control mensual de horas trabajadas y compensaciones.</div>
-          <div>Reporte generado vía Sistema RRHH Nazaria</div>
         </div>
       </div>
     `;
