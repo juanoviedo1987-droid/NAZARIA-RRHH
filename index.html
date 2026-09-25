@@ -53,7 +53,7 @@
   <script src="config.js"></script>
 
   <!-- Custom Styles SOPs Theme -->
-  <link rel="stylesheet" href="styles.css?v=17.4">
+  <link rel="stylesheet" href="styles.css?v=17.5">
 </head>
 <body class="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900 font-['Inter'] antialiased">
 
@@ -896,24 +896,14 @@
           <p class="text-xs text-neutral-500 mt-1">Auditoría central, control de vacaciones, retiros y exportación al estudio contable.</p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-2 bg-[#FAF9F6] px-3 py-1.5 rounded-lg border border-neutral-200 text-xs">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 bg-[#FAF9F6] px-3.5 py-2 rounded-lg border border-neutral-200 text-xs">
             <i data-lucide="calendar" class="w-4 h-4 text-neutral-600"></i>
             <span class="text-neutral-500 font-medium">Período:</span>
             <select id="select-admin-period" onchange="window.app.changePeriod(this.value)" class="bg-transparent font-bold text-neutral-900 focus:outline-none cursor-pointer">
               <option value="2026-09">Septiembre 2026</option>
             </select>
           </div>
-
-          <button onclick="window.app.exportSummaryImage()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
-            <i data-lucide="camera" class="w-4 h-4 text-[#E6D5C3]"></i>
-            <span>Exportar Imagen WhatsApp (.png)</span>
-          </button>
-
-          <button onclick="window.app.exportFullExcelWorkbook()" class="bg-[#FAF9F6] hover:bg-neutral-100 text-neutral-800 text-xs font-bold px-3 py-2 border border-neutral-300 rounded-lg flex items-center gap-1.5 transition cursor-pointer">
-            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-700"></i>
-            <span>Excel (.xlsx)</span>
-          </button>
         </div>
       </div>
 
@@ -1527,42 +1517,38 @@
   <!-- =========================================================================
        MODAL 3: VISTA PREVIA Y DESCARGA DE IMAGEN PARA WHATSAPP
        ========================================================================= -->
-  <div id="modal-export-image" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop fade-in">
+  <div id="modal-export-image" onclick="if(event.target === this) window.app.closeExportImageModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop fade-in">
     <div class="bg-white border border-neutral-200 rounded-2xl p-4 sm:p-5 max-w-2xl w-full shadow-2xl flex flex-col gap-3 sm:gap-4 max-h-[92vh] overflow-y-auto safe-area-pb">
       <div class="flex items-center justify-between border-b border-neutral-200 pb-3">
         <div class="flex items-center gap-2.5">
-          <img src="favicon.png" alt="Nazaria" class="w-8 h-8 rounded-lg object-contain border border-neutral-200 shadow-sm bg-white p-0.5">
+          <div class="w-8 h-8 rounded-lg bg-neutral-100 text-neutral-800 flex items-center justify-center font-bold">
+            <i data-lucide="image" class="w-4 h-4"></i>
+          </div>
           <div>
-            <h3 class="font-bold text-neutral-900 text-sm">Placa de Liquidación para WhatsApp (PNG)</h3>
-            <p id="export-image-period-label" class="text-xs text-neutral-500">Resumen consolidado listo para enviar</p>
+            <h3 class="font-bold text-neutral-900 text-sm">Previsualización de Placa</h3>
+            <p id="export-image-period-label" class="text-xs text-neutral-500">Revisá la imagen antes de descargarla o copiarla</p>
           </div>
         </div>
-        <button onclick="window.app.closeExportImageModal()" class="text-neutral-400 hover:text-black text-lg font-bold p-1">✕</button>
+        <button onclick="window.app.closeExportImageModal()" class="text-neutral-400 hover:text-black text-lg font-bold p-1 cursor-pointer">✕</button>
       </div>
 
       <div class="max-h-[55vh] sm:max-h-[65vh] overflow-auto bg-neutral-100 rounded-xl p-2 sm:p-3 border border-neutral-200 flex items-center justify-center">
-        <img id="export-result-img" src="" alt="Placa Liquidación" class="max-w-full rounded shadow-md border border-neutral-300">
+        <img id="export-result-img" src="" alt="Placa de Horas" class="max-w-full rounded shadow-md border border-neutral-300">
       </div>
 
-      <div class="flex flex-col gap-2.5 pt-1">
-        <!-- Botón prioritario para celulares: Compartir directo por WhatsApp -->
-        <button id="btn-share-whatsapp" onclick="window.app.shareExportImage()" class="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-sm font-bold flex items-center justify-center gap-2 transition shadow-md cursor-pointer tap-active">
-          <i data-lucide="share-2" class="w-4 h-4"></i>
-          <span>📲 Compartir directo por WhatsApp</span>
-        </button>
-
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5">
-          <p class="text-[11px] text-neutral-500 italic text-center sm:text-left">💡 O también podés copiarla al portapapeles o descargarla.</p>
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-            <button id="btn-copy-image" onclick="window.app.copyExportImageToClipboard()" class="w-full sm:w-auto px-3.5 py-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer tap-active">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-              <span>Copiar al Portapapeles</span>
-            </button>
-            <a id="btn-download-image" href="" download="Liquidacion_Nazaria.png" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer tap-active">
-              <i data-lucide="download" class="w-3.5 h-3.5 text-[#E6D5C3]"></i>
-              <span>Descargar PNG</span>
-            </a>
-          </div>
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-neutral-200">
+        <p class="text-[11px] text-neutral-500 italic text-center sm:text-left">
+          💡 Podés copiarla para pegarla con Ctrl+V directo en WhatsApp Web, o descargar el archivo PNG.
+        </p>
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button id="btn-copy-image" onclick="window.app.copyExportImageToClipboard()" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer tap-active">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copiar al Portapapeles</span>
+          </button>
+          <a id="btn-download-image" href="" download="Liquidacion.png" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer tap-active">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-[#E6D5C3]"></i>
+            <span>Descargar PNG</span>
+          </a>
         </div>
       </div>
     </div>
@@ -1730,6 +1716,6 @@
   <div id="floating-info-tooltip" class="hidden fixed z-[9999] pointer-events-none transition-opacity duration-150 bg-white border border-neutral-900 rounded-xl p-3.5 shadow-2xl text-xs text-neutral-900 max-w-xs"></div>
 
   <!-- Scripts -->
-  <script src="app.js?v=17.4"></script>
+  <script src="app.js?v=17.5"></script>
 </body>
 </html>
