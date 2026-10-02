@@ -1991,8 +1991,14 @@
     state.novedades.push(newVac);
     localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
 
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      state.supabaseClient.from('novedades_puntuales').insert(newVac).then(({ error }) => {
+        if (error) console.warn('Error syncing vacacion to Supabase:', error);
+      });
+    }
+
     document.getElementById('form-vacaciones').reset();
-    showToast('Tramo de vacaciones registrado.', 'success');
+    showToast('Tramo de vacaciones registrado y sincronizado en la nube.', 'success');
     renderStoreVacaciones();
   }
 
