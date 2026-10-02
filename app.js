@@ -566,14 +566,26 @@
         }
       }
 
-      // 5. Novedades y Licencias Médicas
+      // 5. Novedades y Licencias Médicas (incluye tramos de Vacaciones)
       const { data: remoteNovedades, error: errN } = await state.supabaseClient
         .from('novedades_puntuales')
         .select('*')
         .order('creado_en', { ascending: false });
 
-      if (!errN && remoteNovedades && remoteNovedades.length > 0) {
-        state.novedades = remoteNovedades;
+      if (!errN) {
+        const remoteList = remoteNovedades || [];
+        const remoteIds = new Set(remoteList.map(r => r.id));
+        // Auto-sincronizar registros creados localmente que aún no llegaron a Supabase
+        const localUnsynced = state.novedades.filter(n => n.id && !remoteIds.has(n.id));
+        if (localUnsynced.length > 0) {
+          try {
+            await state.supabaseClient.from('novedades_puntuales').insert(localUnsynced);
+            remoteList.unshift(...localUnsynced);
+          } catch(e) {
+            console.warn('Error auto-syncing local novedades:', e);
+          }
+        }
+        state.novedades = remoteList;
         localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
       }
 
@@ -583,8 +595,19 @@
         .select('*')
         .order('creado_en', { ascending: false });
 
-      if (!errHD && remoteHD && remoteHD.length > 0) {
-        state.horas_detalle = remoteHD;
+      if (!errHD) {
+        const remoteList = remoteHD || [];
+        const remoteIds = new Set(remoteList.map(r => r.id));
+        const localUnsynced = state.horas_detalle.filter(h => h.id && !remoteIds.has(h.id));
+        if (localUnsynced.length > 0) {
+          try {
+            await state.supabaseClient.from('horas_detalle').insert(localUnsynced);
+            remoteList.unshift(...localUnsynced);
+          } catch(e) {
+            console.warn('Error auto-syncing local horas_detalle:', e);
+          }
+        }
+        state.horas_detalle = remoteList;
         localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
       }
 
@@ -594,17 +617,30 @@
         .select('*')
         .order('creado_en', { ascending: false });
 
-      if (!errRet && remoteRet && remoteRet.length > 0) {
-        state.retiros = remoteRet;
+      if (!errRet) {
+        const remoteList = remoteRet || [];
+        const remoteIds = new Set(remoteList.map(r => r.id));
+        const localUnsynced = state.retiros.filter(r => r.id && !remoteIds.has(r.id));
+        if (localUnsynced.length > 0) {
+          try {
+            await state.supabaseClient.from('retiros_calzado').insert(localUnsynced);
+            remoteList.unshift(...localUnsynced);
+          } catch(e) {
+            console.warn('Error auto-syncing local retiros:', e);
+          }
+        }
+        state.retiros = remoteList;
         localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
       }
 
       // Refrescar vistas si ya están activas
       if (state.currentRole === 'ADMIN') {
-        if (state.activeAdminTab === 'horas') renderAdminHoras();
+        if (state.activeAdminTab === 'consolidado') renderAdminConsolidado();
         if (state.activeAdminTab === 'horarios') renderAdminHorarios();
+        if (state.activeAdminTab === 'vacaciones') renderAdminVacaciones();
         if (state.activeAdminTab === 'novedades') renderAdminNovedades();
         if (state.activeAdminTab === 'retiros') renderAdminRetiros();
+        if (state.activeAdminTab === 'colaboradoras') renderAdminColaboradoras();
         updateAdminKPIs();
       } else if (state.currentRole) {
         if (state.activeStoreTab === 'horas') {
@@ -615,6 +651,7 @@
           renderStoreHorarios();
           renderStoreFechasEspeciales();
         }
+        if (state.activeStoreTab === 'vacaciones') renderStoreVacaciones();
         if (state.activeStoreTab === 'novedades') renderStoreNovedades();
         if (state.activeStoreTab === 'retiros') renderStoreRetiros();
       }
