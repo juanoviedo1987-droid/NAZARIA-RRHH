@@ -373,10 +373,11 @@
         state.supabaseClient = window.supabase.createClient(url, key);
         state.isSupabaseConnected = true;
         if (dbBadge && dbStatusText) {
-          dbBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-50 border border-emerald-200 text-emerald-800";
-          dbStatusText.textContent = "Supabase Conectado";
+          dbBadge.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-50 border border-emerald-200 text-emerald-800 hover:border-emerald-400 transition cursor-pointer";
+          dbStatusText.textContent = "Nube en Vivo";
         }
         syncFromSupabase();
+        setupSupabaseRealtime();
       } catch (err) {
         setLocalModeBadge();
       }
@@ -385,8 +386,56 @@
     }
   }
 
-  async function syncFromSupabase() {
+  function setupSupabaseRealtime() {
     if (!state.supabaseClient || !state.isSupabaseConnected) return;
+
+    try {
+      state.supabaseClient
+        .channel('nazaria-realtime-sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cierres_mensuales' }, () => {
+          syncFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'novedades_puntuales' }, () => {
+          syncFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'horas_detalle' }, () => {
+          syncFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'retiros_calzado' }, () => {
+          syncFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'horarios_sucursal' }, () => {
+          syncFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'horarios_modificaciones' }, () => {
+          syncFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'fechas_especiales' }, () => {
+          syncFromSupabase();
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn('Realtime subscription error:', err);
+    }
+  }
+
+  // Polling automático de respaldo cada 12 segundos y al volver a la pestaña activa
+  setInterval(() => {
+    if (state.supabaseClient && state.isSupabaseConnected && !document.hidden) {
+      syncFromSupabase();
+    }
+  }, 12000);
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && state.supabaseClient && state.isSupabaseConnected) {
+      syncFromSupabase();
+    }
+  });
+
+  let isSyncing = false;
+  async function syncFromSupabase() {
+    if (!state.supabaseClient || !state.isSupabaseConnected || isSyncing) return;
+    isSyncing = true;
 
     try {
       // 1. Horarios de sucursales
@@ -571,6 +620,8 @@
       }
     } catch (err) {
       console.warn('Sync from Supabase fallback to local:', err);
+    } finally {
+      isSyncing = false;
     }
   }
 
