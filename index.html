@@ -246,10 +246,16 @@
               <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Resumen de Horas Trabajadas del Mes</h3>
               <p class="text-xs text-neutral-500">Totales mensuales de horas base, feriados, extras y adicionales para liquidación.</p>
             </div>
-            <button onclick="window.app.saveAllHorasStore()" class="w-full sm:w-auto bg-black hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm tap-active">
-              <i data-lucide="save" class="w-4 h-4"></i>
-              <span>Guardar Horas del Mes</span>
-            </button>
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+              <span id="store-horas-sync-status" class="inline-flex items-center gap-1.5 text-xs text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 transition-all font-medium">
+                <i data-lucide="cloud-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>Sincronizado en la nube</span>
+              </span>
+              <button onclick="window.app.saveAllHorasStore()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm tap-active">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                <span>Guardar Horas del Mes</span>
+              </button>
+            </div>
           </div>
 
           <!-- Indicador de desplazamiento horizontal en celulares -->
