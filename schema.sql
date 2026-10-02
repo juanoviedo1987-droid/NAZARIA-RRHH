@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SISTEMA DE GESTIÓN DE RRHH, NOVEDADES Y PRE-LIQUIDACIÓN (RETAIL)
+-- SISTEMA DE GESTIÓN DE RRHH, NOVEDADES Y PRE-LIQUIDACIÓN (RETAIL NAZARIA)
 -- Esquema de Base de Datos para Supabase (PostgreSQL)
 -- ==============================================================================
 
@@ -29,127 +29,65 @@ CREATE TABLE IF NOT EXISTS public.colaboradoras (
     creado_en TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. TABLA: NOVEDADES PUNTUALES (Ausencias, Licencias, Francos)
+-- 4. TABLA: CIERRES MENSUALES (Pre-liquidación consolidada y horas por colaboradora)
+CREATE TABLE IF NOT EXISTS public.cierres_mensuales (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    periodo VARCHAR(7) NOT NULL,
+    colab_id VARCHAR(50) NOT NULL,
+    sucursal_codigo VARCHAR(20) NOT NULL,
+    horas_base NUMERIC(6,1) DEFAULT 0,
+    recibo_hs NUMERIC(6,1) DEFAULT 0,
+    sin_recibo_hs NUMERIC(6,1) DEFAULT 0,
+    adicional_hs NUMERIC(6,1) DEFAULT 0,
+    feriados_hs NUMERIC(6,1) DEFAULT 0,
+    extras_hs NUMERIC(6,1) DEFAULT 0,
+    vacaciones_hs NUMERIC(6,1) DEFAULT 0,
+    observaciones TEXT DEFAULT '',
+    detalle_cobertura TEXT DEFAULT '',
+    actualizado_en TIMESTAMPTZ DEFAULT NOW(),
+    actualizado_por VARCHAR(50) DEFAULT 'Sistema',
+    CONSTRAINT uq_cierre_periodo_colab UNIQUE(periodo, colab_id)
+);
+
+-- 5. TABLA: NOVEDADES PUNTUALES (Ausencias, Licencias Médicas con certificado, etc.)
 CREATE TABLE IF NOT EXISTS public.novedades_puntuales (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    colaboradora_id UUID NOT NULL REFERENCES public.colaboradoras(id) ON DELETE CASCADE,
-    sucursal_id UUID NOT NULL REFERENCES public.sucursales(id) ON DELETE CASCADE,
+    id VARCHAR(100) PRIMARY KEY,
+    colaboradora_id VARCHAR(50) NOT NULL,
+    codigo_sucursal VARCHAR(20) NOT NULL,
+    tipo VARCHAR(50) NOT NULL, 
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
-    tipo VARCHAR(50) NOT NULL, 
-    -- Tipos: 'Licencia Médica', 'Falta Injustificada', 'Franco Compensatorio', 'Vacaciones', 'Examen', 'Llegada Tarde', 'Otro'
     dias_computados NUMERIC(5,2) DEFAULT 1,
-    certificado_url TEXT,                      -- URL de la imagen en Supabase Storage
+    certificado_url TEXT,
     observaciones TEXT,
-    creado_por VARCHAR(50) DEFAULT 'Encargada',
     creado_en TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. TABLA: CIERRES MENSUALES (Pre-liquidación consolidada)
-CREATE TABLE IF NOT EXISTS public.cierres_mensuales (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    periodo VARCHAR(7) NOT NULL,               -- 'YYYY-MM' (ej: '2026-10')
-    sucursal_id UUID NOT NULL REFERENCES public.sucursales(id) ON DELETE CASCADE,
-    colaboradora_id UUID NOT NULL REFERENCES public.colaboradoras(id) ON DELETE CASCADE,
-    dias_base INT DEFAULT 30,
-    hs_extras_50 NUMERIC(5,2) DEFAULT 0,       -- Lunes a Sábado hasta 13hs
-    hs_extras_100 NUMERIC(5,2) DEFAULT 0,      -- Sábado post-13hs, Domingos, Feriados
-    feriados_trabajados INT DEFAULT 0,
-    faltas_injustificadas INT DEFAULT 0,
-    dias_lic_medica INT DEFAULT 0,
-    dias_vacaciones INT DEFAULT 0,
-    adelantos_vales NUMERIC(12,2) DEFAULT 0,   -- Retiros de caja o transferencias
-    observaciones_liquidacion TEXT,
-    estado VARCHAR(30) DEFAULT 'borrador',     -- 'borrador', 'enviado_sucursal', 'cerrado_aprobado'
-    cerrado_en TIMESTAMPTZ,
-    cerrado_por VARCHAR(100),
-    creado_en TIMESTAMPTZ DEFAULT NOW(),
-    CONSTRAINT uq_periodo_colaboradora UNIQUE(periodo, colaboradora_id)
+-- 6. TABLA: HORAS DETALLE (Justificación individual de horas extras y adicionales)
+CREATE TABLE IF NOT EXISTS public.horas_detalle (
+    id VARCHAR(100) PRIMARY KEY,
+    colaboradora_id VARCHAR(50) NOT NULL,
+    sucursal VARCHAR(20) NOT NULL,
+    fecha DATE NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    horas NUMERIC(5,2) DEFAULT 0,
+    motivo TEXT,
+    creado_en TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 6. TABLA: PERIODOS DE VACACIONES (Control histórico LCT 20.744)
-CREATE TABLE IF NOT EXISTS public.periodos_vacaciones (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    colaboradora_id UUID NOT NULL REFERENCES public.colaboradoras(id) ON DELETE CASCADE,
-    anio_fiscal INT NOT NULL,                  -- ej: 2024, 2025, 2026
-    dias_ley INT NOT NULL,                     -- 14, 21, 28 o 35 días
-    dias_gozados INT DEFAULT 0,
-    saldo_pendiente INT GENERATED ALWAYS AS (dias_ley - dias_gozados) STORED,
-    observaciones TEXT,
-    creado_en TIMESTAMPTZ DEFAULT NOW(),
-    CONSTRAINT uq_colaboradora_anio UNIQUE(colaboradora_id, anio_fiscal)
+-- 7. TABLA: RETIROS DE CALZADO (Pares de temporada y retiros por descuento en recibo)
+CREATE TABLE IF NOT EXISTS public.retiros_calzado (
+    id VARCHAR(100) PRIMARY KEY,
+    colaboradora_id VARCHAR(50) NOT NULL,
+    sucursal VARCHAR(20) NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    articulo VARCHAR(100) NOT NULL,
+    talle_color VARCHAR(100),
+    fecha DATE NOT NULL,
+    creado_en TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==============================================================================
--- 7. STORAGE BUCKET PARA CERTIFICADOS MÉDICOS
--- ==============================================================================
-INSERT INTO storage.buckets (id, name, public) 
-VALUES ('certificados', 'certificados', true)
-ON CONFLICT (id) DO NOTHING;
-
--- Políticas de lectura y subida para el bucket certificados
-CREATE POLICY "Permitir subida publica certificados" 
-ON storage.objects FOR INSERT 
-WITH CHECK (bucket_id = 'certificados');
-
-CREATE POLICY "Permitir lectura publica certificados" 
-ON storage.objects FOR SELECT 
-USING (bucket_id = 'certificados');
-
--- ==============================================================================
--- 8. DATOS INICIALES DE EJEMPLO (Seed Data)
--- ==============================================================================
--- Sucursales con sus PINs iniciales
-INSERT INTO public.sucursales (codigo, nombre, pin) VALUES 
-('TOM', 'Tortugas Open Mall', '0145'),
-('MASCHWITZ', 'Maschwitz Mall', '6228')
-ON CONFLICT (codigo) DO NOTHING;
-
--- Colaboradoras de TOM (5 colaboradoras oficiales)
-INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Barrientos Sofia', '35290145', '27-35290145-8', '2025-07-05', 'Encargada de Sucursal', 'activa'
-FROM public.sucursales WHERE codigo = 'TOM'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Galarza Esmeralda Cristina', '38901234', '27-38901234-1', '2022-02-01', 'Vendedora', 'activa'
-FROM public.sucursales WHERE codigo = 'TOM'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Pinto Martina', '44102987', '27-44102987-9', '2024-04-01', 'Vendedora (Cubre TOM y Maschwitz)', 'activa'
-FROM public.sucursales WHERE codigo = 'TOM'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Almiron Miranda Candela Anahi', '45091234', '27-45091234-5', '2025-12-01', 'Vendedora', 'activa'
-FROM public.sucursales WHERE codigo = 'TOM'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Bustamante Vanina Antonella', '43998120', '27-43998120-3', '2025-12-01', 'Vendedora', 'activa'
-FROM public.sucursales WHERE codigo = 'TOM'
-ON CONFLICT DO NOTHING;
-
--- Colaboradoras de Maschwitz (3 colaboradoras oficiales)
-INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Gómez Flavia Marianela', '32826228', '27-32826228-8', '2024-12-01', 'Vendedora', 'activa'
-FROM public.sucursales WHERE codigo = 'MASCHWITZ'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Vera Julieta Agustina', '39445123', '27-39445123-2', '2023-11-01', 'Vendedora', 'activa'
-FROM public.sucursales WHERE codigo = 'MASCHWITZ'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO public.colaboradoras (sucursal_id, nombre_completo, dni, cuil, fecha_ingreso, categoria, estado)
-SELECT id, 'Vera Camila Abril', '42189032', '27-42189032-6', '2023-02-17', 'Encargada de Sucursal', 'activa'
-FROM public.sucursales WHERE codigo = 'MASCHWITZ'
-ON CONFLICT DO NOTHING;
-
--- ==============================================================================
--- 9. TABLAS DE HORARIOS SEMANALES Y MODIFICACIONES / COBERTURAS
--- ==============================================================================
+-- 8. TABLA: HORARIOS SEMANALES OFICIALES
 CREATE TABLE IF NOT EXISTS public.horarios_sucursal (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     sucursal_codigo VARCHAR(20) NOT NULL,
@@ -162,6 +100,7 @@ CREATE TABLE IF NOT EXISTS public.horarios_sucursal (
     CONSTRAINT uq_horario_sucursal_periodo UNIQUE(sucursal_codigo, periodo)
 );
 
+-- 9. TABLA: FECHAS ESPECIALES
 CREATE TABLE IF NOT EXISTS public.fechas_especiales (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     sucursal_codigo VARCHAR(20) NOT NULL,
@@ -173,6 +112,7 @@ CREATE TABLE IF NOT EXISTS public.fechas_especiales (
     creado_en TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 10. TABLA: BITÁCORA DE MODIFICACIONES / CAMBIOS DE TURNO
 CREATE TABLE IF NOT EXISTS public.horarios_modificaciones (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     sucursal_codigo VARCHAR(20) NOT NULL,
@@ -186,24 +126,28 @@ CREATE TABLE IF NOT EXISTS public.horarios_modificaciones (
     creado_en TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==============================================================================
--- 10. HABILITACIÓN DE LECTURA Y ESCRITURA PÚBLICA (ANON)
--- ==============================================================================
+-- 11. STORAGE BUCKET PARA CERTIFICADOS MÉDICOS
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('certificados', 'certificados', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 12. HABILITACIÓN DE POLÍTICAS ROW LEVEL SECURITY
 ALTER TABLE public.sucursales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.colaboradoras ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.novedades_puntuales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cierres_mensuales ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.periodos_vacaciones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.novedades_puntuales ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.horas_detalle ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.retiros_calzado ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.horarios_sucursal ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fechas_especiales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.horarios_modificaciones ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Acceso total a sucursales" ON public.sucursales FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Acceso total a colaboradoras" ON public.colaboradoras FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Acceso total a novedades" ON public.novedades_puntuales FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Acceso total a cierres" ON public.cierres_mensuales FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Acceso total a vacaciones" ON public.periodos_vacaciones FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acceso total a novedades" ON public.novedades_puntuales FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acceso total a horas_detalle" ON public.horas_detalle FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acceso total a retiros" ON public.retiros_calzado FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Acceso total a horarios" ON public.horarios_sucursal FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Acceso total a fechas especiales" ON public.fechas_especiales FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Acceso total a modificaciones" ON public.horarios_modificaciones FOR ALL USING (true) WITH CHECK (true);
-
