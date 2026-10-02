@@ -87,11 +87,11 @@
           <span id="active-terminal-name">Terminal</span>
         </div>
 
-        <!-- Indicador de Base de Datos -->
-        <div id="badge-db-status" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-neutral-100 border border-neutral-200 text-neutral-600" title="Estado de datos">
-          <i data-lucide="database" class="w-3.5 h-3.5 text-neutral-500"></i>
+        <!-- Indicador de Base de Datos y Sincronización -->
+        <button id="badge-db-status" onclick="window.app.syncFromSupabaseManual()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-neutral-100 border border-neutral-200 text-neutral-600 hover:border-black transition cursor-pointer" title="Hacé click para sincronizar con la nube ahora">
+          <i data-lucide="cloud" class="w-3.5 h-3.5 text-neutral-500"></i>
           <span id="db-status-text">Modo Local Demo</span>
-        </div>
+        </button>
 
         <!-- Botón Salir -->
         <button id="btn-logout" onclick="window.app.logout()" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-neutral-700 hover:text-black hover:bg-neutral-100 border border-neutral-200 transition">
