@@ -543,6 +543,16 @@
     }
   }
 
+  async function syncFromSupabaseManual() {
+    if (!state.supabaseClient || !state.isSupabaseConnected) {
+      showToast('Modo Local (sin conexión remota activa)', 'info');
+      return;
+    }
+    showToast('Sincronizando con la nube...', 'info');
+    await syncFromSupabase();
+    showToast('Datos actualizados desde la nube.', 'success');
+  }
+
   // ============================================================================
   // SESIÓN Y PIN
   // ============================================================================
@@ -598,6 +608,9 @@
       closePinModal();
       showToast(`Acceso concedido a ${target}`, 'success');
       renderCurrentView();
+      if (state.supabaseClient && state.isSupabaseConnected) {
+        syncFromSupabase();
+      }
     } else {
       showToast('PIN incorrecto. Acceso denegado.', 'error');
       document.getElementById('input-pin').value = '';
@@ -706,6 +719,9 @@
     if (s1) s1.value = newPeriod;
     if (s2) s2.value = newPeriod;
     renderCurrentView();
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      syncFromSupabase();
+    }
     showToast(`Período actualizado a ${formatPeriodLabel(newPeriod)}`, 'info');
   }
 
@@ -1974,6 +1990,10 @@
     if (tab === 'colaboradoras') renderAdminColaboradoras();
 
     initLucideIcons();
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      syncFromSupabase();
+    }
   }
 
   function getCierreTotal(rec) {
@@ -4352,6 +4372,7 @@
     pressPinKey,
     submitPin,
     logout,
+    syncFromSupabaseManual,
     changePeriod,
     switchStoreTab,
     switchAdminTab,
