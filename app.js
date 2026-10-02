@@ -449,14 +449,84 @@
         localStorage.setItem('nazaria_horarios_modificaciones_v2', JSON.stringify(state.horarios_modificaciones));
       }
 
+      // 4. Cierres Mensuales (Planilla de horas, feriados, adicionales y vacaciones)
+      const { data: remoteCierres, error: errC } = await state.supabaseClient
+        .from('cierres_mensuales')
+        .select('*');
+
+      if (!errC && remoteCierres && remoteCierres.length > 0) {
+        remoteCierres.forEach(r => {
+          const key = `${r.periodo}_${r.colab_id}`;
+          const currentObs = r.observaciones ?? '';
+          const cleanObs = currentObs === 'Cubre domingos Maschwitz' ? '' : currentObs;
+          state.cierres[key] = {
+            ...(state.cierres[key] || {}),
+            horas_base: Number(r.horas_base ?? 0),
+            recibo_hs: Number(r.recibo_hs ?? 0),
+            sin_recibo_hs: Number(r.sin_recibo_hs ?? 0),
+            adicional_hs: Number(r.adicional_hs ?? 0),
+            feriados_hs: Number(r.feriados_hs ?? 0),
+            extras_hs: Number(r.extras_hs ?? 0),
+            vacaciones_hs: Number(r.vacaciones_hs ?? 0),
+            observaciones: cleanObs,
+            detalle_cobertura: cleanObs,
+            adicionales_hs: Number(r.adicional_hs ?? 0)
+          };
+        });
+        localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+      }
+
+      // 5. Novedades y Licencias Médicas
+      const { data: remoteNovedades, error: errN } = await state.supabaseClient
+        .from('novedades_puntuales')
+        .select('*')
+        .order('creado_en', { ascending: false });
+
+      if (!errN && remoteNovedades && remoteNovedades.length > 0) {
+        state.novedades = remoteNovedades;
+        localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
+      }
+
+      // 6. Horas Detalle (Bitácora de justificaciones)
+      const { data: remoteHD, error: errHD } = await state.supabaseClient
+        .from('horas_detalle')
+        .select('*')
+        .order('creado_en', { ascending: false });
+
+      if (!errHD && remoteHD && remoteHD.length > 0) {
+        state.horas_detalle = remoteHD;
+        localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
+      }
+
+      // 7. Retiros de Calzado
+      const { data: remoteRet, error: errRet } = await state.supabaseClient
+        .from('retiros_calzado')
+        .select('*')
+        .order('creado_en', { ascending: false });
+
+      if (!errRet && remoteRet && remoteRet.length > 0) {
+        state.retiros = remoteRet;
+        localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
+      }
+
       // Refrescar vistas si ya están activas
       if (state.currentRole === 'ADMIN') {
+        if (state.activeAdminTab === 'horas') renderAdminHoras();
         if (state.activeAdminTab === 'horarios') renderAdminHorarios();
+        if (state.activeAdminTab === 'novedades') renderAdminNovedades();
+        if (state.activeAdminTab === 'retiros') renderAdminRetiros();
+        updateAdminKPIs();
       } else if (state.currentRole) {
+        if (state.activeStoreTab === 'horas') {
+          renderStoreHoras();
+          renderStoreHorasDetalle();
+        }
         if (state.activeStoreTab === 'horarios') {
           renderStoreHorarios();
           renderStoreFechasEspeciales();
         }
+        if (state.activeStoreTab === 'novedades') renderStoreNovedades();
+        if (state.activeStoreTab === 'retiros') renderStoreRetiros();
       }
     } catch (err) {
       console.warn('Sync from Supabase fallback to local:', err);
@@ -830,20 +900,20 @@
           </div>
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" value="${adicionalHs}" id="ha-${c.id}" placeholder="0" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs font-bold text-amber-900 focus:border-black focus:bg-white" onfocus="this.select()" title="Ajuste mensual de jornada: suma (+) o resta (-)">
+          <input type="number" step="0.5" value="${adicionalHs}" id="ha-${c.id}" placeholder="0" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs font-bold text-amber-900 focus:border-black focus:bg-white" onfocus="this.select()" oninput="window.app.triggerStoreAutoSave()" onchange="window.app.triggerStoreAutoSave()" title="Ajuste mensual de jornada: suma (+) o resta (-)">
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${feriadosHs}" id="hf-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()">
+          <input type="number" step="0.5" min="0" value="${feriadosHs}" id="hf-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" oninput="window.app.triggerStoreAutoSave()" onchange="window.app.triggerStoreAutoSave()">
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${extrasHs}" id="he-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()">
+          <input type="number" step="0.5" min="0" value="${extrasHs}" id="he-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" oninput="window.app.triggerStoreAutoSave()" onchange="window.app.triggerStoreAutoSave()">
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${vacacionesHs}" id="hv-${c.id}" placeholder="0" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs text-emerald-800 font-bold focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcStoreRowBase('${c.id}')" oninput="window.app.recalcStoreRowBase('${c.id}')" title="Horas de vacaciones (restan directamente de la Base)">
+          <input type="number" step="0.5" min="0" value="${vacacionesHs}" id="hv-${c.id}" placeholder="0" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs text-emerald-800 font-bold focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcStoreRowBase('${c.id}'); window.app.triggerStoreAutoSave()" oninput="window.app.recalcStoreRowBase('${c.id}'); window.app.triggerStoreAutoSave()" title="Horas de vacaciones (restan directamente de la Base)">
         </td>
         <td class="py-2 min-w-[260px]">
           <div class="flex items-start gap-1">
-            <textarea id="dc-${c.id}" rows="2" placeholder="Observaciones / justificación de adicionales y vacaciones..." class="w-full text-xs p-1.5 border border-neutral-200 rounded focus:border-black focus:bg-white resize-y leading-tight font-sans transition" onfocus="this.select()">${obs}</textarea>
+            <textarea id="dc-${c.id}" rows="2" placeholder="Observaciones / justificación de adicionales y vacaciones..." class="w-full text-xs p-1.5 border border-neutral-200 rounded focus:border-black focus:bg-white resize-y leading-tight font-sans transition" onfocus="this.select()" oninput="window.app.triggerStoreAutoSave()" onchange="window.app.triggerStoreAutoSave()">${obs}</textarea>
             <button type="button" onclick="window.app.openObservacionesModal('${c.id}', '${displayName}', 'store')" class="p-1 rounded hover:bg-neutral-100 text-neutral-400 hover:text-black transition cursor-pointer mt-0.5" title="Abrir editor amplio de observaciones">
               <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
             </button>
@@ -854,6 +924,7 @@
     });
 
     initLucideIcons();
+    setSyncStatus('saved');
   }
 
   function recalcStoreRowBase(colabId) {
@@ -880,8 +951,38 @@
     }
   }
 
-  function saveAllHorasStore() {
+  let storeAutoSaveTimer = null;
+
+  function setSyncStatus(status) {
+    const el = document.getElementById('store-horas-sync-status');
+    if (!el) return;
+
+    if (status === 'saving') {
+      el.className = 'inline-flex items-center gap-1.5 text-xs text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 transition-all font-medium';
+      el.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span>Guardando...</span>';
+    } else if (status === 'saved') {
+      el.className = 'inline-flex items-center gap-1.5 text-xs text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 transition-all font-medium';
+      el.innerHTML = '<i data-lucide="cloud-check" class="w-3.5 h-3.5 text-emerald-600"></i><span>Sincronizado en la nube</span>';
+      initLucideIcons();
+    } else if (status === 'local') {
+      el.className = 'inline-flex items-center gap-1.5 text-xs text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded-md border border-neutral-200 transition-all font-medium';
+      el.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-neutral-500"></i><span>Guardado local</span>';
+      initLucideIcons();
+    }
+  }
+
+  function triggerStoreAutoSave() {
+    setSyncStatus('saving');
+    clearTimeout(storeAutoSaveTimer);
+    storeAutoSaveTimer = setTimeout(() => {
+      saveAllHorasStore(true);
+    }, 500);
+  }
+
+  async function saveAllHorasStore(silent = false) {
     const storeCode = state.currentRole;
+    if (!storeCode || storeCode === 'ADMIN') return;
+
     const colabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
     const listToSave = [...colabs];
     if (storeCode === 'MASCHWITZ') {
@@ -889,15 +990,23 @@
       listToSave.push({ id: 'c-martu_masch', horas_base_mes: mm.horas_base_mes, recibo_hs_base: mm.recibo_hs_base });
     }
 
+    const supabaseRows = [];
+
     listToSave.forEach(c => {
       const key = `${state.currentPeriod}_${c.id}`;
       const rec = state.cierres[key] || {};
 
-      const ha = Number(document.getElementById(`ha-${c.id}`)?.value) || 0;
-      const hf = Number(document.getElementById(`hf-${c.id}`)?.value) || 0;
-      const he = Number(document.getElementById(`he-${c.id}`)?.value) || 0;
-      const hv = Number(document.getElementById(`hv-${c.id}`)?.value) || 0;
-      const obs = document.getElementById(`dc-${c.id}`)?.value.trim() || '';
+      const haEl = document.getElementById(`ha-${c.id}`);
+      const hfEl = document.getElementById(`hf-${c.id}`);
+      const heEl = document.getElementById(`he-${c.id}`);
+      const hvEl = document.getElementById(`hv-${c.id}`);
+      const dcEl = document.getElementById(`dc-${c.id}`);
+
+      const ha = haEl ? (Number(haEl.value) || 0) : (Number(rec.adicional_hs) || 0);
+      const hf = hfEl ? (Number(hfEl.value) || 0) : (Number(rec.feriados_hs) || 0);
+      const he = heEl ? (Number(heEl.value) || 0) : (Number(rec.extras_hs) || 0);
+      const hv = hvEl ? (Number(hvEl.value) || 0) : (Number(rec.vacaciones_hs) || 0);
+      const obs = dcEl ? dcEl.value.trim() : (rec.observaciones || '');
 
       const hb = Number(rec.horas_base ?? c.horas_base_mes ?? 0);
       const reciboHs = Number(rec.recibo_hs ?? c.recibo_hs_base ?? 0);
@@ -916,10 +1025,46 @@
         adicionales_hs: ha,
         detalle_cobertura: obs
       };
+
+      supabaseRows.push({
+        periodo: state.currentPeriod,
+        colab_id: c.id,
+        sucursal_codigo: storeCode,
+        horas_base: hb,
+        recibo_hs: reciboHs,
+        sin_recibo_hs: sinReciboHs,
+        adicional_hs: ha,
+        feriados_hs: hf,
+        extras_hs: he,
+        vacaciones_hs: hv,
+        observaciones: obs,
+        detalle_cobertura: obs,
+        actualizado_en: new Date().toISOString(),
+        actualizado_por: storeCode === 'TOM' ? 'Sofi' : (storeCode === 'MASCHWITZ' ? 'Flavia' : 'Encargada')
+      });
     });
 
     localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
-    showToast('Horas del mes guardadas exitosamente.', 'success');
+
+    if (state.supabaseClient && state.isSupabaseConnected && supabaseRows.length > 0) {
+      setSyncStatus('saving');
+      try {
+        const { error } = await state.supabaseClient
+          .from('cierres_mensuales')
+          .upsert(supabaseRows, { onConflict: 'periodo,colab_id' });
+        if (error) throw error;
+        setSyncStatus('saved');
+      } catch (err) {
+        console.warn('Error syncing cierres to Supabase:', err);
+        setSyncStatus('local');
+      }
+    } else {
+      setSyncStatus('local');
+    }
+
+    if (!silent) {
+      showToast('Horas del mes guardadas exitosamente.', 'success');
+    }
   }
 
   // --- SUBVISTA 1.B: DETALLE Y JUSTIFICACIÓN DE EXTRAS / ADICIONALES (Punto 1) ---
@@ -999,6 +1144,31 @@
       localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
     }
 
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      state.supabaseClient.from('horas_detalle').insert(newRecord).then(() => {});
+      if (state.cierres[key]) {
+        const colab = colabId === 'c-martu_masch' ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
+        const storeCode = colab?.codigo_sucursal || (colabId === 'c-martu_masch' ? 'MASCHWITZ' : 'TOM');
+        const rec = state.cierres[key];
+        state.supabaseClient.from('cierres_mensuales').upsert({
+          periodo: state.currentPeriod,
+          colab_id: colabId,
+          sucursal_codigo: storeCode,
+          horas_base: Number(rec.horas_base || 0),
+          recibo_hs: Number(rec.recibo_hs || 0),
+          sin_recibo_hs: Number(rec.sin_recibo_hs || 0),
+          adicional_hs: Number(rec.adicional_hs || 0),
+          feriados_hs: Number(rec.feriados_hs || 0),
+          extras_hs: Number(rec.extras_hs || 0),
+          vacaciones_hs: Number(rec.vacaciones_hs || 0),
+          observaciones: rec.observaciones || '',
+          detalle_cobertura: rec.detalle_cobertura || '',
+          actualizado_en: new Date().toISOString(),
+          actualizado_por: state.currentRole === 'TOM' ? 'Sofi' : 'Flavia'
+        }, { onConflict: 'periodo,colab_id' }).then(() => {});
+      }
+    }
+
     document.getElementById('form-hora-detalle').reset();
     showToast('Horas registradas con justificación.', 'success');
     renderStoreHoras();
@@ -1021,6 +1191,31 @@
       }
       localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
       renderStoreHoras();
+    }
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      state.supabaseClient.from('horas_detalle').delete().eq('id', id).then(() => {});
+      if (state.cierres[key]) {
+        const colab = item.colaboradora_id === 'c-martu_masch' ? getMartuMasch() : state.colaboradoras.find(c => c.id === item.colaboradora_id);
+        const storeCode = colab?.codigo_sucursal || (item.colaboradora_id === 'c-martu_masch' ? 'MASCHWITZ' : 'TOM');
+        const rec = state.cierres[key];
+        state.supabaseClient.from('cierres_mensuales').upsert({
+          periodo: state.currentPeriod,
+          colab_id: item.colaboradora_id,
+          sucursal_codigo: storeCode,
+          horas_base: Number(rec.horas_base || 0),
+          recibo_hs: Number(rec.recibo_hs || 0),
+          sin_recibo_hs: Number(rec.sin_recibo_hs || 0),
+          adicional_hs: Number(rec.adicional_hs || 0),
+          feriados_hs: Number(rec.feriados_hs || 0),
+          extras_hs: Number(rec.extras_hs || 0),
+          vacaciones_hs: Number(rec.vacaciones_hs || 0),
+          observaciones: rec.observaciones || '',
+          detalle_cobertura: rec.detalle_cobertura || '',
+          actualizado_en: new Date().toISOString(),
+          actualizado_por: state.currentRole === 'TOM' ? 'Sofi' : 'Flavia'
+        }, { onConflict: 'periodo,colab_id' }).then(() => {});
+      }
     }
 
     renderStoreHorasDetalle();
@@ -1508,6 +1703,10 @@
     state.novedades.unshift(newNov);
     localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
 
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      state.supabaseClient.from('novedades_puntuales').insert(newNov).then(() => {});
+    }
+
     document.getElementById('form-novedad').reset();
     removeSelectedFile();
     showToast('Novedad guardada exitosamente.', 'success');
@@ -1519,6 +1718,11 @@
     if (!item) return;
     state.novedades = state.novedades.filter(n => n.id !== id);
     localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      state.supabaseClient.from('novedades_puntuales').delete().eq('id', id).then(() => {});
+    }
+
     renderStoreNovedades();
     renderStoreVacaciones();
     renderAdminNovedades();
@@ -1600,6 +1804,10 @@
     state.retiros.push(newRet);
     localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
 
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      state.supabaseClient.from('retiros_calzado').insert(newRet).then(() => {});
+    }
+
     document.getElementById('form-retiro').reset();
     showToast('Calzado registrado con éxito.', 'success');
     renderStoreRetiros();
@@ -1610,6 +1818,11 @@
     if (!item) return;
     state.retiros = state.retiros.filter(r => r.id !== id);
     localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      state.supabaseClient.from('retiros_calzado').delete().eq('id', id).then(() => {});
+    }
+
     renderStoreRetiros();
     renderAdminRetiros();
     updateAdminKPIs();
@@ -2090,6 +2303,30 @@
     }
     localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
 
+    // Sincronizar ajuste inmediato a Supabase
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      const [periodo, colabId] = key.split('_');
+      const rec = state.cierres[key];
+      const colab = colabId === 'c-martu_masch' ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
+      const storeCode = colab?.codigo_sucursal || (colabId === 'c-martu_masch' ? 'MASCHWITZ' : 'TOM');
+      state.supabaseClient.from('cierres_mensuales').upsert({
+        periodo: periodo,
+        colab_id: colabId,
+        sucursal_codigo: storeCode,
+        horas_base: Number(rec.horas_base || 0),
+        recibo_hs: Number(rec.recibo_hs || 0),
+        sin_recibo_hs: Number(rec.sin_recibo_hs || 0),
+        adicional_hs: Number(rec.adicional_hs || 0),
+        feriados_hs: Number(rec.feriados_hs || 0),
+        extras_hs: Number(rec.extras_hs || 0),
+        vacaciones_hs: Number(rec.vacaciones_hs || 0),
+        observaciones: rec.observaciones || '',
+        detalle_cobertura: rec.detalle_cobertura || '',
+        actualizado_en: new Date().toISOString(),
+        actualizado_por: 'Admin'
+      }, { onConflict: 'periodo,colab_id' }).then(() => {});
+    }
+
     // Actualizar Base Neta en vivo si se modificó recibo, sin_recibo o vacaciones
     const r = Number(state.cierres[key].recibo_hs || 0);
     const sr = Number(state.cierres[key].sin_recibo_hs || 0);
@@ -2171,7 +2408,38 @@
 
     localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
     updateAdminKPIs();
-    showToast('Planilla de horas consolidada y guardada.', 'success');
+
+    // Sincronización en la nube de todas las colaboradoras del período
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      const periodKeys = Object.keys(state.cierres).filter(k => k.startsWith(state.currentPeriod));
+      const rows = periodKeys.map(k => {
+        const [periodo, colabId] = k.split('_');
+        const rec = state.cierres[k];
+        const colab = colabId === 'c-martu_masch' ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
+        const storeCode = colab?.codigo_sucursal || (colabId === 'c-martu_masch' ? 'MASCHWITZ' : 'TOM');
+        return {
+          periodo: periodo,
+          colab_id: colabId,
+          sucursal_codigo: storeCode,
+          horas_base: Number(rec.horas_base || 0),
+          recibo_hs: Number(rec.recibo_hs || 0),
+          sin_recibo_hs: Number(rec.sin_recibo_hs || 0),
+          adicional_hs: Number(rec.adicional_hs || 0),
+          feriados_hs: Number(rec.feriados_hs || 0),
+          extras_hs: Number(rec.extras_hs || 0),
+          vacaciones_hs: Number(rec.vacaciones_hs || 0),
+          observaciones: rec.observaciones || '',
+          detalle_cobertura: rec.detalle_cobertura || '',
+          actualizado_en: new Date().toISOString(),
+          actualizado_por: 'Admin'
+        };
+      });
+      if (rows.length > 0) {
+        state.supabaseClient.from('cierres_mensuales').upsert(rows, { onConflict: 'periodo,colab_id' }).then(() => {});
+      }
+    }
+
+    showToast('Planilla de horas consolidada y sincronizada.', 'success');
   }
 
   // --- MODAL DE OBSERVACIONES Y REGISTRO AMPLIO DE DÍAS ---
@@ -2286,6 +2554,29 @@
     } else {
       const el = document.getElementById(`admin-obs-${key}`);
       if (el) el.value = newText;
+    }
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      const [periodo, colabId] = key.split('_');
+      const rec = state.cierres[key];
+      const colab = colabId === 'c-martu_masch' ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
+      const storeCode = colab?.codigo_sucursal || (colabId === 'c-martu_masch' ? 'MASCHWITZ' : 'TOM');
+      state.supabaseClient.from('cierres_mensuales').upsert({
+        periodo: periodo,
+        colab_id: colabId,
+        sucursal_codigo: storeCode,
+        horas_base: Number(rec.horas_base || 0),
+        recibo_hs: Number(rec.recibo_hs || 0),
+        sin_recibo_hs: Number(rec.sin_recibo_hs || 0),
+        adicional_hs: Number(rec.adicional_hs || 0),
+        feriados_hs: Number(rec.feriados_hs || 0),
+        extras_hs: Number(rec.extras_hs || 0),
+        vacaciones_hs: Number(rec.vacaciones_hs || 0),
+        observaciones: newText,
+        detalle_cobertura: newText,
+        actualizado_en: new Date().toISOString(),
+        actualizado_por: state.currentRole === 'ADMIN' ? 'Admin' : (state.currentRole === 'TOM' ? 'Sofi' : 'Flavia')
+      }, { onConflict: 'periodo,colab_id' }).then(() => {});
     }
 
     closeObservacionesModal();
@@ -4072,6 +4363,7 @@
     handleSaveStoreModificacion,
     handleDeleteModificacion,
     saveAllHorasStore,
+    triggerStoreAutoSave,
     recalcStoreRowBase,
     recalcRowTotal: recalcStoreRowBase,
     handleAddHoraDetalle,
