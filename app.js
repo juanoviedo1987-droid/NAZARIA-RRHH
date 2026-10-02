@@ -263,10 +263,94 @@
   const SAMPLE_CERT_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="600" height="780" viewBox="0 0 600 780" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;"><rect width="600" height="780" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/><rect x="25" y="25" width="550" height="730" fill="#fcfcfc" stroke="#e2e8f0" stroke-width="1.5" rx="8"/><rect x="25" y="25" width="550" height="90" fill="#f8fafc" rx="8"/><text x="50" y="65" font-size="16" font-weight="bold" fill="#0f172a">CENTRO MÉDICO PILAR</text><text x="50" y="85" font-size="11" fill="#64748b">Medicina Laboral y Guardia 24hs · Av. Tratado del Pilar 450</text><line x1="45" y1="115" x2="555" y2="115" stroke="#0f172a" stroke-width="2"/><text x="300" y="165" font-size="20" font-weight="bold" text-anchor="middle" fill="#0f172a">CERTIFICADO MÉDICO</text><text x="50" y="220" font-size="13" fill="#475569">Fecha de emisión: 14 de Octubre de 2026</text><text x="50" y="255" font-size="13" fill="#1e293b">Por la presente certifico que he examinado a la colaboradora:</text><rect x="45" y="275" width="510" height="40" fill="#f1f5f9" rx="4"/><text x="60" y="300" font-size="15" font-weight="bold" fill="#0f172a">GÓMEZ FLAVIA MARIANELA (DNI 32.826.228)</text><text x="50" y="355" font-size="13" fill="#334155">Diagnóstico clínico presuntivo:</text><text x="50" y="380" font-size="15" font-weight="bold" fill="#b91c1c">FARINGOAMIGDALITIS AGUDA CON REGISTRO FEBRIL</text><text x="50" y="435" font-size="13" fill="#334155">Indicación médica:</text><text x="50" y="460" font-size="14" font-weight="bold" fill="#0f172a">REPOSO LABORAL POR 48 HORAS (14/10/2026 al 16/10/2026).</text><text x="50" y="485" font-size="12" fill="#64748b">Pudiendo reintegrarse a sus tareas el día 17 de Octubre de 2026.</text><g transform="translate(330, 580)"><path d="M 20 40 Q 60 5 110 35 T 190 25" stroke="#1d4ed8" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="15" y="45" width="200" height="65" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="3 3" rx="4"/><text x="115" y="65" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a8a">DRA. MARIANA S. CASTILLO</text><text x="115" y="80" font-size="10" text-anchor="middle" fill="#334155">Médica Clínica - M.N. 148.922</text><text x="115" y="95" font-size="9" text-anchor="middle" fill="#64748b">Esp. en Medicina del Trabajo</text></g></svg>');
 
   // --- 4. RETIROS DE CALZADO Y PAR DE TEMPORADA ---
-  const DEFAULT_RETIROS = [];
+  const DEFAULT_RETIROS = [
+    {
+      id: 'ret-1790975895543',
+      colaboradora_id: 'c-cande',
+      sucursal: 'TOM',
+      tipo: 'Par de Temporada',
+      articulo: 'ULHIMARY',
+      talle_color: 'NEGRO/BLANCO/GRIS 35',
+      fecha: '2026-09-17',
+      creado_en: '2026-09-17T15:00:00.000Z'
+    }
+  ];
 
   // --- 5. NOVEDADES, FALTAS Y TRAMOS DE VACACIONES ---
-  const DEFAULT_NOVEDADES = [];
+  const DEFAULT_NOVEDADES = [
+    {
+      id: 'nov-sofi-vac-1',
+      colaboradora_id: 'c-sofi',
+      codigo_sucursal: 'TOM',
+      tipo: 'Vacaciones',
+      fecha_inicio: '2025-09-24',
+      fecha_fin: '2025-10-01',
+      dias_computados: 8,
+      certificado_url: '',
+      observaciones: '1 tramo por renovacion de local',
+      creado_en: '2026-09-24T12:00:00.000Z'
+    },
+    {
+      id: 'nov-sofi-vac-2',
+      colaboradora_id: 'c-sofi',
+      codigo_sucursal: 'TOM',
+      tipo: 'Vacaciones',
+      fecha_inicio: '2026-03-19',
+      fecha_fin: '2026-03-24',
+      dias_computados: 6,
+      certificado_url: '',
+      observaciones: '2do tramo Marzo',
+      creado_en: '2026-09-24T12:05:00.000Z'
+    },
+    {
+      id: 'nov-esme-vac-1',
+      colaboradora_id: 'c-esme',
+      codigo_sucursal: 'TOM',
+      tipo: 'Vacaciones',
+      fecha_inicio: '2025-09-24',
+      fecha_fin: '2025-10-01',
+      dias_computados: 8,
+      certificado_url: '',
+      observaciones: '1 tramo por renovacion de local',
+      creado_en: '2026-09-24T12:10:00.000Z'
+    },
+    {
+      id: 'nov-esme-vac-2',
+      colaboradora_id: 'c-esme',
+      codigo_sucursal: 'TOM',
+      tipo: 'Vacaciones',
+      fecha_inicio: '2026-02-12',
+      fecha_fin: '2026-02-19',
+      dias_computados: 8,
+      certificado_url: '',
+      observaciones: '2do tramo Febrero',
+      creado_en: '2026-09-24T12:15:00.000Z'
+    },
+    {
+      id: 'nov-martu-vac-1',
+      colaboradora_id: 'c-martu',
+      codigo_sucursal: 'TOM',
+      tipo: 'Vacaciones',
+      fecha_inicio: '2025-09-24',
+      fecha_fin: '2025-10-01',
+      dias_computados: 8,
+      certificado_url: '',
+      observaciones: '1 tramo por renovacion de local',
+      creado_en: '2026-09-24T12:20:00.000Z'
+    },
+    {
+      id: 'nov-martu-vac-2',
+      colaboradora_id: 'c-martu',
+      codigo_sucursal: 'TOM',
+      tipo: 'Vacaciones',
+      fecha_inicio: '2026-02-04',
+      fecha_fin: '2026-02-09',
+      dias_computados: 6,
+      certificado_url: '',
+      observaciones: '2do tramo Febrero',
+      creado_en: '2026-09-24T12:25:00.000Z'
+    }
+  ];
 
   // --- ESTADO GLOBAL ---
   const state = {
@@ -324,8 +408,8 @@
   }
 
   function initStorageData() {
-    // Inicializar o recargar datos con versión para migración limpia (v17: Ajuste base Martina Maschwitz 22hs)
-    const DATA_VERSION = 'v17';
+    // Inicializar o recargar datos con versión para migración limpia (v18: sincronización integral de tramos de vacaciones y retiros)
+    const DATA_VERSION = 'v18';
     const verKey = 'nazaria_data_version';
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
@@ -3475,9 +3559,10 @@
     });
   }
 
-  // --- ADMIN 3: RETIROS & TEMPORADA (Filtrado por Período y Ordenado por Fecha) ---
+  // --- ADMIN 3: RETIROS & TEMPORADA (Filtrado por Período y Ordenado por Fecha, Editable y Eliminable) ---
   function renderAdminRetiros() {
     const tbody = document.getElementById('tbody-admin-retiros');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     const list = state.retiros.filter(r => r.fecha && r.fecha.startsWith(state.currentPeriod));
@@ -3490,7 +3575,7 @@
     });
 
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-neutral-400 text-xs">No hay retiros registrados para el período ${state.currentPeriod}.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-neutral-400 text-xs">No hay retiros registrados para el período ${state.currentPeriod}.</td></tr>`;
       return;
     }
 
@@ -3510,9 +3595,114 @@
         <td class="font-mono font-bold text-xs uppercase text-neutral-800">${r.articulo}</td>
         <td class="text-xs uppercase text-neutral-700">${r.talle_color}</td>
         <td class="font-mono text-xs text-neutral-500">${r.fecha ? formatDateShort(r.fecha) : '-'}</td>
+        <td class="text-right whitespace-nowrap">
+          <button onclick="window.app.openEditRetiroModal('${r.id}')" class="p-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 hover:text-black transition cursor-pointer inline-flex items-center gap-1 text-xs font-bold" title="Editar campos de este calzado">
+            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+            <span>Editar</span>
+          </button>
+          <button onclick="window.app.deleteRetiro('${r.id}')" class="p-1.5 rounded-lg hover:bg-red-50 text-neutral-400 hover:text-red-600 transition cursor-pointer inline-flex items-center ml-1" title="Eliminar par cargado por error">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </td>
       `;
       tbody.appendChild(tr);
     });
+
+    initLucideIcons();
+  }
+
+  function openEditRetiroModal(id) {
+    const r = state.retiros.find(item => item.id === id);
+    if (!r) return;
+
+    const modal = document.getElementById('modal-edit-retiro');
+    if (!modal) return;
+
+    document.getElementById('edit-ret-id').value = r.id;
+
+    const selColab = document.getElementById('edit-ret-colaboradora');
+    if (selColab) {
+      selColab.innerHTML = state.colaboradoras
+        .map(c => `<option value="${c.id}" ${c.id === r.colaboradora_id ? 'selected' : ''}>${c.alias || c.nombre_completo} (${c.codigo_sucursal})</option>`)
+        .join('');
+    }
+
+    const selSuc = document.getElementById('edit-ret-sucursal');
+    if (selSuc) selSuc.value = r.sucursal || 'TOM';
+
+    const selTipo = document.getElementById('edit-ret-tipo');
+    if (selTipo) selTipo.value = r.tipo || 'Retiro';
+
+    const inArt = document.getElementById('edit-ret-articulo');
+    if (inArt) inArt.value = r.articulo || '';
+
+    const inTc = document.getElementById('edit-ret-talle-color');
+    if (inTc) inTc.value = r.talle_color || '';
+
+    const inFecha = document.getElementById('edit-ret-fecha');
+    if (inFecha) inFecha.value = r.fecha || '';
+
+    modal.classList.remove('hidden');
+    initLucideIcons();
+  }
+
+  function closeEditRetiroModal() {
+    const modal = document.getElementById('modal-edit-retiro');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  async function handleSaveEditRetiro(e) {
+    if (e) e.preventDefault();
+    const id = document.getElementById('edit-ret-id')?.value;
+    const r = state.retiros.find(item => item.id === id);
+    if (!r) return;
+
+    const colabId = document.getElementById('edit-ret-colaboradora')?.value;
+    const sucursal = document.getElementById('edit-ret-sucursal')?.value;
+    const tipo = document.getElementById('edit-ret-tipo')?.value;
+    const art = document.getElementById('edit-ret-articulo')?.value.trim().toUpperCase();
+    const tc = document.getElementById('edit-ret-talle-color')?.value.trim().toUpperCase();
+    const fecha = document.getElementById('edit-ret-fecha')?.value;
+
+    r.colaboradora_id = colabId;
+    r.sucursal = sucursal;
+    r.tipo = tipo;
+    r.articulo = art;
+    r.talle_color = tc;
+    r.fecha = fecha;
+
+    localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      try {
+        await state.supabaseClient
+          .from('retiros_calzado')
+          .upsert({
+            id: r.id,
+            colaboradora_id: colabId,
+            sucursal: sucursal,
+            tipo: tipo,
+            articulo: art,
+            talle_color: tc,
+            fecha: fecha
+          });
+      } catch (err) {
+        console.warn('Error saving updated retiro to Supabase:', err);
+      }
+    }
+
+    closeEditRetiroModal();
+    renderAdminRetiros();
+    renderStoreRetiros();
+    updateAdminKPIs();
+    showToast('Registro de calzado modificado exitosamente.', 'success');
+  }
+
+  function deleteRetiroFromModal() {
+    const id = document.getElementById('edit-ret-id')?.value;
+    if (!id) return;
+    closeEditRetiroModal();
+    deleteRetiro(id);
   }
 
   function filterAdminNovedades(filterType) {
@@ -4533,6 +4723,10 @@
     deleteNovedad,
     handleSaveRetiro,
     deleteRetiro,
+    openEditRetiroModal,
+    closeEditRetiroModal,
+    handleSaveEditRetiro,
+    deleteRetiroFromModal,
     calcNovDaysAuto,
     calcVacDaysAuto,
     filterAdminNovedades,
