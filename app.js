@@ -455,10 +455,43 @@
         .select('*');
 
       if (!errC && remoteCierres && remoteCierres.length > 0) {
+        const needsLocalPush = [];
+
         remoteCierres.forEach(r => {
           const key = `${r.periodo}_${r.colab_id}`;
           const currentObs = r.observaciones ?? '';
           const cleanObs = currentObs === 'Cubre domingos Maschwitz' ? '' : currentObs;
+          const localRec = state.cierres[key];
+
+          const hasLocalModifications = localRec && (
+            (Number(localRec.adicional_hs || localRec.adicionales_hs) || 0) !== 0 ||
+            (Number(localRec.feriados_hs) || 0) !== 0 ||
+            (Number(localRec.extras_hs) || 0) !== 0 ||
+            (Number(localRec.vacaciones_hs) || 0) !== 0 ||
+            (localRec.observaciones && localRec.observaciones.trim() !== '')
+          );
+
+          // Si el registro remoto es el seed inicial de Sistema pero el dispositivo local tiene datos ingresados:
+          if (r.actualizado_por === 'Sistema' && hasLocalModifications) {
+            needsLocalPush.push({
+              periodo: r.periodo,
+              colab_id: r.colab_id,
+              sucursal_codigo: r.sucursal_codigo,
+              horas_base: Number(localRec.horas_base ?? r.horas_base ?? 0),
+              recibo_hs: Number(localRec.recibo_hs ?? r.recibo_hs ?? 0),
+              sin_recibo_hs: Number(localRec.sin_recibo_hs ?? r.sin_recibo_hs ?? 0),
+              adicional_hs: Number(localRec.adicional_hs || localRec.adicionales_hs || 0),
+              feriados_hs: Number(localRec.feriados_hs || 0),
+              extras_hs: Number(localRec.extras_hs || 0),
+              vacaciones_hs: Number(localRec.vacaciones_hs || 0),
+              observaciones: localRec.observaciones || '',
+              detalle_cobertura: localRec.detalle_cobertura || localRec.observaciones || '',
+              actualizado_en: new Date().toISOString(),
+              actualizado_por: state.currentRole === 'TOM' ? 'Sofi' : (state.currentRole === 'MASCHWITZ' ? 'Flavia' : 'Encargada')
+            });
+            return;
+          }
+
           state.cierres[key] = {
             ...(state.cierres[key] || {}),
             horas_base: Number(r.horas_base ?? 0),
@@ -473,7 +506,15 @@
             adicionales_hs: Number(r.adicional_hs ?? 0)
           };
         });
+
         localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+
+        if (needsLocalPush.length > 0) {
+          state.supabaseClient
+            .from('cierres_mensuales')
+            .upsert(needsLocalPush, { onConflict: 'periodo,colab_id' })
+            .then(() => {});
+        }
       }
 
       // 5. Novedades y Licencias Médicas
