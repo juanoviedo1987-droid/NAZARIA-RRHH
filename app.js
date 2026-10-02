@@ -407,10 +407,48 @@
     }
   }
 
+  // ============================================================================
+  // REGISTRO DE ELIMINACIONES PERMANENTES (Evita resurrección por caché local)
+  // ============================================================================
+  const DELETED_IDS_KEY = 'nazaria_deleted_ids';
+  function getDeletedIds() {
+    try {
+      const list = JSON.parse(localStorage.getItem(DELETED_IDS_KEY) || '[]');
+      return new Set(Array.isArray(list) ? list : []);
+    } catch(e) {
+      return new Set();
+    }
+  }
+  function markIdDeleted(id) {
+    if (!id) return;
+    try {
+      const set = getDeletedIds();
+      set.add(id);
+      localStorage.setItem(DELETED_IDS_KEY, JSON.stringify([...set]));
+    } catch(e) {}
+  }
+  function unmarkIdDeleted(id) {
+    if (!id) return;
+    try {
+      const set = getDeletedIds();
+      set.delete(id);
+      localStorage.setItem(DELETED_IDS_KEY, JSON.stringify([...set]));
+    } catch(e) {}
+  }
+  function isIdDeleted(id) {
+    if (!id) return false;
+    return getDeletedIds().has(id);
+  }
+
   function initStorageData() {
-    // Inicializar o recargar datos con versión para migración limpia (v18: sincronización integral de tramos de vacaciones y retiros)
-    const DATA_VERSION = 'v18';
+    // Inicializar o recargar datos con versión para migración limpia (v19: purga de registros huérfanos y control estricto de borrado)
+    const DATA_VERSION = 'v19';
     const verKey = 'nazaria_data_version';
+
+    // Purgar de forma permanente registros duplicados o de prueba conocidos
+    markIdDeleted('ret-cande-1');
+    markIdDeleted('test-1790982197463');
+
     if (localStorage.getItem(verKey) !== DATA_VERSION) {
       localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(DEFAULT_COLABORADORAS));
       localStorage.setItem('nazaria_martu_masch_v2', JSON.stringify(DEFAULT_MARTU_MASCH));
@@ -420,8 +458,8 @@
       localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(DEFAULT_FECHAS_ESPECIALES));
       localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(DEFAULT_HORARIOS_NOTAS));
       localStorage.setItem('nazaria_horarios_modificaciones_v2', JSON.stringify(DEFAULT_HORARIOS_MODIFICACIONES));
-      localStorage.setItem('nazaria_retiros_v2', JSON.stringify(DEFAULT_RETIROS));
-      localStorage.setItem('nazaria_novedades_v2', JSON.stringify(DEFAULT_NOVEDADES));
+      localStorage.setItem('nazaria_retiros_v2', JSON.stringify(DEFAULT_RETIROS.filter(r => !isIdDeleted(r.id))));
+      localStorage.setItem('nazaria_novedades_v2', JSON.stringify(DEFAULT_NOVEDADES.filter(n => !isIdDeleted(n.id))));
       localStorage.setItem(verKey, DATA_VERSION);
     }
 
@@ -437,13 +475,13 @@
         state.cierres[k].detalle_cobertura = '';
       }
     });
-    state.horas_detalle = JSON.parse(localStorage.getItem('nazaria_horas_detalle_v2') || JSON.stringify(DEFAULT_HORAS_DETALLE));
+    state.horas_detalle = (JSON.parse(localStorage.getItem('nazaria_horas_detalle_v2') || JSON.stringify(DEFAULT_HORAS_DETALLE))).filter(h => !isIdDeleted(h.id));
     state.horarios = JSON.parse(localStorage.getItem('nazaria_horarios_v2') || JSON.stringify(DEFAULT_HORARIOS));
     state.fechas_especiales = JSON.parse(localStorage.getItem('nazaria_fechas_especiales_v2') || JSON.stringify(DEFAULT_FECHAS_ESPECIALES));
     state.horarios_notas = JSON.parse(localStorage.getItem('nazaria_horarios_notas_v2') || JSON.stringify(DEFAULT_HORARIOS_NOTAS));
     state.horarios_modificaciones = JSON.parse(localStorage.getItem('nazaria_horarios_modificaciones_v2') || JSON.stringify(DEFAULT_HORARIOS_MODIFICACIONES));
-    state.retiros = JSON.parse(localStorage.getItem('nazaria_retiros_v2') || JSON.stringify(DEFAULT_RETIROS));
-    state.novedades = JSON.parse(localStorage.getItem('nazaria_novedades_v2') || JSON.stringify(DEFAULT_NOVEDADES));
+    state.retiros = (JSON.parse(localStorage.getItem('nazaria_retiros_v2') || JSON.stringify(DEFAULT_RETIROS))).filter(r => !isIdDeleted(r.id));
+    state.novedades = (JSON.parse(localStorage.getItem('nazaria_novedades_v2') || JSON.stringify(DEFAULT_NOVEDADES))).filter(n => !isIdDeleted(n.id));
   }
 
   function initSupabase() {
@@ -657,18 +695,30 @@
         .order('creado_en', { ascending: false });
 
       if (!errN) {
-        const remoteList = remoteNovedades || [];
-        const remoteIds = new Set(remoteList.map(r => r.id));
-        // Auto-sincronizar registros creados localmente que aún no llegaron a Supabase
-        const localUnsynced = state.novedades.filter(n => n.id && !remoteIds.has(n.id));
-        if (localUnsynced.length > 0) {
+        let remoteList = (remoteNovedades || []).filter(n => n && !isIdDeleted(n.id));
+
+        // Purgar de Supabase si algún ID marcado como eliminado aún reside en la nube
+        const ghostsNov = (remoteNovedades || []).filter(n => n && isIdDeleted(n.id));
+        if (ghostsNov.length > 0) {
+          ghostsNov.forEach(g => {
+            state.supabaseClient.from('novedades_puntuales').delete().eq('id', g.id).then(() => {});
+          });
+        }
+
+        // Subir únicamente los registros creados offline pendientes
+        const pendingNov = state.novedades.filter(n => n && n._pending_sync && !isIdDeleted(n.id));
+        for (const item of pendingNov) {
           try {
-            await state.supabaseClient.from('novedades_puntuales').insert(localUnsynced);
-            remoteList.unshift(...localUnsynced);
+            const toInsert = { ...item };
+            delete toInsert._pending_sync;
+            await state.supabaseClient.from('novedades_puntuales').insert(toInsert);
+            item._pending_sync = false;
+            remoteList.unshift(toInsert);
           } catch(e) {
-            console.warn('Error auto-syncing local novedades:', e);
+            console.warn('Error subiendo novedad pendiente offline:', e);
           }
         }
+
         state.novedades = remoteList;
         localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
       }
@@ -680,17 +730,29 @@
         .order('creado_en', { ascending: false });
 
       if (!errHD) {
-        const remoteList = remoteHD || [];
-        const remoteIds = new Set(remoteList.map(r => r.id));
-        const localUnsynced = state.horas_detalle.filter(h => h.id && !remoteIds.has(h.id));
-        if (localUnsynced.length > 0) {
+        let remoteList = (remoteHD || []).filter(h => h && !isIdDeleted(h.id));
+
+        // Purgar fantasmas
+        const ghostsHD = (remoteHD || []).filter(h => h && isIdDeleted(h.id));
+        if (ghostsHD.length > 0) {
+          ghostsHD.forEach(g => {
+            state.supabaseClient.from('horas_detalle').delete().eq('id', g.id).then(() => {});
+          });
+        }
+
+        const pendingHD = state.horas_detalle.filter(h => h && h._pending_sync && !isIdDeleted(h.id));
+        for (const item of pendingHD) {
           try {
-            await state.supabaseClient.from('horas_detalle').insert(localUnsynced);
-            remoteList.unshift(...localUnsynced);
+            const toInsert = { ...item };
+            delete toInsert._pending_sync;
+            await state.supabaseClient.from('horas_detalle').insert(toInsert);
+            item._pending_sync = false;
+            remoteList.unshift(toInsert);
           } catch(e) {
-            console.warn('Error auto-syncing local horas_detalle:', e);
+            console.warn('Error subiendo hora detalle pendiente offline:', e);
           }
         }
+
         state.horas_detalle = remoteList;
         localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
       }
@@ -702,17 +764,29 @@
         .order('creado_en', { ascending: false });
 
       if (!errRet) {
-        const remoteList = remoteRet || [];
-        const remoteIds = new Set(remoteList.map(r => r.id));
-        const localUnsynced = state.retiros.filter(r => r.id && !remoteIds.has(r.id));
-        if (localUnsynced.length > 0) {
+        let remoteList = (remoteRet || []).filter(r => r && !isIdDeleted(r.id));
+
+        // Purgar de Supabase si algún ID eliminado reapareció
+        const ghostsRet = (remoteRet || []).filter(r => r && isIdDeleted(r.id));
+        if (ghostsRet.length > 0) {
+          ghostsRet.forEach(g => {
+            state.supabaseClient.from('retiros_calzado').delete().eq('id', g.id).then(() => {});
+          });
+        }
+
+        const pendingRet = state.retiros.filter(r => r && r._pending_sync && !isIdDeleted(r.id));
+        for (const item of pendingRet) {
           try {
-            await state.supabaseClient.from('retiros_calzado').insert(localUnsynced);
-            remoteList.unshift(...localUnsynced);
+            const toInsert = { ...item };
+            delete toInsert._pending_sync;
+            await state.supabaseClient.from('retiros_calzado').insert(toInsert);
+            item._pending_sync = false;
+            remoteList.unshift(toInsert);
           } catch(e) {
-            console.warn('Error auto-syncing local retiros:', e);
+            console.warn('Error subiendo retiro pendiente offline:', e);
           }
         }
+
         state.retiros = remoteList;
         localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
       }
@@ -1396,6 +1470,8 @@
           actualizado_por: state.currentRole === 'TOM' ? 'Sofi' : 'Flavia'
         }, { onConflict: 'periodo,colab_id' }).then(() => {});
       }
+    } else {
+      newRecord._pending_sync = true;
     }
 
     document.getElementById('form-hora-detalle').reset();
@@ -1407,6 +1483,7 @@
   function handleDeleteHoraDetalle(id) {
     const item = state.horas_detalle.find(h => h.id === id);
     if (!item) return;
+    markIdDeleted(id);
     state.horas_detalle = state.horas_detalle.filter(h => h.id !== id);
     localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
 
@@ -1934,6 +2011,8 @@
 
     if (state.supabaseClient && state.isSupabaseConnected) {
       state.supabaseClient.from('novedades_puntuales').insert(newNov).then(() => {});
+    } else {
+      newNov._pending_sync = true;
     }
 
     document.getElementById('form-novedad').reset();
@@ -1942,14 +2021,19 @@
     renderStoreNovedades();
   }
 
-  function deleteNovedad(id) {
+  async function deleteNovedad(id) {
     const item = state.novedades.find(n => n.id === id);
     if (!item) return;
+    markIdDeleted(id);
     state.novedades = state.novedades.filter(n => n.id !== id);
     localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
 
     if (state.supabaseClient && state.isSupabaseConnected) {
-      state.supabaseClient.from('novedades_puntuales').delete().eq('id', id).then(() => {});
+      try {
+        await state.supabaseClient.from('novedades_puntuales').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Error deleting novedad from Supabase:', err);
+      }
     }
 
     renderStoreNovedades();
@@ -2035,6 +2119,8 @@
 
     if (state.supabaseClient && state.isSupabaseConnected) {
       state.supabaseClient.from('retiros_calzado').insert(newRet).then(() => {});
+    } else {
+      newRet._pending_sync = true;
     }
 
     document.getElementById('form-retiro').reset();
@@ -2042,14 +2128,19 @@
     renderStoreRetiros();
   }
 
-  function deleteRetiro(id) {
+  async function deleteRetiro(id) {
     const item = state.retiros.find(r => r.id === id);
     if (!item) return;
+    markIdDeleted(id);
     state.retiros = state.retiros.filter(r => r.id !== id);
     localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
 
     if (state.supabaseClient && state.isSupabaseConnected) {
-      state.supabaseClient.from('retiros_calzado').delete().eq('id', id).then(() => {});
+      try {
+        await state.supabaseClient.from('retiros_calzado').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Error deleting retiro from Supabase:', err);
+      }
     }
 
     renderStoreRetiros();
@@ -4596,10 +4687,14 @@
   function undoLastAction() {
     if (!lastDeletedItem) return;
     const { type, data } = lastDeletedItem;
+    if (data?.id) unmarkIdDeleted(data.id);
 
     if (type === 'novedad') {
       state.novedades.unshift(data);
       localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
+      if (state.supabaseClient && state.isSupabaseConnected) {
+        state.supabaseClient.from('novedades_puntuales').insert(data).then(() => {});
+      }
       renderStoreNovedades();
       renderStoreVacaciones();
       renderAdminNovedades();
@@ -4608,12 +4703,18 @@
     } else if (type === 'retiro') {
       state.retiros.unshift(data);
       localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
+      if (state.supabaseClient && state.isSupabaseConnected) {
+        state.supabaseClient.from('retiros_calzado').insert(data).then(() => {});
+      }
       renderStoreRetiros();
       renderAdminRetiros();
       updateAdminKPIs();
     } else if (type === 'hora_detalle') {
       state.horas_detalle.push(data);
       localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
+      if (state.supabaseClient && state.isSupabaseConnected) {
+        state.supabaseClient.from('horas_detalle').insert(data).then(() => {});
+      }
       const key = `${state.currentPeriod}_${data.colaboradora_id}`;
       if (state.cierres[key]) {
         if (data.tipo === 'Hora Extra') {
