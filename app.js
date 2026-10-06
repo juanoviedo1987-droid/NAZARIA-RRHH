@@ -441,8 +441,8 @@
   }
 
   function initStorageData() {
-    // Inicializar o recargar datos con versión para migración limpia (v19: purga de registros huérfanos y control estricto de borrado)
-    const DATA_VERSION = 'v19';
+    // Inicializar o recargar datos con versión para migración limpia (v20: automatización de horas desde historial y celdas protegidas)
+    const DATA_VERSION = 'v20';
     const verKey = 'nazaria_data_version';
 
     // Purgar de forma permanente registros duplicados o de prueba conocidos
@@ -1203,20 +1203,28 @@
           </div>
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" value="${adicionalHs}" id="ha-${c.id}" placeholder="0" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs font-bold text-amber-900 focus:border-black focus:bg-white" onfocus="this.select()" oninput="window.app.triggerStoreAutoSave()" onchange="window.app.triggerStoreAutoSave()" title="Ajuste mensual de jornada: suma (+) o resta (-)">
+          <div class="inline-flex items-center justify-center min-w-[56px] px-2 py-1 rounded bg-[#FAF9F6] border border-neutral-200 font-mono text-xs font-bold ${adicionalHs > 0 ? 'text-amber-900 bg-amber-50/60 border-amber-200' : adicionalHs < 0 ? 'text-rose-700 bg-rose-50/60 border-rose-200' : 'text-neutral-500'}" title="Calculado automáticamente desde el formulario de detalle inferior">
+            <span>${adicionalHs > 0 ? '+' : ''}${adicionalHs} hs</span>
+          </div>
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${feriadosHs}" id="hf-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" oninput="window.app.triggerStoreAutoSave()" onchange="window.app.triggerStoreAutoSave()">
+          <div class="inline-flex items-center justify-center min-w-[50px] px-2 py-1 rounded bg-[#FAF9F6] border border-neutral-200 font-mono text-xs font-bold ${feriadosHs > 0 ? 'text-purple-800 bg-purple-50/60 border-purple-200' : 'text-neutral-500'}" title="Calculado automáticamente desde el formulario de detalle inferior">
+            <span>${feriadosHs} hs</span>
+          </div>
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${extrasHs}" id="he-${c.id}" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs focus:border-black focus:bg-white" onfocus="this.select()" oninput="window.app.triggerStoreAutoSave()" onchange="window.app.triggerStoreAutoSave()">
+          <div class="inline-flex items-center justify-center min-w-[50px] px-2 py-1 rounded bg-[#FAF9F6] border border-neutral-200 font-mono text-xs font-bold ${extrasHs > 0 ? 'text-blue-800 bg-blue-50/60 border-blue-200' : 'text-neutral-500'}" title="Calculado automáticamente desde el formulario de detalle inferior">
+            <span>${extrasHs} hs</span>
+          </div>
         </td>
         <td class="text-center">
-          <input type="number" step="0.5" min="0" value="${vacacionesHs}" id="hv-${c.id}" placeholder="0" class="w-16 p-1.5 border border-neutral-200 rounded font-mono text-center text-xs text-emerald-800 font-bold focus:border-black focus:bg-white" onfocus="this.select()" onchange="window.app.recalcStoreRowBase('${c.id}'); window.app.triggerStoreAutoSave()" oninput="window.app.recalcStoreRowBase('${c.id}'); window.app.triggerStoreAutoSave()" title="Horas de vacaciones (restan directamente de la Base)">
+          <div class="inline-flex items-center justify-center min-w-[56px] px-2 py-1 rounded bg-[#FAF9F6] border border-neutral-200 font-mono text-xs font-bold ${vacacionesHs > 0 ? 'text-emerald-800 bg-emerald-50/60 border-emerald-200' : 'text-neutral-500'}" title="Calculado automáticamente desde el formulario de detalle inferior (resta de la Base)">
+            <span>${vacacionesHs} hs</span>
+          </div>
         </td>
         <td class="py-2 min-w-[260px]">
           <div class="flex items-start gap-1">
-            <textarea id="dc-${c.id}" rows="2" placeholder="Observaciones / justificación de adicionales y vacaciones..." class="w-full text-xs p-1.5 border border-neutral-200 rounded focus:border-black focus:bg-white resize-y leading-tight font-sans transition" onfocus="this.select()" oninput="window.app.triggerStoreAutoSave()" onchange="window.app.triggerStoreAutoSave()">${obs}</textarea>
+            <textarea id="dc-${c.id}" rows="2" placeholder="Observaciones / justificación..." class="w-full text-xs p-1.5 border border-neutral-200 rounded focus:border-black focus:bg-white resize-y leading-tight font-sans transition" onfocus="this.select()" oninput="window.app.triggerStoreAutoSave()" onchange="window.app.triggerStoreAutoSave()">${obs}</textarea>
             <button type="button" onclick="window.app.openObservacionesModal('${c.id}', '${displayName}', 'store')" class="p-1 rounded hover:bg-neutral-100 text-neutral-400 hover:text-black transition cursor-pointer mt-0.5" title="Abrir editor amplio de observaciones">
               <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
             </button>
@@ -1299,16 +1307,12 @@
       const key = `${state.currentPeriod}_${c.id}`;
       const rec = state.cierres[key] || {};
 
-      const haEl = document.getElementById(`ha-${c.id}`);
-      const hfEl = document.getElementById(`hf-${c.id}`);
-      const heEl = document.getElementById(`he-${c.id}`);
-      const hvEl = document.getElementById(`hv-${c.id}`);
       const dcEl = document.getElementById(`dc-${c.id}`);
 
-      const ha = haEl ? (Number(haEl.value) || 0) : (Number(rec.adicional_hs) || 0);
-      const hf = hfEl ? (Number(hfEl.value) || 0) : (Number(rec.feriados_hs) || 0);
-      const he = heEl ? (Number(heEl.value) || 0) : (Number(rec.extras_hs) || 0);
-      const hv = hvEl ? (Number(hvEl.value) || 0) : (Number(rec.vacaciones_hs) || 0);
+      const ha = Number(rec.adicional_hs ?? 0);
+      const hf = Number(rec.feriados_hs ?? 0);
+      const he = Number(rec.extras_hs ?? 0);
+      const hv = Number(rec.vacaciones_hs ?? 0);
       const obs = dcEl ? dcEl.value.trim() : (rec.observaciones || '');
 
       const hb = Number(rec.horas_base ?? c.horas_base_mes ?? 0);
@@ -1395,13 +1399,19 @@
     list.forEach(h => {
       const colab = state.colaboradoras.find(c => c.id === h.colaboradora_id);
       const tr = document.createElement('tr');
-      const isExtra = h.tipo === 'Hora Extra';
+      
+      let badgeClass = 'bg-blue-50 text-blue-800 border-blue-200';
+      if (h.tipo === 'Hora Extra') badgeClass = 'bg-amber-100 text-amber-900 border-amber-200';
+      else if (h.tipo === 'Feriado') badgeClass = 'bg-purple-50 text-purple-800 border-purple-200';
+      else if (h.tipo === 'Vacaciones') badgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+
+      const sign = (h.horas > 0 && h.tipo === 'Hora Adicional') ? '+' : '';
 
       tr.innerHTML = `
         <td class="font-mono text-xs text-neutral-600">${formatDateShort(h.fecha)}</td>
         <td class="font-bold text-xs text-neutral-900">${colab?.alias || colab?.nombre_completo || 'Colaboradora'}</td>
-        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isExtra ? 'bg-amber-100 text-amber-900 border border-amber-200' : 'bg-blue-50 text-blue-800 border border-blue-200'}">${h.tipo}</span></td>
-        <td class="font-mono font-bold text-xs text-neutral-900">${h.horas} hs</td>
+        <td><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${h.tipo}</span></td>
+        <td class="font-mono font-bold text-xs text-neutral-900">${sign}${h.horas} hs</td>
         <td class="text-xs text-neutral-700">${h.motivo}</td>
         <td class="text-right">
           <button onclick="window.app.handleDeleteHoraDetalle('${h.id}')" class="text-neutral-400 hover:text-red-600 p-1" title="Eliminar registro">
@@ -1423,6 +1433,11 @@
     const horas = parseFloat(document.getElementById('hd-horas').value) || 0;
     const motivo = document.getElementById('hd-motivo').value.trim();
 
+    if (horas === 0) {
+      showToast('La cantidad de horas no puede ser 0.', 'warning');
+      return;
+    }
+
     const newRecord = {
       id: 'hd-' + Date.now(),
       colaboradora_id: colabId,
@@ -1436,16 +1451,40 @@
     state.horas_detalle.push(newRecord);
     localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
 
-    // Opcional: auto-sumar en la fila de la tabla principal
+    // Impactar en el cierre mensual de la colaboradora
     const key = `${state.currentPeriod}_${colabId}`;
-    if (state.cierres[key]) {
-      if (tipo === 'Hora Extra') {
-        state.cierres[key].extras_hs = (Number(state.cierres[key].extras_hs) || 0) + horas;
-      } else {
-        state.cierres[key].adicionales_hs = (Number(state.cierres[key].adicionales_hs) || 0) + horas;
-      }
-      localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+    if (!state.cierres[key]) {
+      const colab = colabId === 'c-martu_masch' ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
+      const hb = Number(colab?.horas_base_mes || 88.0);
+      const rec = Number(colab?.recibo_hs_base || 0);
+      state.cierres[key] = {
+        horas_base: hb,
+        recibo_hs: rec,
+        sin_recibo_hs: Math.max(0, hb - rec),
+        adicional_hs: 0,
+        feriados_hs: 0,
+        extras_hs: 0,
+        vacaciones_hs: 0,
+        observaciones: '',
+        adicionales_hs: 0,
+        detalle_cobertura: ''
+      };
     }
+
+    if (tipo === 'Hora Extra') {
+      state.cierres[key].extras_hs = Math.max(0, (Number(state.cierres[key].extras_hs) || 0) + horas);
+    } else if (tipo === 'Feriado') {
+      state.cierres[key].feriados_hs = Math.max(0, (Number(state.cierres[key].feriados_hs) || 0) + horas);
+    } else if (tipo === 'Vacaciones') {
+      state.cierres[key].vacaciones_hs = Math.max(0, (Number(state.cierres[key].vacaciones_hs) || 0) + horas);
+    } else {
+      // Hora Adicional / Cobertura: permite valores positivos o negativos
+      const prevAdic = Number(state.cierres[key].adicional_hs ?? state.cierres[key].adicionales_hs ?? 0);
+      const newAdic = prevAdic + horas;
+      state.cierres[key].adicional_hs = newAdic;
+      state.cierres[key].adicionales_hs = newAdic;
+    }
+    localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
 
     if (state.supabaseClient && state.isSupabaseConnected) {
       state.supabaseClient.from('horas_detalle').insert(newRecord).then(() => {});
@@ -1467,7 +1506,7 @@
           observaciones: rec.observaciones || '',
           detalle_cobertura: rec.detalle_cobertura || '',
           actualizado_en: new Date().toISOString(),
-          actualizado_por: state.currentRole === 'TOM' ? 'Sofi' : 'Flavia'
+          actualizado_por: state.currentRole === 'TOM' ? 'Sofi' : (state.currentRole === 'MASCHWITZ' ? 'Flavia' : 'Encargada')
         }, { onConflict: 'periodo,colab_id' }).then(() => {});
       }
     } else {
@@ -1475,7 +1514,7 @@
     }
 
     document.getElementById('form-hora-detalle').reset();
-    showToast('Horas registradas con justificación.', 'success');
+    showToast('Horas registradas e impactadas en el resumen.', 'success');
     renderStoreHoras();
     renderStoreHorasDetalle();
   }
@@ -1487,13 +1526,20 @@
     state.horas_detalle = state.horas_detalle.filter(h => h.id !== id);
     localStorage.setItem('nazaria_horas_detalle_v2', JSON.stringify(state.horas_detalle));
 
-    // Restar de la fila principal si correspondía
+    // Revertir de la fila principal
     const key = `${state.currentPeriod}_${item.colaboradora_id}`;
     if (state.cierres[key]) {
       if (item.tipo === 'Hora Extra') {
         state.cierres[key].extras_hs = Math.max(0, (Number(state.cierres[key].extras_hs) || 0) - item.horas);
+      } else if (item.tipo === 'Feriado') {
+        state.cierres[key].feriados_hs = Math.max(0, (Number(state.cierres[key].feriados_hs) || 0) - item.horas);
+      } else if (item.tipo === 'Vacaciones') {
+        state.cierres[key].vacaciones_hs = Math.max(0, (Number(state.cierres[key].vacaciones_hs) || 0) - item.horas);
       } else {
-        state.cierres[key].adicionales_hs = Math.max(0, (Number(state.cierres[key].adicionales_hs) || 0) - item.horas);
+        const prevAdic = Number(state.cierres[key].adicional_hs ?? state.cierres[key].adicionales_hs ?? 0);
+        const newAdic = prevAdic - item.horas;
+        state.cierres[key].adicional_hs = newAdic;
+        state.cierres[key].adicionales_hs = newAdic;
       }
       localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
       renderStoreHoras();
@@ -1519,13 +1565,13 @@
           observaciones: rec.observaciones || '',
           detalle_cobertura: rec.detalle_cobertura || '',
           actualizado_en: new Date().toISOString(),
-          actualizado_por: state.currentRole === 'TOM' ? 'Sofi' : 'Flavia'
+          actualizado_por: state.currentRole === 'TOM' ? 'Sofi' : (state.currentRole === 'MASCHWITZ' ? 'Flavia' : 'Encargada')
         }, { onConflict: 'periodo,colab_id' }).then(() => {});
       }
     }
 
     renderStoreHorasDetalle();
-    setUndoableDelete('hora_detalle', item, 'Horas eliminadas.');
+    setUndoableDelete('hora_detalle', item, 'Horas eliminadas del historial y del resumen.');
   }
 
   // --- SUBVISTA 2: HORARIOS SEMANALES & FECHAS ESPECIALES (Punto 2) ---
@@ -4718,9 +4764,16 @@
       const key = `${state.currentPeriod}_${data.colaboradora_id}`;
       if (state.cierres[key]) {
         if (data.tipo === 'Hora Extra') {
-          state.cierres[key].extras_hs = (Number(state.cierres[key].extras_hs) || 0) + data.horas;
+          state.cierres[key].extras_hs = Math.max(0, (Number(state.cierres[key].extras_hs) || 0) + data.horas);
+        } else if (data.tipo === 'Feriado') {
+          state.cierres[key].feriados_hs = Math.max(0, (Number(state.cierres[key].feriados_hs) || 0) + data.horas);
+        } else if (data.tipo === 'Vacaciones') {
+          state.cierres[key].vacaciones_hs = Math.max(0, (Number(state.cierres[key].vacaciones_hs) || 0) + data.horas);
         } else {
-          state.cierres[key].adicionales_hs = (Number(state.cierres[key].adicionales_hs) || 0) + data.horas;
+          const prevAdic = Number(state.cierres[key].adicional_hs ?? state.cierres[key].adicionales_hs ?? 0);
+          const newAdic = prevAdic + data.horas;
+          state.cierres[key].adicional_hs = newAdic;
+          state.cierres[key].adicionales_hs = newAdic;
         }
         localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
         renderStoreHoras();
