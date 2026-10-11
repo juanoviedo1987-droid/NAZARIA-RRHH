@@ -1067,7 +1067,12 @@
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-neutral-200 gap-3">
             <div>
               <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Control de Vacaciones y Saldos</h3>
-              <p class="text-xs text-neutral-500">Antigüedad computada al 31/12 de cada año. Sofía Barrientos computa con antigüedad reconocida 01/09/2018 (21 días de ley).</p>
+              <p class="text-xs text-neutral-500">Antigüedad computada al 31/12 de cada año según LCT 20.744. Control de saldos y tramos gozados.</p>
+            </div>
+            <div class="flex items-center gap-1.5 bg-[#FAF9F6] p-1 rounded-lg border border-neutral-200 text-xs">
+              <button type="button" onclick="window.app.filterAdminVacaciones('TODAS')" id="btn-admin-vac-todas" class="px-2.5 py-1 rounded-md font-bold bg-black text-white text-[11px] transition cursor-pointer">Todas</button>
+              <button type="button" onclick="window.app.filterAdminVacaciones('TOM')" id="btn-admin-vac-tom" class="px-2.5 py-1 rounded-md font-medium text-neutral-600 hover:text-black text-[11px] transition cursor-pointer">TOM</button>
+              <button type="button" onclick="window.app.filterAdminVacaciones('MASCHWITZ')" id="btn-admin-vac-masch" class="px-2.5 py-1 rounded-md font-medium text-neutral-600 hover:text-black text-[11px] transition cursor-pointer">Maschwitz</button>
             </div>
           </div>
 

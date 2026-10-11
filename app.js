@@ -1110,8 +1110,9 @@
 
     const opts = ['<option value="">-- Seleccionar colaboradora --</option>'];
 
-    // Colaboradoras asignadas a la sucursal
-    const localColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
+    // Colaboradoras asignadas a la sucursal y activas en este período
+    const currentPeriod = state.currentPeriod;
+    const localColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode && isColaboradoraActivaEnPeriodo(c, currentPeriod));
     localColabs.forEach(c => {
       const shortName = getColabShortName(c.id, c.alias || c.nombre_completo);
       opts.push(`<option value="${c.id}">${shortName}</option>`);
@@ -1120,7 +1121,7 @@
     // En Maschwitz, permitir seleccionar a colaboradoras de TOM para coberturas
     if (storeCode === 'MASCHWITZ') {
       opts.push('<optgroup label="Coberturas desde TOM">');
-      state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM').forEach(c => {
+      state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM' && isColaboradoraActivaEnPeriodo(c, currentPeriod)).forEach(c => {
         const shortName = getColabShortName(c.id, c.alias || c.nombre_completo);
         opts.push(`<option value="${c.id}">${shortName} · Cobertura TOM</option>`);
       });
@@ -1191,8 +1192,9 @@
     const tbody = document.getElementById('tbody-store-horas');
     tbody.innerHTML = '';
     const storeCode = state.currentRole;
+    const currentPeriod = state.currentPeriod;
 
-    const colabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
+    const colabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode && isColaboradoraActivaEnPeriodo(c, currentPeriod));
     const listToRender = [...colabs];
     if (storeCode === 'MASCHWITZ') {
       listToRender.push(getMartuMasch());
@@ -2762,7 +2764,8 @@
   }
 
   function updateAdminKPIs() {
-    const activeColabs = state.colaboradoras.filter(c => (c.estado || 'activa') === 'activa').length;
+    const currentPeriod = state.currentPeriod;
+    const activeColabs = state.colaboradoras.filter(c => isColaboradoraActivaEnPeriodo(c, currentPeriod)).length;
     const totalColabs = state.colaboradoras.length;
     document.getElementById('kpi-colabs').textContent = `${activeColabs} / ${totalColabs}`;
 
@@ -2867,6 +2870,15 @@
       'c-anto': 13,
       'c-cande': 14
     };
+
+    // Filtrar claves: solo incluir colaboradoras que estuvieron activas en ese período o tienen horas cargadas
+    keys = keys.filter(k => {
+      const colabId = k.replace(`${period}_`, '');
+      if (colabId === 'c-martu_masch') return true;
+      const colab = state.colaboradoras.find(c => c.id === colabId);
+      if (!colab) return false;
+      return isColaboradoraActivaEnPeriodo(colab, period);
+    });
 
     return keys.sort((a, b) => {
       const colabIdA = a.replace(`${period}_`, '');
@@ -4080,13 +4092,35 @@
     initLucideIcons();
   }
 
-  // --- ADMIN 3: VACACIONES LCT (Sábana de 7 columnas sin scroll horizontal) ---
+  // --- ADMIN 3: VACACIONES LCT (Filtrado por Sucursal, Diseño Idéntico a Locales) ---
+  function filterAdminVacaciones(storeCode) {
+    state.adminVacacionesFilter = storeCode;
+    ['todas', 'tom', 'masch'].forEach(t => {
+      const btn = document.getElementById(`btn-admin-vac-${t}`);
+      if (!btn) return;
+      const targetCode = t === 'todas' ? 'TODAS' : (t === 'tom' ? 'TOM' : 'MASCHWITZ');
+      if (targetCode === storeCode) {
+        btn.className = "px-2.5 py-1 rounded-md font-bold bg-black text-white text-[11px] transition cursor-pointer";
+      } else {
+        btn.className = "px-2.5 py-1 rounded-md font-medium text-neutral-600 hover:text-black text-[11px] transition cursor-pointer";
+      }
+    });
+    renderAdminVacaciones();
+  }
+
   function renderAdminVacaciones() {
     const tbody = document.getElementById('tbody-admin-vacaciones');
+    if (!tbody) return;
     tbody.innerHTML = '';
     const anioFiscal = parseInt(state.currentPeriod.split('-')[0]) || 2026;
+    const filterStore = state.adminVacacionesFilter || 'TODAS';
 
-    state.colaboradoras.forEach(c => {
+    let list = [...state.colaboradoras];
+    if (filterStore !== 'TODAS') {
+      list = list.filter(c => c.codigo_sucursal === filterStore);
+    }
+
+    list.forEach(c => {
       const calc = calcularVacacionesLCT(c, anioFiscal);
       const vacNovedades = state.novedades.filter(n => n.colaboradora_id === c.id && n.tipo === 'Vacaciones');
       vacNovedades.sort((a, b) => (a.fecha_inicio || '').localeCompare(b.fecha_inicio || ''));
@@ -4094,22 +4128,35 @@
       const diasTomados = vacNovedades.reduce((sum, n) => sum + (Number(n.dias_computados) || 0), 0);
       const saldo = Math.max(0, calc.diasLey - diasTomados);
 
-      let tramosHtml = '<div class="flex flex-wrap gap-1">';
+      // Renderizar tramos desplegados en tarjetas individuales (igual a tienda)
+      let tramosHtml = '<div class="flex flex-wrap gap-1.5">';
       if (vacNovedades.length === 0) {
-        tramosHtml += '<span class="text-neutral-400 text-xs italic">Sin tramos</span>';
+        tramosHtml += '<span class="text-neutral-400 text-xs italic">Sin tramos gozados aún</span>';
       } else {
         vacNovedades.forEach(n => {
-          tramosHtml += `<span class="inline-block bg-[#FAF9F6] border border-neutral-200 px-2 py-0.5 rounded text-[11px] font-medium text-neutral-700">${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)} (${n.dias_computados}d)</span>`;
+          tramosHtml += `
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#FAF9F6] border border-neutral-200 text-xs shadow-2xs">
+              <span class="font-medium text-neutral-800">📅 ${formatDateShort(n.fecha_inicio)} al ${formatDateShort(n.fecha_fin)}</span>
+              <span class="font-bold text-amber-800">(${n.dias_computados}d)</span>
+              ${n.observaciones ? `<span class="text-neutral-500 text-[11px] truncate max-w-[130px]" title="${n.observaciones}">· ${n.observaciones}</span>` : ''}
+              <button onclick="window.app.deleteNovedad('${n.id}')" class="text-neutral-400 hover:text-red-600 font-bold ml-1 cursor-pointer" title="Eliminar tramo">✕</button>
+            </div>
+          `;
         });
       }
       tramosHtml += '</div>';
 
+      const displayName = getColabShortName(c.id, c.alias || c.nombre_completo);
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="font-bold text-xs text-neutral-900 whitespace-nowrap">
-          <div class="flex items-center gap-1.5">
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${c.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${c.codigo_sucursal}</span>
-            <span>${c.nombre_completo}</span>
+        <td class="font-bold text-xs text-neutral-900">
+          <div class="flex items-center gap-2">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${c.codigo_sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-purple-100 text-purple-900'}">${c.codigo_sucursal}</span>
+            <div>
+              <div class="font-bold text-xs text-neutral-900">${displayName}</div>
+              <div class="text-[11px] text-neutral-500 font-normal truncate max-w-[170px]">${c.nombre_completo}</div>
+            </div>
           </div>
         </td>
         <td>
@@ -4119,8 +4166,11 @@
         </td>
         <td class="font-mono font-bold text-xs text-center"><span class="bg-[#E6D5C3]/40 border border-[#E6D5C3] px-2.5 py-0.5 rounded text-neutral-900">${calc.diasLey} días</span></td>
         <td class="font-mono font-bold text-xs text-center text-amber-800">${diasTomados} días</td>
-        <td class="font-mono font-bold text-sm text-center ${saldo === 0 ? 'text-neutral-400' : 'text-emerald-700'}">
-          ${saldo} días
+        <td class="text-center">
+          <span class="inline-flex items-center gap-1 font-mono font-bold text-xs px-2.5 py-1 rounded-full ${saldo === 0 ? 'bg-red-50 text-red-700 border border-red-200' : (saldo < calc.diasLey ? 'bg-amber-50 text-amber-900 border border-amber-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200')}">
+            <span class="w-1.5 h-1.5 rounded-full ${saldo === 0 ? 'bg-red-500' : (saldo < calc.diasLey ? 'bg-amber-500' : 'bg-emerald-600')}"></span>
+            <span>${saldo} días</span>
+          </span>
         </td>
         <td class="whitespace-normal leading-relaxed">${tramosHtml}</td>
       `;
@@ -4350,36 +4400,58 @@
     initLucideIcons();
   }
 
+  // Helper: Saber si una colaboradora estuvo activa en un período dado (YYYY-MM)
+  function isColaboradoraActivaEnPeriodo(colab, periodo) {
+    if (!colab) return false;
+    // Si tiene fecha de ingreso posterior al período, no estaba activa
+    if (colab.fecha_ingreso) {
+      const ingresoPeriod = colab.fecha_ingreso.substring(0, 7);
+      if (ingresoPeriod > periodo) return false;
+    }
+    // Si tiene fecha de baja anterior o igual al período (baja efectiva desde ese mes)
+    if (colab.fecha_baja) {
+      const bajaPeriod = colab.fecha_baja.substring(0, 7);
+      if (periodo >= bajaPeriod) return false;
+    } else if (colab.estado === 'inactiva') {
+      // Si está inactiva sin fecha explícita, se considera inactiva solo si no tiene horas ese mes
+      const key = `${periodo}_${colab.id}`;
+      return !!state.cierres[key];
+    }
+    return true;
+  }
+
   // --- ADMIN 5: PADRÓN DE COLABORADORAS (Inactivas al final) ---
   function renderAdminColaboradoras() {
     const tbody = document.getElementById('tbody-admin-colaboradoras');
+    if (!tbody) return;
     tbody.innerHTML = '';
+    const currentPeriod = state.currentPeriod;
 
-    // Ordenar: primero colaboradoras activas, inactivas al final de la lista
+    // Ordenar: primero colaboradoras activas en este período, inactivas al final de la lista
     const list = [...state.colaboradoras].sort((a, b) => {
-      const aActiva = (a.estado || 'activa') === 'activa';
-      const bActiva = (b.estado || 'activa') === 'activa';
+      const aActiva = isColaboradoraActivaEnPeriodo(a, currentPeriod);
+      const bActiva = isColaboradoraActivaEnPeriodo(b, currentPeriod);
       if (aActiva && !bActiva) return -1;
       if (!aActiva && bActiva) return 1;
       return a.nombre_completo.localeCompare(b.nombre_completo);
     });
 
     list.forEach(c => {
-      const isActiva = (c.estado || 'activa') === 'activa';
-      const estadoBtn = isActiva
-        ? `<button onclick="window.app.toggleColaboradoraEstado('${c.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 transition flex items-center gap-1.5 mx-auto cursor-pointer" title="Clic para desactivar (baja operativa)">
-             <span class="w-2 h-2 rounded-full bg-emerald-600"></span> Activa
+      const isActivaEnMes = isColaboradoraActivaEnPeriodo(c, currentPeriod);
+      const estadoBtn = isActivaEnMes
+        ? `<button onclick="window.app.toggleColaboradoraEstado('${c.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 border border-emerald-300 transition flex items-center gap-1.5 mx-auto cursor-pointer" title="Clic para dar de baja a partir de ${formatPeriodLabel(currentPeriod)}">
+             <span class="w-2 h-2 rounded-full bg-emerald-600"></span> Activa en ${formatPeriodLabel(currentPeriod)}
            </button>`
-        : `<button onclick="window.app.toggleColaboradoraEstado('${c.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-neutral-200 text-neutral-600 hover:bg-neutral-300 border border-neutral-300 transition flex items-center gap-1.5 mx-auto cursor-pointer" title="Clic para reactivar">
-             <span class="w-2 h-2 rounded-full bg-neutral-400"></span> Inactiva
+        : `<button onclick="window.app.toggleColaboradoraEstado('${c.id}')" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-neutral-200 text-neutral-600 hover:bg-neutral-300 border border-neutral-300 transition flex items-center gap-1.5 mx-auto cursor-pointer" title="Clic para reactivar en este mes">
+             <span class="w-2 h-2 rounded-full bg-neutral-400"></span> Inactiva en ${formatPeriodLabel(currentPeriod)}
            </button>`;
 
-      const accionTxt = isActiva
-        ? `<span class="text-xs text-emerald-700 font-medium">En funciones</span>`
-        : `<span class="text-xs text-neutral-500 font-medium">${c.fecha_baja ? 'Baja: ' + formatDateShort(c.fecha_baja) : 'Inactiva para nuevos meses'}</span>`;
+      const accionTxt = isActivaEnMes
+        ? `<span class="text-xs text-emerald-700 font-medium">En funciones (${formatPeriodLabel(currentPeriod)})</span>`
+        : `<span class="text-xs text-neutral-500 font-medium">${c.fecha_baja ? 'Baja efectiva: ' + formatDateShort(c.fecha_baja) : 'Inactiva en este mes'}</span>`;
 
       const tr = document.createElement('tr');
-      tr.className = isActiva ? '' : 'opacity-70 bg-neutral-50/60';
+      tr.className = isActivaEnMes ? '' : 'opacity-70 bg-neutral-50/60';
       tr.innerHTML = `
         <td>
           <div class="font-bold text-neutral-900 text-xs">${c.nombre_completo}</div>
@@ -4406,17 +4478,26 @@
   function toggleColaboradoraEstado(id) {
     const colab = state.colaboradoras.find(c => c.id === id);
     if (!colab) return;
-    const isActiva = (colab.estado || 'activa') === 'activa';
-    colab.estado = isActiva ? 'inactiva' : 'activa';
-    if (colab.estado === 'inactiva') {
-      colab.fecha_baja = new Date().toISOString().split('T')[0];
+    const currentPeriod = state.currentPeriod;
+    const isActivaEnMes = isColaboradoraActivaEnPeriodo(colab, currentPeriod);
+
+    if (isActivaEnMes) {
+      // Dar de baja a partir del primer día de este período (ej: 2026-10-01)
+      colab.fecha_baja = `${currentPeriod}-01`;
+      colab.estado = 'inactiva';
+      showToast(`${colab.nombre_completo} dada de baja a partir de ${formatPeriodLabel(currentPeriod)}.`, 'info');
     } else {
+      // Reactivar en este mes
       delete colab.fecha_baja;
+      colab.estado = 'activa';
+      showToast(`${colab.nombre_completo} reactivada para ${formatPeriodLabel(currentPeriod)}.`, 'success');
     }
+
     localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(state.colaboradoras));
-    showToast(`${colab.nombre_completo} ahora está ${colab.estado.toUpperCase()}.`, 'info');
     renderAdminColaboradoras();
+    renderAdminConsolidado();
     updateAdminKPIs();
+
     if (state.currentRole && state.currentRole !== 'ADMIN') {
       populateStoreColaboradorasSelects(state.currentRole);
       renderStoreHoras();
@@ -5317,6 +5398,7 @@
     calcVacDaysAuto,
     filterStoreRetiros,
     filterAdminNovedades,
+    filterAdminVacaciones,
     handleSaveVacaciones,
     undoLastAction,
     exportFullExcelWorkbook,
