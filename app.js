@@ -375,6 +375,7 @@
     horarios: {},
     grillas_especiales: [],     // Grillas alternativas: [{ id, sucursal, nombre, manana: {}, tarde: {} }]
     activeStoreGridId: 'habitual', // 'habitual' o id de grilla especial
+    activeAdminGridId: 'habitual', // 'habitual' o id de grilla especial
     fechas_especiales: [],
     horarios_notas: {},
     horarios_modificaciones: [],
@@ -3355,65 +3356,96 @@
     showToast('Observaciones y días guardados correctamente.', 'success');
   }
 
-  // --- ADMIN 2: HORARIOS Y BITÁCORA DE TURNOS POR SUCURSAL ---
+  // --- ADMIN 2: HORARIOS Y GRILLAS POR SUCURSAL ---
   function switchAdminHorariosStore(storeCode) {
     state.adminSelectedHorariosStore = storeCode;
+    state.activeAdminGridId = 'habitual';
+    state.isAdminGridEditable = false;
 
     const btnTom = document.getElementById('admin-hor-btn-tom');
     const btnMasch = document.getElementById('admin-hor-btn-masch');
     if (btnTom && btnMasch) {
       if (storeCode === 'TOM') {
-        btnTom.className = "px-4 py-2 rounded-lg text-xs font-bold bg-black text-white shadow-sm transition flex items-center gap-2";
-        btnMasch.className = "px-4 py-2 rounded-lg text-xs font-bold text-neutral-600 hover:text-black transition flex items-center gap-2";
+        btnTom.className = "px-4 py-2 rounded-lg text-xs font-bold bg-black text-white shadow-sm transition flex items-center gap-2 cursor-pointer";
+        btnMasch.className = "px-4 py-2 rounded-lg text-xs font-bold text-neutral-600 hover:text-black transition flex items-center gap-2 cursor-pointer";
       } else {
-        btnMasch.className = "px-4 py-2 rounded-lg text-xs font-bold bg-black text-white shadow-sm transition flex items-center gap-2";
-        btnTom.className = "px-4 py-2 rounded-lg text-xs font-bold text-neutral-600 hover:text-black transition flex items-center gap-2";
+        btnMasch.className = "px-4 py-2 rounded-lg text-xs font-bold bg-black text-white shadow-sm transition flex items-center gap-2 cursor-pointer";
+        btnTom.className = "px-4 py-2 rounded-lg text-xs font-bold text-neutral-600 hover:text-black transition flex items-center gap-2 cursor-pointer";
       }
     }
 
-    const titleEl = document.getElementById('admin-hor-title');
-    if (titleEl) {
-      titleEl.innerHTML = `Grilla de Turnos Semanales · ${storeCode === 'TOM' ? 'TOM' : 'Maschwitz'}
-        <span id="admin-hor-updated-badge" class="text-[10px] font-medium bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded">Sincronizado en la nube</span>`;
-    }
-
-    populateAdminModificacionSelects(storeCode);
     renderAdminHorarios();
-    renderAdminModificaciones();
-    renderAdminFechasEspeciales();
     initLucideIcons();
   }
 
-  function populateAdminModificacionSelects(storeCode) {
-    const selOrigen = document.getElementById('mod-colab-origen');
-    const selReemplazo = document.getElementById('mod-colab-reemplazo');
-    if (!selOrigen || !selReemplazo) return;
+  function selectAdminGrid(gridId) {
+    state.activeAdminGridId = gridId;
+    state.isAdminGridEditable = false;
+    renderAdminHorarios();
+  }
 
-    const opts = ['<option value="">-- Seleccionar colaboradora --</option>'];
-    const localColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
-    opts.push(`<optgroup label="Colaboradoras de ${storeCode}">`);
-    localColabs.forEach(c => {
-      opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.nombre_completo})</option>`);
+  function renderAdminGridTabs() {
+    const container = document.getElementById('admin-grid-selector-tabs');
+    if (!container) return;
+    const storeCode = state.adminSelectedHorariosStore || 'TOM';
+    const currentPeriod = state.currentPeriod;
+    const activeId = state.activeAdminGridId || 'habitual';
+
+    // Grillas especiales del período y sucursal seleccionada
+    const especiales = state.grillas_especiales.filter(g => 
+      (g.sucursal === storeCode || g.sucursal_codigo === storeCode) &&
+      (!g.periodo || g.periodo === currentPeriod)
+    );
+
+    let html = `
+      <button type="button" onclick="window.app.selectAdminGrid('habitual')" class="px-2.5 py-1 rounded text-xs font-bold transition cursor-pointer ${activeId === 'habitual' ? 'bg-black text-white shadow-sm' : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'}">
+        📅 Grilla Habitual
+      </button>
+    `;
+
+    especiales.forEach(g => {
+      const isSel = activeId === g.id;
+      html += `
+        <button type="button" onclick="window.app.selectAdminGrid('${g.id}')" class="px-2.5 py-1 rounded text-xs font-bold transition cursor-pointer ${isSel ? 'bg-black text-white shadow-sm' : 'bg-amber-100/70 hover:bg-amber-100 text-amber-950 border border-amber-300'}">
+          ⭐ ${g.nombre}
+        </button>
+      `;
     });
-    opts.push(`</optgroup>`);
 
-    const otherColabs = state.colaboradoras.filter(c => c.codigo_sucursal !== storeCode);
-    if (otherColabs.length > 0) {
-      opts.push(`<optgroup label="Colaboradoras de otra sucursal">`);
-      otherColabs.forEach(c => {
-        opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.codigo_sucursal})</option>`);
-      });
-      opts.push(`</optgroup>`);
+    container.innerHTML = html;
+
+    const titleEl = document.getElementById('admin-hor-title');
+    const subtitleEl = document.getElementById('admin-hor-subtitle');
+    const storeLabel = storeCode === 'TOM' ? 'TOM' : 'Maschwitz';
+    if (titleEl && subtitleEl) {
+      if (activeId === 'habitual') {
+        titleEl.innerHTML = `Grilla de Turnos Habituales · ${storeLabel}
+          <span id="admin-hor-updated-badge" class="text-[10px] font-medium bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded">Sincronizado en la nube</span>`;
+        subtitleEl.textContent = `Turnos habituales semanales de Lunes a Domingo para ${storeLabel}.`;
+      } else {
+        const spec = especiales.find(g => g.id === activeId);
+        titleEl.innerHTML = `Grilla Especial: ${spec ? spec.nombre : 'Especial'} · ${storeLabel}
+          <span id="admin-hor-updated-badge" class="text-[10px] font-medium bg-amber-50 border border-amber-200 text-amber-900 px-2 py-0.5 rounded">Período: ${formatPeriodLabel(currentPeriod)}</span>`;
+        subtitleEl.textContent = `Grilla temporal del mes (${formatPeriodLabel(currentPeriod)}) para ${storeLabel}.`;
+      }
     }
-
-    const html = opts.join('');
-    selOrigen.innerHTML = html;
-    selReemplazo.innerHTML = html;
   }
 
   function renderAdminHorarios() {
+    renderAdminGridTabs();
     const storeCode = state.adminSelectedHorariosStore || 'TOM';
-    const h = state.horarios[storeCode] || { manana: {}, tarde: {} };
+    const activeId = state.activeAdminGridId || 'habitual';
+    const currentPeriod = state.currentPeriod;
+
+    let h = { manana: {}, tarde: {}, fechas: {} };
+    if (activeId === 'habitual') {
+      h = state.horarios[storeCode] || { manana: {}, tarde: {} };
+    } else {
+      const spec = state.grillas_especiales.find(g => g.id === activeId);
+      if (spec) {
+        h = { manana: spec.manana || {}, tarde: spec.tarde || {}, fechas: spec.fechas || {} };
+      }
+    }
 
     const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
     days.forEach(d => {
@@ -3421,18 +3453,16 @@
       const elTar = document.getElementById(`admin-h-tar-${d}`);
       if (elMan) elMan.value = h.manana[d] || '';
       if (elTar) elTar.value = h.tarde[d] || '';
+
+      // Mostrar fechas exactas si es grilla especial
+      const spanDate = document.getElementById(`admin-h-date-${d}`);
+      if (spanDate) {
+        const dateVal = (h.fechas && h.fechas[d]) || '';
+        spanDate.textContent = dateVal ? dateVal : (activeId !== 'habitual' ? '—' : '');
+      }
     });
 
-    const notasEl = document.getElementById('admin-hor-notas');
-    if (notasEl) {
-      notasEl.value = state.horarios_notas[storeCode] || '';
-    }
-
-    populateAdminModificacionSelects(storeCode);
-    renderAdminModificaciones();
-    renderAdminFechasEspeciales();
     renderAdminHorariosGridInputs();
-    renderAdminEsquemasTable(storeCode);
   }
 
   function renderAdminHorariosGridInputs() {
@@ -3826,6 +3856,7 @@
 
   async function saveAdminHorarios() {
     const storeCode = state.adminSelectedHorariosStore || 'TOM';
+    const activeId = state.activeAdminGridId || 'habitual';
     const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
     const manana = {};
     const tarde = {};
@@ -3835,36 +3866,41 @@
       tarde[d] = document.getElementById(`admin-h-tar-${d}`)?.value.trim().toUpperCase() || '';
     });
 
-    const notas = document.getElementById('admin-hor-notas')?.value.trim() || '';
+    if (activeId === 'habitual') {
+      state.horarios[storeCode] = { manana, tarde };
+      localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
 
-    state.horarios[storeCode] = { manana, tarde };
-    state.horarios_notas[storeCode] = notas;
-
-    localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
-    localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(state.horarios_notas));
-
-    state.isAdminGridEditable = false;
-    renderAdminHorariosGridInputs();
-
-    if (state.supabaseClient && state.isSupabaseConnected) {
-      try {
-        await state.supabaseClient
-          .from('horarios_sucursal')
-          .upsert({
-            sucursal_codigo: storeCode,
-            periodo: state.currentPeriod,
-            manana: manana,
-            tarde: tarde,
-            notas: notas,
-            actualizado_por: 'Juan (Admin)',
-            actualizado_en: new Date().toISOString()
-          }, { onConflict: 'sucursal_codigo,periodo' });
-      } catch (err) {
-        console.warn('Error saving admin horarios to Supabase:', err);
+      if (state.supabaseClient && state.isSupabaseConnected) {
+        try {
+          await state.supabaseClient
+            .from('horarios_sucursal')
+            .upsert({
+              sucursal_codigo: storeCode,
+              periodo: state.currentPeriod,
+              manana: manana,
+              tarde: tarde,
+              notas: state.horarios_notas[storeCode] || '',
+              actualizado_por: 'Juan (Admin)',
+              actualizado_en: new Date().toISOString()
+            }, { onConflict: 'sucursal_codigo,periodo' });
+        } catch (err) {
+          console.warn('Error saving admin horarios to Supabase:', err);
+        }
+      }
+      showToast(`Grilla habitual de ${storeCode} guardada y sincronizada.`, 'success');
+    } else {
+      const spec = state.grillas_especiales.find(g => g.id === activeId);
+      if (spec) {
+        spec.manana = manana;
+        spec.tarde = tarde;
+        localStorage.setItem('nazaria_grillas_especiales_v2', JSON.stringify(state.grillas_especiales));
+        syncGrillasEspecialesToSupabase();
+        showToast(`Grilla especial "${spec.nombre}" guardada con éxito.`, 'success');
       }
     }
 
-    showToast(`Horarios y directivas de ${storeCode} guardados y fijados.`, 'success');
+    state.isAdminGridEditable = false;
+    renderAdminHorariosGridInputs();
   }
 
   function toggleModificacionForm(show) {
@@ -5305,6 +5341,7 @@
     // Métodos de edición de grillas y esquemas
     toggleStoreGridEdit,
     selectStoreGrid,
+    selectAdminGrid,
     promptCrearGrillaEspecial,
     handleDeleteGrillaEspecial,
     openEditFechasGrillaModal,

@@ -968,43 +968,54 @@
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-2">
               <span class="px-2 py-0.5 text-[11px] font-bold rounded bg-[#E6D5C3] text-neutral-900 uppercase">Control de Turnos</span>
-              <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Horarios y Modificaciones por Sucursal</h3>
+              <h3 class="font-bold text-neutral-900 text-sm sm:text-base">Horarios y Grillas por Sucursal</h3>
             </div>
-            <p class="text-xs text-neutral-500">Supervisión de rotaciones semanales, excepciones y bitácora de coberturas en tiempo real.</p>
+            <p class="text-xs text-neutral-500">Supervisión de grilla habitual y grillas especiales de turnos para cada sucursal en el período activo.</p>
           </div>
 
           <!-- Selector de Sucursal TOM vs Maschwitz -->
           <div class="flex items-center gap-2 bg-[#FAF9F6] p-1.5 rounded-xl border border-neutral-200">
-            <button id="admin-hor-btn-tom" onclick="window.app.switchAdminHorariosStore('TOM')" class="px-4 py-2 rounded-lg text-xs font-bold bg-black text-white shadow-sm transition flex items-center gap-2">
+            <button id="admin-hor-btn-tom" onclick="window.app.switchAdminHorariosStore('TOM')" class="px-4 py-2 rounded-lg text-xs font-bold bg-black text-white shadow-sm transition flex items-center gap-2 cursor-pointer">
               <i data-lucide="store" class="w-3.5 h-3.5"></i>
               <span>Tortugas Open Mall (TOM)</span>
             </button>
-            <button id="admin-hor-btn-masch" onclick="window.app.switchAdminHorariosStore('MASCHWITZ')" class="px-4 py-2 rounded-lg text-xs font-bold text-neutral-600 hover:text-black transition flex items-center gap-2">
+            <button id="admin-hor-btn-masch" onclick="window.app.switchAdminHorariosStore('MASCHWITZ')" class="px-4 py-2 rounded-lg text-xs font-bold text-neutral-600 hover:text-black transition flex items-center gap-2 cursor-pointer">
               <i data-lucide="store" class="w-3.5 h-3.5"></i>
               <span>Maschwitz Mall</span>
             </button>
           </div>
         </div>
 
-        <!-- 1. Grilla Semanal de la Sucursal Seleccionada -->
+        <!-- 1. Grilla Semanal de la Sucursal Seleccionada (Con selector de grilla habitual vs especiales) -->
         <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
+          <!-- Selector de Grillas (Habitual vs Especiales del mes) -->
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-neutral-200 gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-neutral-500 uppercase tracking-wide">Grilla:</span>
+              <div id="admin-grid-selector-tabs" class="flex flex-wrap items-center gap-1.5">
+                <!-- Inyectado dinámicamente: Grilla Habitual + Grillas Especiales -->
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button type="button" id="btn-toggle-admin-grid-edit" onclick="window.app.toggleAdminGridEdit()" class="px-3.5 py-1.5 rounded-lg border border-neutral-300 text-xs font-bold bg-[#FAF9F6] text-neutral-700 hover:bg-neutral-100 flex items-center gap-1.5 transition cursor-pointer">
+                <i data-lucide="pencil" class="w-3.5 h-3.5 text-neutral-500"></i>
+                <span id="btn-toggle-admin-grid-edit-text">Modificar Grilla</span>
+              </button>
+              <button onclick="window.app.saveAdminHorarios()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-4 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                <i data-lucide="save" class="w-4 h-4 text-[#E6D5C3]"></i>
+                <span>Guardar Cambios</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="py-1 flex items-center justify-between">
             <div>
               <h4 id="admin-hor-title" class="font-bold text-neutral-900 text-sm sm:text-base flex items-center gap-2">
                 Grilla de Turnos Semanales · TOM
                 <span id="admin-hor-updated-badge" class="text-[10px] font-medium bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded">Sincronizado en la nube</span>
               </h4>
-              <p class="text-xs text-neutral-500 mt-0.5">Turnos habituales de Lunes a Domingo. Grilla fija con lápiz de edición para evitar alteraciones accidentales.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button type="button" id="btn-toggle-admin-grid-edit" onclick="window.app.toggleAdminGridEdit()" class="px-3.5 py-2 rounded-lg border border-neutral-300 text-xs font-bold bg-[#FAF9F6] text-neutral-700 hover:bg-neutral-100 flex items-center gap-1.5 transition cursor-pointer">
-                <i data-lucide="pencil" class="w-3.5 h-3.5 text-neutral-500"></i>
-                <span id="btn-toggle-admin-grid-edit-text">Modificar Grilla</span>
-              </button>
-              <button onclick="window.app.saveAdminHorarios()" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
-                <i data-lucide="save" class="w-4 h-4 text-[#E6D5C3]"></i>
-                <span>Guardar Horarios de la Sucursal</span>
-              </button>
+              <p id="admin-hor-subtitle" class="text-xs text-neutral-500 mt-0.5">Turnos semanales de Lunes a Domingo.</p>
             </div>
           </div>
 
@@ -1013,13 +1024,13 @@
               <thead>
                 <tr>
                   <th class="text-left w-28">Turno</th>
-                  <th>Lunes</th>
-                  <th>Martes</th>
-                  <th>Miércoles</th>
-                  <th>Jueves</th>
-                  <th>Viernes</th>
-                  <th>Sábado</th>
-                  <th>Domingo</th>
+                  <th class="w-[12%]"><span class="block">Lunes</span><span id="admin-h-date-lun" class="block text-[11px] font-normal text-neutral-500 font-mono mt-0.5"></span></th>
+                  <th class="w-[12%]"><span class="block">Martes</span><span id="admin-h-date-mar" class="block text-[11px] font-normal text-neutral-500 font-mono mt-0.5"></span></th>
+                  <th class="w-[12%]"><span class="block">Miércoles</span><span id="admin-h-date-mie" class="block text-[11px] font-normal text-neutral-500 font-mono mt-0.5"></span></th>
+                  <th class="w-[12%]"><span class="block">Jueves</span><span id="admin-h-date-jue" class="block text-[11px] font-normal text-neutral-500 font-mono mt-0.5"></span></th>
+                  <th class="w-[12%]"><span class="block">Viernes</span><span id="admin-h-date-vie" class="block text-[11px] font-normal text-neutral-500 font-mono mt-0.5"></span></th>
+                  <th class="w-[12%]"><span class="block">Sábado</span><span id="admin-h-date-sab" class="block text-[11px] font-normal text-neutral-500 font-mono mt-0.5"></span></th>
+                  <th class="w-[12%]"><span class="block">Domingo</span><span id="admin-h-date-dom" class="block text-[11px] font-normal text-neutral-500 font-mono mt-0.5"></span></th>
                 </tr>
               </thead>
               <tbody>
@@ -1043,158 +1054,6 @@
                   <td><input type="text" id="admin-h-tar-sab" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
                   <td><input type="text" id="admin-h-tar-dom" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
                 </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Observaciones de la Sucursal -->
-          <div class="border-t border-neutral-200 pt-3">
-            <label class="block text-xs font-bold text-neutral-700 mb-1">Notas y Directivas de Horario del Local:</label>
-            <textarea id="admin-hor-notas" rows="2" placeholder="Notas operativas del local..." class="w-full bg-[#FAF9F6] border border-neutral-200 rounded-lg p-2.5 text-xs text-neutral-900 focus:outline-none focus:border-black resize-none" onfocus="this.select()"></textarea>
-          </div>
-        </div>
-
-        <!-- 2. Esquemas Contractuales y Horas Base Habituales (Editable con Lápiz) -->
-        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-neutral-200 gap-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold">
-                  <i data-lucide="clock" class="w-4 h-4"></i>
-                </div>
-                <h4 class="font-bold text-neutral-900 text-sm sm:text-base">Esquemas Contractuales y Horas Base Habituales</h4>
-              </div>
-              <p class="text-xs text-neutral-500 mt-1">Definición de jornadas semanales, horas base del mes y distribución recibo/sin recibo. Hacé clic en el lápiz ✏️ para editar y sincronizar en todos los paneles.</p>
-            </div>
-          </div>
-
-          <div class="table-scroll-container">
-            <table class="w-full min-w-[720px] text-left table-sop">
-              <thead>
-                <tr>
-                  <th class="w-28">Sucursal</th>
-                  <th>Colaboradora</th>
-                  <th>Esquema Contractual (Días / Turnos)</th>
-                  <th class="text-center w-28">Horas Base</th>
-                  <th class="text-center w-28">Recibo (Hs)</th>
-                  <th class="text-center w-28">Sin Recibo</th>
-                  <th class="w-20 text-center">Editar</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-admin-esquemas">
-                <!-- Inyectado dinámicamente -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- 3. Bitácora de Modificaciones, Reemplazos y Coberturas -->
-        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-neutral-200 gap-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold">
-                  <i data-lucide="git-branch" class="w-4 h-4"></i>
-                </div>
-                <h4 class="font-bold text-neutral-900 text-sm sm:text-base">Bitácora de Modificaciones & Coberturas</h4>
-              </div>
-              <p class="text-xs text-neutral-500 mt-1">Historial cronológico de cambios de turno, quién cubrió a quién y motivos informados.</p>
-            </div>
-
-            <!-- Botón para registrar modificación rápida -->
-            <button onclick="window.app.toggleModificacionForm(true)" class="bg-neutral-900 hover:bg-black text-white text-xs font-bold px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer">
-              <i data-lucide="plus" class="w-4 h-4 text-[#E6D5C3]"></i>
-              <span>+ Registrar Modificación</span>
-            </button>
-          </div>
-
-          <!-- Formulario para agregar modificación (oculto por defecto o visible con botón) -->
-          <div id="card-form-modificacion" class="hidden bg-[#FAF9F6] border border-neutral-200 rounded-xl p-4 transition-all">
-            <div class="flex items-center justify-between mb-3 border-b border-neutral-200 pb-2">
-              <h5 class="font-bold text-xs text-neutral-900 uppercase tracking-wide">Asentar Nuevo Cambio de Turno / Cobertura</h5>
-              <button onclick="window.app.toggleModificacionForm(false)" class="text-xs text-neutral-400 hover:text-black font-bold cursor-pointer">✕ Cerrar</button>
-            </div>
-            <form onsubmit="window.app.handleSaveModificacion(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-              <div class="sm:col-span-3">
-                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Fecha del Cambio *</label>
-                <input type="date" id="mod-fecha" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black font-mono">
-              </div>
-              <div class="sm:col-span-2">
-                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Turno *</label>
-                <select id="mod-turno" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
-                  <option value="Mañana">Mañana</option>
-                  <option value="Tarde">Tarde</option>
-                  <option value="Completo">Completo</option>
-                </select>
-              </div>
-              <div class="sm:col-span-3">
-                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Titular Original *</label>
-                <select id="mod-colab-origen" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
-                  <!-- Llenado dinámico -->
-                </select>
-              </div>
-              <div class="sm:col-span-4">
-                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Quién Cubre / Reemplaza *</label>
-                <select id="mod-colab-reemplazo" required class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
-                  <!-- Llenado dinámico -->
-                </select>
-              </div>
-              <div class="sm:col-span-9">
-                <label class="block text-[11px] font-bold text-neutral-700 mb-1">Motivo / Explicación del Cambio *</label>
-                <input type="text" id="mod-motivo" required placeholder="Ej: Examen de facultad, franco compensatorio, refuerzo por cobertura..." class="w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-900 focus:outline-none focus:border-black">
-              </div>
-              <div class="sm:col-span-3 flex items-end">
-                <button type="submit" class="w-full bg-black hover:bg-neutral-800 text-white text-xs font-bold py-2 px-3 rounded flex items-center justify-center gap-1.5 transition cursor-pointer">
-                  <i data-lucide="check" class="w-3.5 h-3.5"></i> Guardar Cambio
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- Tabla de Modificaciones -->
-          <div class="table-scroll-container">
-            <table class="w-full min-w-[700px] text-left table-sop">
-              <thead>
-                <tr>
-                  <th class="w-28">Fecha</th>
-                  <th class="w-24">Turno</th>
-                  <th>Titular Original</th>
-                  <th>Reemplazo / Cobertura</th>
-                  <th>Motivo</th>
-                  <th class="w-36">Registrado por</th>
-                  <th class="w-12"></th>
-                </tr>
-              </thead>
-              <tbody id="tbody-admin-modificaciones">
-                <!-- Inyectado dinámicamente -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- 3. Fechas Especiales y Excepciones de la Sucursal -->
-        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
-          <div class="flex items-center justify-between pb-3 border-b border-neutral-200">
-            <div>
-              <h4 class="font-bold text-neutral-900 text-sm sm:text-base">Fechas Especiales y Eventos de Shopping</h4>
-              <p class="text-xs text-neutral-500">Refuerzos o cambios por fechas comerciales (Día de la Madre, Navidad, etc.).</p>
-            </div>
-          </div>
-
-          <!-- Tabla Fechas Especiales de la Sucursal seleccionada -->
-          <div class="table-scroll-container">
-            <table class="w-full min-w-[650px] text-left table-sop">
-              <thead>
-                <tr>
-                  <th>Fecha / Evento Especial</th>
-                  <th>Turno Mañana</th>
-                  <th>Turno Tarde</th>
-                  <th>Observación</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="tbody-admin-fechas-especiales">
-                <!-- Inyectado dinámicamente -->
               </tbody>
             </table>
           </div>
