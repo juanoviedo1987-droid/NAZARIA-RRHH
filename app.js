@@ -67,7 +67,7 @@
       nombre_completo: 'Barrientos Sofia',
       dni: '35290145',
       cuil: '27-35290145-8',
-      fecha_ingreso: '2025-07-05',
+      fecha_ingreso: '2023-07-05',
       fecha_antiguedad_reconocida: '2018-09-01', // Reconocimiento de antigüedad LCT (21 días disponibles)
       categoria: 'Encargada de Sucursal',
       esquema_jornada: '6 días / 6 hs (paga 8 hs)',
@@ -115,7 +115,7 @@
       nombre_completo: 'Almiron Miranda Candela Anahi',
       dni: '45091234',
       cuil: '27-45091234-5',
-      fecha_ingreso: '2025-12-01',
+      fecha_ingreso: '2024-12-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
       esquema_jornada: '4 días / 6 hs',
@@ -131,7 +131,7 @@
       nombre_completo: 'Bustamante Vanina Antonella',
       dni: '43998120',
       cuil: '27-43998120-3',
-      fecha_ingreso: '2025-12-01',
+      fecha_ingreso: '2024-12-01',
       fecha_antiguedad_reconocida: null,
       categoria: 'Vendedora',
       esquema_jornada: '4 días / 6 hs',
@@ -444,8 +444,8 @@
   }
 
   function initStorageData() {
-    // Inicializar o recargar datos con versión para migración limpia (v20: automatización de horas desde historial y celdas protegidas)
-    const DATA_VERSION = 'v20';
+    // Inicializar o recargar datos con versión para migración limpia (v21: sincronización de fechas de ingreso y tarjetas de turnos)
+    const DATA_VERSION = 'v21';
     const verKey = 'nazaria_data_version';
 
     // Purgar de forma permanente registros duplicados o de prueba conocidos
