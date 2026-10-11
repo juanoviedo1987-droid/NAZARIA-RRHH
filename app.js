@@ -2387,13 +2387,34 @@
   }
 
   // --- SUBVISTA 4: RETIROS & PAR DE TEMPORADA (Ordenado por Fecha y Colaboradora - Punto 4) ---
+  function filterStoreRetiros(tipo) {
+    state.storeRetirosFilter = tipo;
+    ['todos', 'retiro', 'temporada'].forEach(t => {
+      const btn = document.getElementById(`btn-filtro-ret-${t}`);
+      if (!btn) return;
+      if (t === tipo) {
+        btn.className = "px-2 py-0.5 rounded font-bold bg-black text-white text-[11px] transition";
+      } else {
+        btn.className = "px-2 py-0.5 rounded font-medium text-neutral-600 hover:text-black text-[11px] transition";
+      }
+    });
+    renderStoreRetiros();
+  }
+
   function renderStoreRetiros() {
     const tbody = document.getElementById('tbody-store-retiros');
     tbody.innerHTML = '';
     const storeCode = state.currentRole;
+    const filterType = state.storeRetirosFilter || 'todos';
 
-    const filtered = state.retiros.filter(r => r.sucursal === storeCode && r.fecha && r.fecha.startsWith(state.currentPeriod));
+    let filtered = state.retiros.filter(r => r.sucursal === storeCode && r.fecha && r.fecha.startsWith(state.currentPeriod));
     
+    if (filterType === 'retiro') {
+      filtered = filtered.filter(r => r.tipo === 'Retiro');
+    } else if (filterType === 'temporada') {
+      filtered = filtered.filter(r => r.tipo === 'Par de Temporada');
+    }
+
     // Ordenar cronológicamente por fecha, luego por nombre de colaboradora
     filtered.sort((a, b) => {
       const cmpDate = (a.fecha || '').localeCompare(b.fecha || '');
@@ -2406,7 +2427,7 @@
     document.getElementById('store-ret-count').textContent = `${filtered.length} pares (${state.currentPeriod})`;
 
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-neutral-400 text-xs">No hay retiros ni pares de temporada en esta sucursal para ${state.currentPeriod}.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-neutral-400 text-xs">No hay registros con este filtro en esta sucursal para ${state.currentPeriod}.</td></tr>`;
       return;
     }
 
@@ -2427,7 +2448,7 @@
         <td class="text-xs uppercase text-neutral-700">${r.talle_color}</td>
         <td class="font-mono text-xs text-neutral-500">${r.fecha ? formatDateShort(r.fecha) : '-'}</td>
         <td class="text-right">
-          <button onclick="window.app.deleteRetiro('${r.id}')" class="text-neutral-400 hover:text-red-600 p-1" title="Eliminar">
+          <button onclick="window.app.deleteRetiro('${r.id}')" class="text-neutral-400 hover:text-red-600 p-1 cursor-pointer" title="Eliminar">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
           </button>
         </td>
@@ -2445,6 +2466,20 @@
     const fecha = document.getElementById('ret-fecha').value;
     const art = document.getElementById('ret-articulo').value.trim().toUpperCase();
     const talleColor = document.getElementById('ret-talle-color').value.trim().toUpperCase();
+
+    // Alerta / Validación amigable si ya tomó un par de temporada en el año
+    if (tipo === 'Par de Temporada') {
+      const year = (fecha || new Date().toISOString().split('T')[0]).split('-')[0];
+      const yaTieneTemporada = state.retiros.some(r => 
+        r.colaboradora_id === colabId && 
+        r.tipo === 'Par de Temporada' && 
+        (r.fecha || '').startsWith(year)
+      );
+      if (yaTieneTemporada) {
+        const confirmar = confirm('Aviso: Esta colaboradora ya tiene registrado al menos 1 Par de Temporada en este ciclo. ¿Deseás continuar y cargar otro igualmente?');
+        if (!confirmar) return;
+      }
+    }
 
     const newRet = {
       id: 'ret-' + Date.now(),
@@ -2663,8 +2698,11 @@
         <td class="font-mono text-xs text-neutral-700">${calc.aniosAntiguedad} años al 31/12</td>
         <td class="font-mono font-bold text-xs text-center"><span class="bg-[#E6D5C3]/40 border border-[#E6D5C3] px-2.5 py-0.5 rounded text-neutral-900">${calc.diasLey} días</span></td>
         <td class="font-mono font-bold text-xs text-center text-amber-800">${diasTomados} días</td>
-        <td class="font-mono font-bold text-sm text-center ${saldo === 0 ? 'text-neutral-400' : 'text-emerald-700'}">
-          ${saldo} días
+        <td class="text-center">
+          <span class="inline-flex items-center gap-1 font-mono font-bold text-xs px-2.5 py-1 rounded-full ${saldo === 0 ? 'bg-red-50 text-red-700 border border-red-200' : (saldo < calc.diasLey ? 'bg-amber-50 text-amber-900 border border-amber-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200')}">
+            <span class="w-1.5 h-1.5 rounded-full ${saldo === 0 ? 'bg-red-500' : (saldo < calc.diasLey ? 'bg-amber-500' : 'bg-emerald-600')}"></span>
+            <span>${saldo} días</span>
+          </span>
         </td>
         <td>${tramosHtml}</td>
       `;
@@ -5241,6 +5279,7 @@
     deleteRetiroFromModal,
     calcNovDaysAuto,
     calcVacDaysAuto,
+    filterStoreRetiros,
     filterAdminNovedades,
     handleSaveVacaciones,
     undoLastAction,
