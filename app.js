@@ -1638,6 +1638,11 @@
       delBtn.classList.toggle('hidden', activeId === 'habitual');
     }
 
+    const fechasBtn = document.getElementById('btn-edit-fechas-grilla');
+    if (fechasBtn) {
+      fechasBtn.classList.toggle('hidden', activeId === 'habitual');
+    }
+
     const titleEl = document.getElementById('store-grid-current-title');
     const subtitleEl = document.getElementById('store-grid-current-subtitle');
     if (titleEl && subtitleEl) {
@@ -1647,9 +1652,55 @@
       } else {
         const currentSpec = especiales.find(g => g.id === activeId);
         titleEl.textContent = `Grilla Especial: ${currentSpec ? currentSpec.nombre : 'Especial'} (${formatPeriodLabel(currentPeriod)})`;
-        subtitleEl.textContent = `Esquema de turnos temporales para este mes (${formatPeriodLabel(currentPeriod)}). No altera la grilla habitual.`;
+        subtitleEl.textContent = `Esquema de turnos temporales para este mes (${formatPeriodLabel(currentPeriod)}). Podés asignar fechas exactas a cada columna.`;
       }
     }
+  }
+
+  function openEditFechasGrillaModal() {
+    const activeId = state.activeStoreGridId;
+    if (activeId === 'habitual') return;
+    const spec = state.grillas_especiales.find(g => g.id === activeId);
+    if (!spec) return;
+
+    const subEl = document.getElementById('modal-fechas-grilla-sub');
+    if (subEl) subEl.textContent = `Grilla: ${spec.nombre} (${formatPeriodLabel(state.currentPeriod)})`;
+
+    const f = spec.fechas || {};
+    const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    days.forEach(d => {
+      const inp = document.getElementById(`cfg-date-${d}`);
+      if (inp) inp.value = f[d] || '';
+    });
+
+    const modal = document.getElementById('modal-edit-fechas-grilla');
+    if (modal) modal.classList.remove('hidden');
+    initLucideIcons();
+  }
+
+  function closeEditFechasGrillaModal() {
+    const modal = document.getElementById('modal-edit-fechas-grilla');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function handleSaveFechasGrilla(e) {
+    e.preventDefault();
+    const activeId = state.activeStoreGridId;
+    if (activeId === 'habitual') return;
+    const spec = state.grillas_especiales.find(g => g.id === activeId);
+    if (!spec) return;
+
+    const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    spec.fechas = spec.fechas || {};
+    days.forEach(d => {
+      spec.fechas[d] = document.getElementById(`cfg-date-${d}`)?.value.trim() || '';
+    });
+
+    localStorage.setItem('nazaria_grillas_especiales_v2', JSON.stringify(state.grillas_especiales));
+    syncGrillasEspecialesToSupabase();
+    closeEditFechasGrillaModal();
+    renderStoreHorarios();
+    showToast('Fechas exactas de la grilla guardadas y actualizadas.', 'success');
   }
 
   function selectStoreGrid(gridId) {
@@ -1739,13 +1790,16 @@
     renderStoreGridTabs();
     const storeCode = state.currentRole;
     const activeId = state.activeStoreGridId || 'habitual';
+    const currentPeriod = state.currentPeriod;
 
-    let h = { manana: {}, tarde: {} };
+    let h = { manana: {}, tarde: {}, fechas: {} };
     if (activeId === 'habitual') {
       h = state.horarios[storeCode] || { manana: {}, tarde: {} };
     } else {
       const spec = state.grillas_especiales.find(g => g.id === activeId);
-      if (spec) h = { manana: spec.manana || {}, tarde: spec.tarde || {} };
+      if (spec) {
+        h = { manana: spec.manana || {}, tarde: spec.tarde || {}, fechas: spec.fechas || {} };
+      }
     }
 
     const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
@@ -1756,7 +1810,27 @@
       if (elTar) elTar.value = h.tarde[d] || '';
     });
 
+    // Renderizar fechas exactas bajo cada día
+    renderStoreGridFechasExactas(h.fechas || {}, activeId !== 'habitual');
+
     renderStoreHorariosGridInputs();
+  }
+
+  function renderStoreGridFechasExactas(customFechas = {}, isSpecialGrid = false) {
+    const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+
+    // Si la grilla especial tiene fechas guardadas o estamos en grilla especial
+    days.forEach(d => {
+      const spanDate = document.getElementById(`h-date-${d}`);
+      if (!spanDate) return;
+
+      const dateVal = customFechas[d] || '';
+      if (dateVal) {
+        spanDate.textContent = dateVal;
+      } else {
+        spanDate.textContent = isSpecialGrid ? '—' : '';
+      }
+    });
   }
 
   function renderStoreHorariosGridInputs() {
@@ -5194,6 +5268,9 @@
     selectStoreGrid,
     promptCrearGrillaEspecial,
     handleDeleteGrillaEspecial,
+    openEditFechasGrillaModal,
+    closeEditFechasGrillaModal,
+    handleSaveFechasGrilla,
     toggleAdminGridEdit,
     openEditEsquemaModal,
     recalcModalEsquemaDiff,
