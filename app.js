@@ -606,6 +606,7 @@
             regularFechas.push({
               id: r.id,
               sucursal: r.sucursal_codigo,
+              periodo: r.periodo,
               fecha_evento: r.evento || r.fecha_evento,
               manana: r.manana,
               tarde: r.tarde,
@@ -1601,14 +1602,19 @@
     setUndoableDelete('hora_detalle', item, 'Horas eliminadas del historial y del resumen.');
   }
 
-  // --- SUBVISTA 2: HORARIOS SEMANALES & GRILLAS MÚLTIPLES (Punto 2) ---
+  // --- SUBVISTA 2: HORARIOS SEMANALES & GRILLAS MÚLTIPLES POR MES (Punto 2) ---
   function renderStoreGridTabs() {
     const container = document.getElementById('store-grid-selector-tabs');
     if (!container) return;
     const storeCode = state.currentRole;
+    const currentPeriod = state.currentPeriod;
     const activeId = state.activeStoreGridId || 'habitual';
 
-    const especiales = state.grillas_especiales.filter(g => g.sucursal === storeCode);
+    // Grillas especiales del período y sucursal actual
+    const especiales = state.grillas_especiales.filter(g => 
+      (g.sucursal === storeCode || g.sucursal_codigo === storeCode) &&
+      (!g.periodo || g.periodo === currentPeriod)
+    );
 
     let html = `
       <button type="button" onclick="window.app.selectStoreGrid('habitual')" class="px-2.5 py-1 rounded text-xs font-bold transition cursor-pointer ${activeId === 'habitual' ? 'bg-black text-white shadow-sm' : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'}">
@@ -1640,8 +1646,8 @@
         subtitleEl.textContent = 'Esquema habitual de turnos. Hacé clic en "Modificar Grilla" para cambiar la distribución.';
       } else {
         const currentSpec = especiales.find(g => g.id === activeId);
-        titleEl.textContent = `Grilla Especial: ${currentSpec ? currentSpec.nombre : 'Especial'}`;
-        subtitleEl.textContent = 'Esquema de turnos temporales para esta semana/evento especial. No altera la grilla habitual.';
+        titleEl.textContent = `Grilla Especial: ${currentSpec ? currentSpec.nombre : 'Especial'} (${formatPeriodLabel(currentPeriod)})`;
+        subtitleEl.textContent = `Esquema de turnos temporales para este mes (${formatPeriodLabel(currentPeriod)}). No altera la grilla habitual.`;
       }
     }
   }
@@ -1654,7 +1660,8 @@
   }
 
   function promptCrearGrillaEspecial() {
-    const nombre = prompt('Ingresá el nombre de la Grilla Especial (ej: Semana Día de la Madre, Fiestas de Fin de Año):');
+    const periodLabel = formatPeriodLabel(state.currentPeriod);
+    const nombre = prompt(`Ingresá el nombre de la Grilla Especial para ${periodLabel} (ej: Semana Día de la Madre, Fiestas de Fin de Año):`);
     if (!nombre || !nombre.trim()) return;
 
     const storeCode = state.currentRole;
@@ -1664,6 +1671,7 @@
     const newGrid = {
       id: 'grid-' + Date.now(),
       sucursal: storeCode,
+      periodo: state.currentPeriod,
       nombre: nombre.trim(),
       manana: { ...(baseH.manana || {}) },
       tarde: { ...(baseH.tarde || {}) }
@@ -1672,14 +1680,14 @@
     state.grillas_especiales.push(newGrid);
     localStorage.setItem('nazaria_grillas_especiales_v2', JSON.stringify(state.grillas_especiales));
 
-    // Guardar en Supabase dentro de horarios_notas o tabla
+    // Guardar en Supabase vinculado al período
     syncGrillasEspecialesToSupabase();
 
     state.activeStoreGridId = newGrid.id;
     state.isStoreGridEditable = true; // Activar edición directa para que puedan modificarla
     renderStoreGridTabs();
     renderStoreHorarios();
-    showToast(`Grilla "${newGrid.nombre}" creada. Ahora podés asignarle los turnos.`, 'success');
+    showToast(`Grilla "${newGrid.nombre}" agregada a ${periodLabel}. Ahora podés asignarle los turnos.`, 'success');
   }
 
   function handleDeleteGrillaEspecial() {
@@ -1706,13 +1714,17 @@
     if (!state.supabaseClient || !state.isSupabaseConnected) return;
     try {
       const storeCode = state.currentRole;
-      const jsonStr = JSON.stringify(state.grillas_especiales.filter(g => g.sucursal === storeCode));
+      const periodStr = state.currentPeriod;
+      const jsonStr = JSON.stringify(state.grillas_especiales.filter(g => 
+        (g.sucursal === storeCode || g.sucursal_codigo === storeCode) &&
+        (!g.periodo || g.periodo === periodStr)
+      ));
       await state.supabaseClient
         .from('fechas_especiales')
         .upsert({
-          id: `grillas_config_${storeCode}`,
+          id: `grillas_config_${storeCode}_${periodStr}`,
           sucursal_codigo: storeCode,
-          periodo: state.currentPeriod,
+          periodo: periodStr,
           evento: '__GRILLAS_ESPECIALES_JSON__',
           manana: '',
           tarde: '',
@@ -1743,11 +1755,6 @@
       if (elMan) elMan.value = h.manana[d] || '';
       if (elTar) elTar.value = h.tarde[d] || '';
     });
-
-    const notasEl = document.getElementById('store-horarios-notas');
-    if (notasEl) {
-      notasEl.value = state.horarios_notas[storeCode] || '';
-    }
 
     renderStoreHorariosGridInputs();
   }
@@ -1845,10 +1852,18 @@
     if (!tbody) return;
     tbody.innerHTML = '';
     const storeCode = state.currentRole;
+    const currentPeriod = state.currentPeriod;
 
-    const list = state.fechas_especiales.filter(f => f.sucursal === storeCode || f.sucursal_codigo === storeCode);
+    // Filtrar fechas especiales por sucursal y estrictamente por el período/mes seleccionado
+    const list = state.fechas_especiales.filter(f => {
+      const matchStore = f.sucursal === storeCode || f.sucursal_codigo === storeCode;
+      if (!matchStore) return false;
+      if (f.periodo && f.periodo !== currentPeriod) return false;
+      return true;
+    });
+
     if (list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-neutral-400 text-xs">No hay fechas especiales cargadas este mes.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-neutral-400 text-xs">No hay fechas especiales cargadas para ${formatPeriodLabel(currentPeriod)}.</td></tr>`;
       return;
     }
 
@@ -1881,6 +1896,7 @@
     const newFe = {
       id: 'fe-' + Date.now(),
       sucursal: state.currentRole,
+      periodo: state.currentPeriod,
       fecha_evento: evento,
       manana: manana,
       tarde: tarde,
