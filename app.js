@@ -373,6 +373,8 @@
     horas_detalle: [],
     retiros: [],
     horarios: {},
+    grillas_especiales: [],     // Grillas alternativas: [{ id, sucursal, nombre, manana: {}, tarde: {} }]
+    activeStoreGridId: 'habitual', // 'habitual' o id de grilla especial
     fechas_especiales: [],
     horarios_notas: {},
     horarios_modificaciones: [],
@@ -477,6 +479,7 @@
     });
     state.horas_detalle = (JSON.parse(localStorage.getItem('nazaria_horas_detalle_v2') || JSON.stringify(DEFAULT_HORAS_DETALLE))).filter(h => !isIdDeleted(h.id));
     state.horarios = JSON.parse(localStorage.getItem('nazaria_horarios_v2') || JSON.stringify(DEFAULT_HORARIOS));
+    state.grillas_especiales = JSON.parse(localStorage.getItem('nazaria_grillas_especiales_v2') || '[]');
     state.fechas_especiales = JSON.parse(localStorage.getItem('nazaria_fechas_especiales_v2') || JSON.stringify(DEFAULT_FECHAS_ESPECIALES));
     state.horarios_notas = JSON.parse(localStorage.getItem('nazaria_horarios_notas_v2') || JSON.stringify(DEFAULT_HORARIOS_NOTAS));
     state.horarios_modificaciones = JSON.parse(localStorage.getItem('nazaria_horarios_modificaciones_v2') || JSON.stringify(DEFAULT_HORARIOS_MODIFICACIONES));
@@ -579,20 +582,40 @@
         localStorage.setItem('nazaria_horarios_notas_v2', JSON.stringify(state.horarios_notas));
       }
 
-      // 2. Fechas especiales
+      // 2. Fechas especiales y Grillas Especiales
       const { data: remoteFechas, error: errF } = await state.supabaseClient
         .from('fechas_especiales')
         .select('*');
 
       if (!errF && remoteFechas && remoteFechas.length > 0) {
-        state.fechas_especiales = remoteFechas.map(r => ({
-          id: r.id,
-          sucursal: r.sucursal_codigo,
-          fecha_evento: r.evento || r.fecha_evento,
-          manana: r.manana,
-          tarde: r.tarde,
-          observacion: r.observacion
-        }));
+        const regularFechas = [];
+        remoteFechas.forEach(r => {
+          if (r.evento === '__GRILLAS_ESPECIALES_JSON__') {
+            try {
+              const parsed = JSON.parse(r.observacion || '[]');
+              if (Array.isArray(parsed)) {
+                // Combinar sin duplicar
+                parsed.forEach(pGrid => {
+                  const idx = state.grillas_especiales.findIndex(g => g.id === pGrid.id);
+                  if (idx >= 0) state.grillas_especiales[idx] = pGrid;
+                  else state.grillas_especiales.push(pGrid);
+                });
+              }
+            } catch(e) {}
+          } else {
+            regularFechas.push({
+              id: r.id,
+              sucursal: r.sucursal_codigo,
+              fecha_evento: r.evento || r.fecha_evento,
+              manana: r.manana,
+              tarde: r.tarde,
+              observacion: r.observacion
+            });
+          }
+        });
+
+        localStorage.setItem('nazaria_grillas_especiales_v2', JSON.stringify(state.grillas_especiales));
+        state.fechas_especiales = regularFechas;
         localStorage.setItem('nazaria_fechas_especiales_v2', JSON.stringify(state.fechas_especiales));
       }
 
@@ -1088,14 +1111,16 @@
     // Colaboradoras asignadas a la sucursal
     const localColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
     localColabs.forEach(c => {
-      opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.nombre_completo})</option>`);
+      const shortName = getColabShortName(c.id, c.alias || c.nombre_completo);
+      opts.push(`<option value="${c.id}">${shortName}</option>`);
     });
 
     // En Maschwitz, permitir seleccionar a colaboradoras de TOM para coberturas
     if (storeCode === 'MASCHWITZ') {
       opts.push('<optgroup label="Coberturas desde TOM">');
       state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM').forEach(c => {
-        opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (Cubre de TOM)</option>`);
+        const shortName = getColabShortName(c.id, c.alias || c.nombre_completo);
+        opts.push(`<option value="${c.id}">${shortName} · Cobertura TOM</option>`);
       });
       opts.push('</optgroup>');
     }
@@ -1137,18 +1162,18 @@
     initLucideIcons();
   }
 
-  // Helper de nombre corto oficial: Primer Nombre + Inicial de Apellido (ej: Martina P.)
+  // Helper de nombre corto oficial: Apodo/Primer Nombre + Inicial de Apellido (ej: Sofi B., Esme G., Martu P.)
   function getColabShortName(colabId, fallback) {
     const MAP = {
       'c-flavia': 'Flavia G.',
-      'c-juli': 'Julieta V.',
-      'c-cami': 'Camila V.',
-      'c-martu': 'Martina P.',
-      'c-martu_masch': 'Martina P.',
-      'c-sofi': 'Sofia B.',
-      'c-esme': 'Esmeralda G.',
-      'c-cande': 'Candela A.',
-      'c-anto': 'Antonella B.'
+      'c-juli': 'Juli V.',
+      'c-cami': 'Cami V.',
+      'c-martu': 'Martu P.',
+      'c-martu_masch': 'Martu P.',
+      'c-sofi': 'Sofi B.',
+      'c-esme': 'Esme G.',
+      'c-cande': 'Cande A.',
+      'c-anto': 'Anto B.'
     };
     if (MAP[colabId]) return MAP[colabId];
     if (fallback) {
@@ -1407,9 +1432,11 @@
 
       const sign = (h.horas > 0 && h.tipo === 'Hora Adicional') ? '+' : '';
 
+      const colabName = getColabShortName(h.colaboradora_id, colab?.alias || colab?.nombre_completo);
+
       tr.innerHTML = `
         <td class="font-mono text-xs text-neutral-600">${formatDateShort(h.fecha)}</td>
-        <td class="font-bold text-xs text-neutral-900">${colab?.alias || colab?.nombre_completo || 'Colaboradora'}</td>
+        <td class="font-bold text-xs text-neutral-900">${colabName}</td>
         <td><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${h.tipo}</span></td>
         <td class="font-mono font-bold text-xs text-neutral-900">${sign}${h.horas} hs</td>
         <td class="text-xs text-neutral-700">${h.motivo}</td>
@@ -1574,10 +1601,140 @@
     setUndoableDelete('hora_detalle', item, 'Horas eliminadas del historial y del resumen.');
   }
 
-  // --- SUBVISTA 2: HORARIOS SEMANALES & FECHAS ESPECIALES (Punto 2) ---
-  function renderStoreHorarios() {
+  // --- SUBVISTA 2: HORARIOS SEMANALES & GRILLAS MÚLTIPLES (Punto 2) ---
+  function renderStoreGridTabs() {
+    const container = document.getElementById('store-grid-selector-tabs');
+    if (!container) return;
     const storeCode = state.currentRole;
-    const h = state.horarios[storeCode] || { manana: {}, tarde: {} };
+    const activeId = state.activeStoreGridId || 'habitual';
+
+    const especiales = state.grillas_especiales.filter(g => g.sucursal === storeCode);
+
+    let html = `
+      <button type="button" onclick="window.app.selectStoreGrid('habitual')" class="px-2.5 py-1 rounded text-xs font-bold transition cursor-pointer ${activeId === 'habitual' ? 'bg-black text-white shadow-sm' : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'}">
+        📅 Grilla Habitual
+      </button>
+    `;
+
+    especiales.forEach(g => {
+      const isSel = activeId === g.id;
+      html += `
+        <button type="button" onclick="window.app.selectStoreGrid('${g.id}')" class="px-2.5 py-1 rounded text-xs font-bold transition cursor-pointer ${isSel ? 'bg-black text-white shadow-sm' : 'bg-amber-100/70 hover:bg-amber-100 text-amber-950 border border-amber-300'}">
+          ⭐ ${g.nombre}
+        </button>
+      `;
+    });
+
+    container.innerHTML = html;
+
+    const delBtn = document.getElementById('btn-delete-grilla-especial');
+    if (delBtn) {
+      delBtn.classList.toggle('hidden', activeId === 'habitual');
+    }
+
+    const titleEl = document.getElementById('store-grid-current-title');
+    const subtitleEl = document.getElementById('store-grid-current-subtitle');
+    if (titleEl && subtitleEl) {
+      if (activeId === 'habitual') {
+        titleEl.textContent = 'Grilla de Turnos Habituales (Lunes a Domingo)';
+        subtitleEl.textContent = 'Esquema habitual de turnos. Hacé clic en "Modificar Grilla" para cambiar la distribución.';
+      } else {
+        const currentSpec = especiales.find(g => g.id === activeId);
+        titleEl.textContent = `Grilla Especial: ${currentSpec ? currentSpec.nombre : 'Especial'}`;
+        subtitleEl.textContent = 'Esquema de turnos temporales para esta semana/evento especial. No altera la grilla habitual.';
+      }
+    }
+  }
+
+  function selectStoreGrid(gridId) {
+    state.activeStoreGridId = gridId;
+    state.isStoreGridEditable = false;
+    renderStoreGridTabs();
+    renderStoreHorarios();
+  }
+
+  function promptCrearGrillaEspecial() {
+    const nombre = prompt('Ingresá el nombre de la Grilla Especial (ej: Semana Día de la Madre, Fiestas de Fin de Año):');
+    if (!nombre || !nombre.trim()) return;
+
+    const storeCode = state.currentRole;
+    const baseH = state.horarios[storeCode] || { manana: {}, tarde: {} };
+
+    // Clona los turnos de la habitual como punto de partida
+    const newGrid = {
+      id: 'grid-' + Date.now(),
+      sucursal: storeCode,
+      nombre: nombre.trim(),
+      manana: { ...(baseH.manana || {}) },
+      tarde: { ...(baseH.tarde || {}) }
+    };
+
+    state.grillas_especiales.push(newGrid);
+    localStorage.setItem('nazaria_grillas_especiales_v2', JSON.stringify(state.grillas_especiales));
+
+    // Guardar en Supabase dentro de horarios_notas o tabla
+    syncGrillasEspecialesToSupabase();
+
+    state.activeStoreGridId = newGrid.id;
+    state.isStoreGridEditable = true; // Activar edición directa para que puedan modificarla
+    renderStoreGridTabs();
+    renderStoreHorarios();
+    showToast(`Grilla "${newGrid.nombre}" creada. Ahora podés asignarle los turnos.`, 'success');
+  }
+
+  function handleDeleteGrillaEspecial() {
+    const activeId = state.activeStoreGridId;
+    if (activeId === 'habitual') return;
+
+    const grid = state.grillas_especiales.find(g => g.id === activeId);
+    if (!grid) return;
+
+    if (!confirm(`¿Estás segura de eliminar la grilla especial "${grid.nombre}"?`)) return;
+
+    state.grillas_especiales = state.grillas_especiales.filter(g => g.id !== activeId);
+    localStorage.setItem('nazaria_grillas_especiales_v2', JSON.stringify(state.grillas_especiales));
+    syncGrillasEspecialesToSupabase();
+
+    state.activeStoreGridId = 'habitual';
+    state.isStoreGridEditable = false;
+    renderStoreGridTabs();
+    renderStoreHorarios();
+    showToast(`Grilla "${grid.nombre}" eliminada.`, 'info');
+  }
+
+  async function syncGrillasEspecialesToSupabase() {
+    if (!state.supabaseClient || !state.isSupabaseConnected) return;
+    try {
+      const storeCode = state.currentRole;
+      const jsonStr = JSON.stringify(state.grillas_especiales.filter(g => g.sucursal === storeCode));
+      await state.supabaseClient
+        .from('fechas_especiales')
+        .upsert({
+          id: `grillas_config_${storeCode}`,
+          sucursal_codigo: storeCode,
+          periodo: state.currentPeriod,
+          evento: '__GRILLAS_ESPECIALES_JSON__',
+          manana: '',
+          tarde: '',
+          observacion: jsonStr
+        }, { onConflict: 'id' });
+    } catch (err) {
+      console.warn('Error syncing grillas especiales:', err);
+    }
+  }
+
+  function renderStoreHorarios() {
+    renderStoreGridTabs();
+    const storeCode = state.currentRole;
+    const activeId = state.activeStoreGridId || 'habitual';
+
+    let h = { manana: {}, tarde: {} };
+    if (activeId === 'habitual') {
+      h = state.horarios[storeCode] || { manana: {}, tarde: {} };
+    } else {
+      const spec = state.grillas_especiales.find(g => g.id === activeId);
+      if (spec) h = { manana: spec.manana || {}, tarde: spec.tarde || {} };
+    }
 
     const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
     days.forEach(d => {
@@ -1592,8 +1749,6 @@
       notasEl.value = state.horarios_notas[storeCode] || '';
     }
 
-    populateStoreModificacionSelects(storeCode);
-    renderStoreModificaciones();
     renderStoreHorariosGridInputs();
   }
 
@@ -1618,10 +1773,10 @@
     const btn = document.getElementById('btn-toggle-store-grid-edit');
     if (btn) {
       if (isEdit) {
-        btn.className = "px-3 py-2 rounded-lg border border-black text-xs font-bold bg-black text-white flex items-center gap-1.5 transition cursor-pointer";
+        btn.className = "px-3 py-1.5 rounded-lg border border-black text-xs font-bold bg-black text-white flex items-center gap-1.5 transition cursor-pointer";
         btn.innerHTML = `<i data-lucide="lock" class="w-3.5 h-3.5 text-[#E6D5C3]"></i> <span id="btn-toggle-store-grid-edit-text">Bloquear Grilla</span>`;
       } else {
-        btn.className = "px-3 py-2 rounded-lg border border-neutral-300 text-xs font-bold bg-[#FAF9F6] text-neutral-700 hover:bg-neutral-100 flex items-center gap-1.5 transition cursor-pointer";
+        btn.className = "px-3 py-1.5 rounded-lg border border-neutral-300 text-xs font-bold bg-[#FAF9F6] text-neutral-700 hover:bg-neutral-100 flex items-center gap-1.5 transition cursor-pointer";
         btn.innerHTML = `<i data-lucide="pencil" class="w-3.5 h-3.5 text-neutral-500"></i> <span id="btn-toggle-store-grid-edit-text">Modificar Grilla</span>`;
       }
     }
@@ -1638,6 +1793,7 @@
 
   async function saveHorariosStore() {
     const storeCode = state.currentRole;
+    const activeId = state.activeStoreGridId || 'habitual';
     const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
     const manana = {};
     const tarde = {};
@@ -1647,31 +1803,41 @@
       tarde[d] = document.getElementById(`h-tar-${d}`)?.value.trim().toUpperCase() || '';
     });
 
-    state.horarios[storeCode] = { manana, tarde };
-    localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
+    if (activeId === 'habitual') {
+      state.horarios[storeCode] = { manana, tarde };
+      localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
 
-    state.isStoreGridEditable = false;
-    renderStoreHorariosGridInputs();
-
-    if (state.supabaseClient && state.isSupabaseConnected) {
-      try {
-        await state.supabaseClient
-          .from('horarios_sucursal')
-          .upsert({
-            sucursal_codigo: storeCode,
-            periodo: state.currentPeriod,
-            manana: manana,
-            tarde: tarde,
-            notas: state.horarios_notas[storeCode] || '',
-            actualizado_por: storeCode === 'TOM' ? 'Sofi' : 'Flavia',
-            actualizado_en: new Date().toISOString()
-          }, { onConflict: 'sucursal_codigo,periodo' });
-      } catch (err) {
-        console.warn('Error saving store horarios to Supabase:', err);
+      if (state.supabaseClient && state.isSupabaseConnected) {
+        try {
+          await state.supabaseClient
+            .from('horarios_sucursal')
+            .upsert({
+              sucursal_codigo: storeCode,
+              periodo: state.currentPeriod,
+              manana: manana,
+              tarde: tarde,
+              notas: state.horarios_notas[storeCode] || '',
+              actualizado_por: storeCode === 'TOM' ? 'Sofi' : 'Flavia',
+              actualizado_en: new Date().toISOString()
+            }, { onConflict: 'sucursal_codigo,periodo' });
+        } catch (err) {
+          console.warn('Error saving store horarios to Supabase:', err);
+        }
+      }
+      showToast('Grilla habitual guardada y sincronizada.', 'success');
+    } else {
+      const spec = state.grillas_especiales.find(g => g.id === activeId);
+      if (spec) {
+        spec.manana = manana;
+        spec.tarde = tarde;
+        localStorage.setItem('nazaria_grillas_especiales_v2', JSON.stringify(state.grillas_especiales));
+        syncGrillasEspecialesToSupabase();
+        showToast(`Grilla "${spec.nombre}" guardada con éxito.`, 'success');
       }
     }
 
-    showToast('Grilla de horarios guardada y fijada.', 'success');
+    state.isStoreGridEditable = false;
+    renderStoreHorariosGridInputs();
   }
 
   function renderStoreFechasEspeciales() {
@@ -1808,7 +1974,8 @@
       const localColabs = state.colaboradoras.filter(c => c.codigo_sucursal === storeCode);
       opts.push(`<optgroup label="Equipo ${storeCode}">`);
       localColabs.forEach(c => {
-        opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.nombre_completo})</option>`);
+        const shortName = getColabShortName(c.id, c.alias || c.nombre_completo);
+        opts.push(`<option value="${c.id}">${shortName}</option>`);
       });
       opts.push(`</optgroup>`);
 
@@ -1816,7 +1983,8 @@
       if (otherColabs.length > 0) {
         opts.push(`<optgroup label="Colaboradoras de otra sucursal">`);
         otherColabs.forEach(c => {
-          opts.push(`<option value="${c.id}">${c.alias || c.nombre_completo} (${c.codigo_sucursal})</option>`);
+          const shortName = getColabShortName(c.id, c.alias || c.nombre_completo);
+          opts.push(`<option value="${c.id}">${shortName} (${c.codigo_sucursal})</option>`);
         });
         opts.push(`</optgroup>`);
       }
@@ -1981,6 +2149,7 @@
 
     filtered.forEach(n => {
       const colab = state.colaboradoras.find(c => c.id === n.colaboradora_id);
+      const colabName = getColabShortName(n.colaboradora_id, colab?.alias || colab?.nombre_completo);
       const tr = document.createElement('tr');
 
       const certBtn = n.certificado_url
@@ -1991,7 +2160,7 @@
 
       tr.innerHTML = `
         <td class="font-mono text-xs text-neutral-600">${formatDateShort(n.fecha_inicio)}</td>
-        <td class="font-bold text-xs text-neutral-900">${colab?.alias || colab?.nombre_completo || 'Colaboradora'}</td>
+        <td class="font-bold text-xs text-neutral-900">${colabName}</td>
         <td><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200">${n.tipo}</span></td>
         <td class="font-mono font-bold text-xs text-center">${n.dias_computados}d</td>
         <td class="text-xs text-neutral-800 whitespace-normal leading-relaxed min-w-[180px]">
@@ -2153,6 +2322,7 @@
 
     filtered.forEach(r => {
       const colab = state.colaboradoras.find(c => c.id === r.colaboradora_id);
+      const colabName = getColabShortName(r.colaboradora_id, colab?.alias || colab?.nombre_completo);
       const tr = document.createElement('tr');
 
       const isSeason = r.tipo === 'Par de Temporada';
@@ -2162,7 +2332,7 @@
 
       tr.innerHTML = `
         <td>${badgeType}</td>
-        <td class="font-bold text-xs text-neutral-900">${colab?.alias || colab?.nombre_completo || 'Colaboradora'}</td>
+        <td class="font-bold text-xs text-neutral-900">${colabName}</td>
         <td class="font-mono font-bold text-xs uppercase text-neutral-800">${r.articulo}</td>
         <td class="text-xs uppercase text-neutral-700">${r.talle_color}</td>
         <td class="font-mono text-xs text-neutral-500">${r.fecha ? formatDateShort(r.fecha) : '-'}</td>
@@ -2392,10 +2562,12 @@
       }
       tramosHtml += '</div>';
 
+      const colabName = getColabShortName(c.id, c.alias || c.nombre_completo);
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td class="font-bold text-neutral-900">
-          <div>${c.alias || c.nombre_completo}</div>
+          <div>${colabName}</div>
           <div class="text-[11px] text-neutral-400 font-normal">Ingreso: ${formatDateShort(c.fecha_ingreso)} ${c.fecha_antiguedad_reconocida ? '<span class="text-amber-800 font-semibold">(Antigüedad: ' + formatDateShort(c.fecha_antiguedad_reconocida) + ')</span>' : ''}</div>
         </td>
         <td class="font-mono text-xs text-neutral-700">${calc.aniosAntiguedad} años al 31/12</td>
@@ -5003,6 +5175,9 @@
 
     // Métodos de edición de grillas y esquemas
     toggleStoreGridEdit,
+    selectStoreGrid,
+    promptCrearGrillaEspecial,
+    handleDeleteGrillaEspecial,
     toggleAdminGridEdit,
     openEditEsquemaModal,
     recalcModalEsquemaDiff,
