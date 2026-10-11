@@ -2074,6 +2074,41 @@
     state.novedades = state.novedades.filter(n => n.id !== id);
     localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
 
+    if (item.tipo === 'Vacaciones' && (item.fecha_inicio || item.fecha_fin)) {
+      const periodStr = state.currentPeriod;
+      if (item.fecha_inicio.startsWith(periodStr) || item.fecha_fin.startsWith(periodStr)) {
+        const key = `${periodStr}_${item.colaboradora_id}`;
+        if (state.cierres[key]) {
+          const colab = item.colaboradora_id === 'c-martu_masch' ? getMartuMasch() : state.colaboradoras.find(c => c.id === item.colaboradora_id);
+          const storeCode = colab?.codigo_sucursal || item.codigo_sucursal;
+          const hsPorDia = storeCode === 'MASCHWITZ' ? 5.5 : 6.0;
+          const hsARestar = Math.round((Number(item.dias_computados) || 0) * hsPorDia * 10) / 10;
+          state.cierres[key].vacaciones_hs = Math.max(0, (Number(state.cierres[key].vacaciones_hs) || 0) - hsARestar);
+          localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+
+          if (state.supabaseClient && state.isSupabaseConnected) {
+            const rec = state.cierres[key];
+            state.supabaseClient.from('cierres_mensuales').upsert({
+              periodo: periodStr,
+              colab_id: item.colaboradora_id,
+              sucursal_codigo: storeCode,
+              horas_base: Number(rec.horas_base || 0),
+              recibo_hs: Number(rec.recibo_hs || 0),
+              sin_recibo_hs: Number(rec.sin_recibo_hs || 0),
+              adicional_hs: Number(rec.adicional_hs || 0),
+              feriados_hs: Number(rec.feriados_hs || 0),
+              extras_hs: Number(rec.extras_hs || 0),
+              vacaciones_hs: Number(rec.vacaciones_hs || 0),
+              observaciones: rec.observaciones || '',
+              detalle_cobertura: rec.detalle_cobertura || '',
+              actualizado_en: new Date().toISOString(),
+              actualizado_por: state.currentRole === 'TOM' ? 'Sofi' : (state.currentRole === 'MASCHWITZ' ? 'Flavia' : 'Encargada')
+            }, { onConflict: 'periodo,colab_id' }).then(() => {});
+          }
+        }
+      }
+    }
+
     if (state.supabaseClient && state.isSupabaseConnected) {
       try {
         await state.supabaseClient.from('novedades_puntuales').delete().eq('id', id);
@@ -2084,6 +2119,7 @@
 
     renderStoreNovedades();
     renderStoreVacaciones();
+    renderStoreHoras();
     renderAdminNovedades();
     renderAdminVacaciones();
     updateAdminKPIs();
@@ -2249,6 +2285,61 @@
     state.novedades.push(newVac);
     localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
 
+    // Descontar automáticamente las horas de vacaciones del período activo si coincide
+    const periodStr = state.currentPeriod; // Ej: 2026-09 o 2026-10
+    const colab = colabId === 'c-martu_masch' ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
+    const storeCode = colab?.codigo_sucursal || state.currentRole;
+    const hsPorDia = storeCode === 'MASCHWITZ' ? 5.5 : 6.0;
+
+    // Si el tramo cae o solapa con el período activo, sumar a vacaciones_hs
+    if (desde.startsWith(periodStr) || hasta.startsWith(periodStr)) {
+      const key = `${periodStr}_${colabId}`;
+      if (!state.cierres[key]) {
+        const hb = Number(colab?.horas_base_mes || 88.0);
+        const rec = Number(colab?.recibo_hs_base || 0);
+        state.cierres[key] = {
+          horas_base: hb,
+          recibo_hs: rec,
+          sin_recibo_hs: Math.max(0, hb - rec),
+          adicional_hs: 0,
+          feriados_hs: 0,
+          extras_hs: 0,
+          vacaciones_hs: 0,
+          observaciones: '',
+          adicionales_hs: 0,
+          detalle_cobertura: ''
+        };
+      }
+      
+      const hsDescontadas = Math.round(dias * hsPorDia * 10) / 10;
+      state.cierres[key].vacaciones_hs = (Number(state.cierres[key].vacaciones_hs) || 0) + hsDescontadas;
+      if (!state.cierres[key].observaciones) {
+        state.cierres[key].observaciones = `Vacaciones ${formatDateShort(desde)} al ${formatDateShort(hasta)} (${dias}d)`;
+      }
+      localStorage.setItem('nazaria_cierres_v2', JSON.stringify(state.cierres));
+
+      // Sincronizar cierre actualizado a Supabase
+      if (state.supabaseClient && state.isSupabaseConnected) {
+        const rec = state.cierres[key];
+        state.supabaseClient.from('cierres_mensuales').upsert({
+          periodo: periodStr,
+          colab_id: colabId,
+          sucursal_codigo: storeCode,
+          horas_base: Number(rec.horas_base || 0),
+          recibo_hs: Number(rec.recibo_hs || 0),
+          sin_recibo_hs: Number(rec.sin_recibo_hs || 0),
+          adicional_hs: Number(rec.adicional_hs || 0),
+          feriados_hs: Number(rec.feriados_hs || 0),
+          extras_hs: Number(rec.extras_hs || 0),
+          vacaciones_hs: Number(rec.vacaciones_hs || 0),
+          observaciones: rec.observaciones || '',
+          detalle_cobertura: rec.detalle_cobertura || '',
+          actualizado_en: new Date().toISOString(),
+          actualizado_por: state.currentRole === 'TOM' ? 'Sofi' : (state.currentRole === 'MASCHWITZ' ? 'Flavia' : 'Encargada')
+        }, { onConflict: 'periodo,colab_id' }).then(() => {});
+      }
+    }
+
     if (state.supabaseClient && state.isSupabaseConnected) {
       state.supabaseClient.from('novedades_puntuales').insert(newVac).then(({ error }) => {
         if (error) console.warn('Error syncing vacacion to Supabase:', error);
@@ -2256,8 +2347,13 @@
     }
 
     document.getElementById('form-vacaciones').reset();
-    showToast('Tramo de vacaciones registrado y sincronizado en la nube.', 'success');
+    showToast('Tramo guardado: se descontaron automáticamente los días de saldo y las horas del mes.', 'success');
     renderStoreVacaciones();
+    renderStoreHoras();
+    if (state.currentRole === 'ADMIN') {
+      renderAdminVacaciones();
+      renderAdminConsolidado();
+    }
   }
 
   function renderStoreVacaciones() {
