@@ -1816,7 +1816,160 @@
     // Renderizar fechas exactas bajo cada día
     renderStoreGridFechasExactas(h.fechas || {}, activeId !== 'habitual');
 
+    // Configurar bandas horarias del local
+    const bandMan = document.getElementById('store-band-manana');
+    const bandTar = document.getElementById('store-band-tarde');
+    if (bandMan && bandTar) {
+      if (storeCode === 'MASCHWITZ') {
+        bandMan.textContent = '10:00 a 15:30 hs (5.5 hs)';
+        bandTar.textContent = '15:30 a 21:00 hs (5.5 hs)';
+      } else {
+        bandMan.textContent = '10:00 a 16:00 hs (6.0 hs)';
+        bandTar.textContent = '16:00 a 22:00 hs (6.0 hs)';
+      }
+    }
+
+    // Renderizar tarjetas de esquema y horas por colaboradora
+    renderStoreColabHorariosCards(storeCode);
+
     renderStoreHorariosGridInputs();
+  }
+
+  function renderStoreColabHorariosCards(storeCode) {
+    const container = document.getElementById('store-colab-horarios-cards');
+    if (!container) return;
+    container.innerHTML = getColabHorariosCardsHtml(storeCode);
+    initLucideIcons();
+  }
+
+  function getColabHorariosCardsHtml(storeCode) {
+    const currentPeriod = state.currentPeriod;
+    let list = [];
+    if (storeCode === 'MASCHWITZ') {
+      list = state.colaboradoras.filter(c => c.codigo_sucursal === 'MASCHWITZ' && isColaboradoraActivaEnPeriodo(c, currentPeriod));
+      const mm = getMartuMasch();
+      if (isColaboradoraActivaEnPeriodo(mm, currentPeriod)) list.push(mm);
+    } else {
+      list = state.colaboradoras.filter(c => c.codigo_sucursal === 'TOM' && isColaboradoraActivaEnPeriodo(c, currentPeriod));
+    }
+
+    if (list.length === 0) {
+      return `<div class="col-span-full py-4 text-center text-xs text-neutral-400">No hay colaboradoras activas para esta sucursal.</div>`;
+    }
+
+    // Definición de horarios habituales detallados por colaboradora
+    const horariosDetalleMap = {
+      'c-sofi': {
+        dias: '6 días / semana',
+        hsTurno: '6 hs por turno (paga 8 hs base)',
+        banda: 'Mañana (10:00 a 16:00) · Cubre rotaciones',
+        detalle: 'Encargada de TOM. Cubre apertura lun/mar y domingos según rotación.'
+      },
+      'c-esme': {
+        dias: '6 días / semana',
+        hsTurno: '4 turnos de 6 hs + 2 turnos de 8 hs',
+        banda: 'Rotativa (6 hs: 10-16 / 16-22 · 8 hs: 10-18 o 14-22)',
+        detalle: 'Jornada extendida (160 hs base). Realiza dos turnos largos de 8 hs semanales.'
+      },
+      'c-martu': {
+        dias: '2 días / semana',
+        hsTurno: '6 hs por turno',
+        banda: 'Tarde (16:00 a 22:00)',
+        detalle: 'Cubre francos en TOM (48 hs base) y rotaciones fijas.'
+      },
+      'c-cande': {
+        dias: '4 días / semana',
+        hsTurno: '6 hs por turno',
+        banda: 'Rotativa (Mañana / Tarde)',
+        detalle: '96 hs base mensuales en turnos de 6 horas.'
+      },
+      'c-anto': {
+        dias: '4 días / semana',
+        hsTurno: '6 hs por turno',
+        banda: 'Rotativa (Mañana / Tarde)',
+        detalle: '96 hs base mensuales en turnos de 6 horas.'
+      },
+      'c-flavia': {
+        dias: '5 días / semana',
+        hsTurno: '5,5 hs por turno (paga 8 hs base)',
+        banda: 'Mañana (10:00 a 15:30) · Martes a Sábado',
+        detalle: 'Encargada operativa Maschwitz. Apertura habitual de 5,5 hs diarias.'
+      },
+      'c-juli': {
+        dias: '4 días / semana',
+        hsTurno: '5,5 hs por turno',
+        banda: 'Rotativa (10:00 a 15:30 / 15:30 a 21:00)',
+        detalle: '88 hs base mensuales (4 días semanales de 5,5 hs).'
+      },
+      'c-cami': {
+        dias: '4 días / semana',
+        hsTurno: '5,5 hs por turno',
+        banda: 'Rotativa (10:00 a 15:30 / 15:30 a 21:00)',
+        detalle: '88 hs base mensuales (4 días semanales de 5,5 hs).'
+      },
+      'c-martu_masch': {
+        dias: '1 día / semana (Domingos)',
+        hsTurno: '5,5 hs por turno',
+        banda: 'Tarde (15:30 a 21:00)',
+        detalle: 'Cobertura exclusiva de domingos en Maschwitz (22 hs base).'
+      }
+    };
+
+    return list.map(c => {
+      const displayName = getColabShortName(c.id, c.alias || c.nombre_completo);
+      const custom = horariosDetalleMap[c.id] || {
+        dias: c.esquema_jornada || 'Según esquema',
+        hsTurno: storeCode === 'MASCHWITZ' ? '5,5 hs por turno' : '6 hs por turno',
+        banda: 'Rotativa según grilla',
+        detalle: 'Turnos asignados según grilla semanal.'
+      };
+
+      const hb = Number(c.horas_base_mes ?? 88);
+
+      return `
+        <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5 flex flex-col justify-between hover:border-black/30 transition shadow-2xs">
+          <div>
+            <div class="flex items-center justify-between gap-2 border-b border-neutral-200/70 pb-2">
+              <div>
+                <span class="font-bold text-xs text-neutral-900">${displayName}</span>
+                <span class="block text-[10px] text-neutral-400 font-medium">${c.categoria || 'Vendedora'}</span>
+              </div>
+              <span class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-white border border-neutral-200 text-neutral-900">${hb} hs/mes</span>
+            </div>
+
+            <div class="mt-2.5 flex flex-col gap-1.5 text-[11px]">
+              <div class="flex items-start gap-1.5">
+                <i data-lucide="calendar" class="w-3.5 h-3.5 text-neutral-400 shrink-0 mt-0.5"></i>
+                <div>
+                  <span class="text-neutral-500 font-medium">Jornada: </span>
+                  <span class="font-bold text-neutral-800">${custom.dias}</span>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-1.5">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5"></i>
+                <div>
+                  <span class="text-neutral-500 font-medium">Carga por Turno: </span>
+                  <span class="font-bold text-amber-950">${custom.hsTurno}</span>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-1.5">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-neutral-400 shrink-0 mt-0.5"></i>
+                <div>
+                  <span class="text-neutral-500 font-medium">Franja Habitual: </span>
+                  <span class="font-semibold text-neutral-700">${custom.banda}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3 pt-2 border-t border-neutral-200/50 text-[10px] text-neutral-500 italic leading-snug">
+            ${custom.detalle}
+          </div>
+        </div>
+      `;
+    }).join('');
   }
 
   function renderStoreGridFechasExactas(customFechas = {}, isSpecialGrid = false) {
@@ -3473,6 +3626,26 @@
         spanDate.textContent = dateVal ? dateVal : (activeId !== 'habitual' ? '—' : '');
       }
     });
+
+    // Configurar bandas horarias del local en Admin
+    const bandMan = document.getElementById('admin-band-manana');
+    const bandTar = document.getElementById('admin-band-tarde');
+    if (bandMan && bandTar) {
+      if (storeCode === 'MASCHWITZ') {
+        bandMan.textContent = '10:00 a 15:30 hs (5.5 hs)';
+        bandTar.textContent = '15:30 a 21:00 hs (5.5 hs)';
+      } else {
+        bandMan.textContent = '10:00 a 16:00 hs (6.0 hs)';
+        bandTar.textContent = '16:00 a 22:00 hs (6.0 hs)';
+      }
+    }
+
+    // Renderizar tarjetas de esquema y horas por colaboradora en Admin
+    const adminCardsContainer = document.getElementById('admin-colab-horarios-cards');
+    if (adminCardsContainer) {
+      adminCardsContainer.innerHTML = getColabHorariosCardsHtml(storeCode);
+      initLucideIcons();
+    }
 
     renderAdminHorariosGridInputs();
   }

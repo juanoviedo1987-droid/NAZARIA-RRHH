@@ -447,7 +447,10 @@
               </thead>
               <tbody>
                 <tr>
-                  <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5]">Mañana</td>
+                  <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5] py-2">
+                    <span class="block text-xs font-bold text-neutral-900">Mañana</span>
+                    <span id="store-band-manana" class="block text-[10px] font-mono font-normal text-neutral-500 mt-0.5">10:00 a 16:00 hs</span>
+                  </td>
                   <td><input type="text" id="h-man-lun" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="SOFI"></td>
                   <td><input type="text" id="h-man-mar" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="SOFI"></td>
                   <td><input type="text" id="h-man-mie" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="ESME"></td>
@@ -457,7 +460,10 @@
                   <td><input type="text" id="h-man-dom" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="SOFI/CANDE"></td>
                 </tr>
                 <tr>
-                  <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5]">Tarde</td>
+                  <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5] py-2">
+                    <span class="block text-xs font-bold text-neutral-900">Tarde</span>
+                    <span id="store-band-tarde" class="block text-[10px] font-mono font-normal text-neutral-500 mt-0.5">16:00 a 22:00 hs</span>
+                  </td>
                   <td><input type="text" id="h-tar-lun" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="ESME"></td>
                   <td><input type="text" id="h-tar-mar" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="MARTU"></td>
                   <td><input type="text" id="h-tar-mie" readonly ondblclick="window.app.toggleStoreGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white" placeholder="MARTU/CANDE"></td>
@@ -468,6 +474,26 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Tarjetas de Esquema y Horas de Turno por Colaboradora -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
+          <div class="flex items-center justify-between pb-3 border-b border-neutral-200">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-neutral-900 text-sm">Esquema y Carga Horaria por Turno del Personal</h4>
+                <p class="text-xs text-neutral-500">Horas diarias por turno, días semanales y distribución horaria de cada colaboradora de esta sucursal.</p>
+              </div>
+            </div>
+            <span class="text-[11px] font-bold bg-[#FAF9F6] border border-neutral-200 text-neutral-700 px-2.5 py-1 rounded-md">Referencia de Turnos</span>
+          </div>
+
+          <div id="store-colab-horarios-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mt-4">
+            <!-- Inyectado dinámicamente con los horarios específicos de cada chica -->
           </div>
         </div>
 
@@ -1035,7 +1061,10 @@
               </thead>
               <tbody>
                 <tr>
-                  <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5]">Mañana</td>
+                  <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5] py-2">
+                    <span class="block text-xs font-bold text-neutral-900">Mañana</span>
+                    <span id="admin-band-manana" class="block text-[10px] font-mono font-normal text-neutral-500 mt-0.5">10:00 a 16:00 hs</span>
+                  </td>
                   <td><input type="text" id="admin-h-man-lun" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
                   <td><input type="text" id="admin-h-man-mar" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
                   <td><input type="text" id="admin-h-man-mie" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
@@ -1045,7 +1074,10 @@
                   <td><input type="text" id="admin-h-man-dom" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
                 </tr>
                 <tr>
-                  <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5]">Tarde</td>
+                  <td class="font-bold text-left text-neutral-800 bg-[#F8F7F5] py-2">
+                    <span class="block text-xs font-bold text-neutral-900">Tarde</span>
+                    <span id="admin-band-tarde" class="block text-[10px] font-mono font-normal text-neutral-500 mt-0.5">16:00 a 22:00 hs</span>
+                  </td>
                   <td><input type="text" id="admin-h-tar-lun" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
                   <td><input type="text" id="admin-h-tar-mar" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
                   <td><input type="text" id="admin-h-tar-mie" readonly ondblclick="window.app.toggleAdminGridEdit()" class="w-full text-center text-xs font-semibold p-1.5 border border-neutral-200 rounded uppercase bg-neutral-100 text-neutral-700 cursor-default select-none focus:border-black focus:bg-white"></td>
@@ -1056,6 +1088,26 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Tarjetas de Esquema y Horas de Turno por Colaboradora en Admin -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
+          <div class="flex items-center justify-between pb-3 border-b border-neutral-200">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h4 id="admin-colab-horarios-title" class="font-bold text-neutral-900 text-sm">Esquema y Carga Horaria por Turno del Personal</h4>
+                <p class="text-xs text-neutral-500">Horas diarias por turno, días semanales y distribución horaria de cada colaboradora de esta sucursal.</p>
+              </div>
+            </div>
+            <span class="text-[11px] font-bold bg-[#FAF9F6] border border-neutral-200 text-neutral-700 px-2.5 py-1 rounded-md">Referencia de Turnos</span>
+          </div>
+
+          <div id="admin-colab-horarios-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mt-4">
+            <!-- Inyectado dinámicamente -->
           </div>
         </div>
 
