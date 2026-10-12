@@ -5154,11 +5154,22 @@
     const difCajaSign = data.caja_diferencia > 0 ? `+$${data.caja_diferencia}` : (data.caja_diferencia < 0 ? `-$${Math.abs(data.caja_diferencia)}` : '$0 (OK)');
     const cajaStatusIcon = data.caja_diferencia === 0 ? '✅' : (data.caja_diferencia > 0 ? '⚠️ Sobrante' : '❌ Faltante');
 
+    // Obtener nombre del día a partir de la fecha de auditoría (ej: Jueves, Viernes, etc.)
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    let diaNombre = 'Semanal';
+    if (data.fecha) {
+      const fParts = data.fecha.split('-');
+      if (fParts.length === 3) {
+        const dObj = new Date(parseInt(fParts[0]), parseInt(fParts[1]) - 1, parseInt(fParts[2]));
+        diaNombre = diasSemana[dObj.getDay()] || 'Semanal';
+      }
+    }
+
     // Construcción del mensaje con líneas cortas
     const lines = [
-      `📋 *AUDITORÍA JUEVES - NAZARIA*`,
+      `📋 *AUDITORÍA ${diaNombre.toUpperCase()} - NAZARIA*`,
       `🏬 *Sucursal:* ${data.sucursal}`,
-      `📅 *Fecha:* ${formatDateShort(data.fecha)}`,
+      `📅 *Fecha:* ${diaNombre} ${formatDateShort(data.fecha)}`,
       `👤 *Auditora:* ${data.responsable}`,
       ``,
       `💵 *1. ARQUEO DE CAJA*`,
