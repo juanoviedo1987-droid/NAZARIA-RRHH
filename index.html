@@ -235,6 +235,10 @@
           <i data-lucide="shopping-bag" class="w-4 h-4"></i>
           <span>5. Retiros</span>
         </button>
+        <button id="tab-store-auditoria" onclick="window.app.switchStoreTab('auditoria')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
+          <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+          <span>6. Auditoría Semanal</span>
+        </button>
       </div>
 
       <!-- ===================================================================
@@ -830,6 +834,228 @@
           </div>
         </div>
 
+      <!-- ===================================================================
+           SUBVISTA LOCAL 6: AUDITORÍA SEMANAL DE JUEVES
+           =================================================================== -->
+      <div id="subview-store-auditoria" class="hidden flex flex-col gap-6">
+        
+        <!-- Tarjeta Cabecera de Auditoría -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-neutral-200 gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-[11px] font-bold rounded bg-amber-100 text-amber-900 border border-amber-300 tracking-wider uppercase">JUEVES DE CONTROL</span>
+                <h3 class="font-bold text-neutral-900 text-base">Auditoría Semanal de Local</h3>
+              </div>
+              <p class="text-xs text-neutral-500 mt-1">Completar todos los jueves al cierre o cambio de turno: arqueo físico, 10 artículos muestreo, insumos y novedades.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center gap-1.5 text-xs text-neutral-600 bg-[#FAF9F6] border border-neutral-200 px-3 py-1.5 rounded-lg font-medium">
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                <span>Sincronizado Supabase & Telegram</span>
+              </span>
+            </div>
+          </div>
+
+          <form id="form-store-auditoria" onsubmit="window.app.handleSubmitAuditoria(event)" class="mt-5 flex flex-col gap-6">
+            
+            <!-- Datos Generales -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#FAF9F6] border border-neutral-200 rounded-xl p-4">
+              <div>
+                <label class="block text-xs font-bold text-neutral-700 mb-1">Fecha de Auditoría</label>
+                <input type="date" id="audit-fecha" required class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-neutral-700 mb-1">Sucursal</label>
+                <input type="text" id="audit-sucursal" readonly class="w-full bg-neutral-100 border border-neutral-200 rounded-lg p-2 text-xs font-bold text-neutral-700 cursor-not-allowed">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-neutral-700 mb-1">Encargada / Auditora</label>
+                <input type="text" id="audit-responsable" required placeholder="Nombre de la encargada" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-bold text-neutral-900 focus:outline-none focus:border-black">
+              </div>
+            </div>
+
+            <!-- BLOQUE 1: ARQUEO DE CAJA Y EFECTIVO -->
+            <div class="border border-neutral-200 rounded-xl p-4 sm:p-5 bg-white shadow-xs">
+              <div class="flex items-center justify-between pb-3 border-b border-neutral-200 mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold text-xs">1</div>
+                  <h4 class="font-bold text-neutral-900 text-sm">Arqueo Físico de Efectivo</h4>
+                </div>
+                <span class="text-xs text-neutral-500">Cajón de cambio + Sobres de retiro</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-neutral-600 mb-1">Efectivo en Cajón / Cambio ($)</label>
+                  <input type="number" id="audit-caja-cajon" step="any" min="0" value="0" oninput="window.app.calcArqueoDiferencia()" class="w-full bg-[#FAF9F6] border border-neutral-300 rounded-lg p-2.5 text-sm font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
+                  <span class="text-[10px] text-neutral-400">Billetes en caja registradora</span>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-neutral-600 mb-1">Sobres de Retiros Semanales ($)</label>
+                  <input type="number" id="audit-caja-sobres" step="any" min="0" value="0" oninput="window.app.calcArqueoDiferencia()" class="w-full bg-[#FAF9F6] border border-neutral-300 rounded-lg p-2.5 text-sm font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
+                  <span class="text-[10px] text-neutral-400">Total sobres en caja fuerte</span>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-neutral-600 mb-1">Total Físico Recontado ($)</label>
+                  <input type="text" id="audit-caja-total-fisico" readonly value="$ 0" class="w-full bg-neutral-100 border border-neutral-200 rounded-lg p-2.5 text-sm font-mono font-bold text-neutral-800 cursor-not-allowed">
+                  <span class="text-[10px] text-neutral-400">Cajón + Sobres</span>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-neutral-600 mb-1">Teórico Dux / Sistema ($)</label>
+                  <input type="number" id="audit-caja-teorico-dux" step="any" min="0" value="0" oninput="window.app.calcArqueoDiferencia()" class="w-full bg-[#FAF9F6] border border-neutral-300 rounded-lg p-2.5 text-sm font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
+                  <span class="text-[10px] text-neutral-400">Saldo teórico según Dux</span>
+                </div>
+              </div>
+
+              <!-- Diferencia y Justificación -->
+              <div class="mt-4 pt-3 border-t border-neutral-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                  <span class="text-xs font-bold text-neutral-700">Diferencia de Caja:</span>
+                  <span id="audit-caja-badge-dif" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-neutral-100 text-neutral-700 border border-neutral-200">
+                    $ 0 (OK)
+                  </span>
+                </div>
+                <div class="w-full sm:w-1/2">
+                  <input type="text" id="audit-caja-justificacion" placeholder="Justificación o motivo si hay sobrante / faltante..." class="w-full bg-[#FAF9F6] border border-neutral-300 rounded-lg p-2 text-xs text-neutral-800 focus:outline-none focus:border-black">
+                </div>
+              </div>
+            </div>
+
+            <!-- BLOQUE 2: MUESTREO SELECTIVO DE STOCK (10 ARTÍCULOS ROTATIVOS) -->
+            <div class="border border-neutral-200 rounded-xl p-4 sm:p-5 bg-white shadow-xs">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3 border-b border-neutral-200 mb-4 gap-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold text-xs">2</div>
+                  <h4 class="font-bold text-neutral-900 text-sm">Muestreo Selectivo de Stock (10 Artículos)</h4>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="window.app.addAuditoriaStockRow()" class="px-2.5 py-1 rounded-lg border border-dashed border-neutral-400 hover:border-black text-xs font-bold text-neutral-700 hover:text-black flex items-center gap-1 transition cursor-pointer">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>+ Agregar Fila</span>
+                  </button>
+                  <span class="text-[11px] text-neutral-500 hidden sm:inline">Contar pares físicos en estantería vs Dux</span>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto no-scrollbar">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="border-b border-neutral-200 text-neutral-500 font-semibold bg-[#FAF9F6]">
+                      <th class="py-2.5 px-2 w-10 text-center">#</th>
+                      <th class="py-2.5 px-2 min-w-[140px]">Artículo / Código</th>
+                      <th class="py-2.5 px-2 min-w-[90px]">Color / Talle</th>
+                      <th class="py-2.5 px-2 w-24 text-center">Físico</th>
+                      <th class="py-2.5 px-2 w-24 text-center">Dux</th>
+                      <th class="py-2.5 px-2 w-24 text-center">Diferencia</th>
+                      <th class="py-2.5 px-2 min-w-[130px]">Observaciones</th>
+                      <th class="py-2.5 px-2 w-10 text-center"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-audit-stock">
+                    <!-- 10 Filas inyectadas dinámicamente -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- BLOQUE 3: CONTROL DE INSUMOS -->
+            <div class="border border-neutral-200 rounded-xl p-4 sm:p-5 bg-white shadow-xs">
+              <div class="flex items-center justify-between pb-3 border-b border-neutral-200 mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold text-xs">3</div>
+                  <h4 class="font-bold text-neutral-900 text-sm">Control de Insumos y Bolsas</h4>
+                </div>
+                <span class="text-xs text-neutral-500">Cantidad exacta y estado [ OK / Pedir ]</span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Bolsas Medianas -->
+                <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5 flex flex-col gap-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-neutral-800">🛍️ Bolsas Medianas</span>
+                    <select id="audit-insumo-med-estado" class="text-xs font-bold px-2 py-1 rounded border bg-white border-neutral-300 focus:outline-none">
+                      <option value="OK">OK</option>
+                      <option value="Pedir">⚠️ Pedir</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] text-neutral-500 mb-1">Cantidad contada (unidades):</label>
+                    <input type="number" id="audit-insumo-med-cant" min="0" value="0" placeholder="0" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
+                  </div>
+                </div>
+
+                <!-- Bolsas Grandes -->
+                <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5 flex flex-col gap-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-neutral-800">🛍️ Bolsas Grandes</span>
+                    <select id="audit-insumo-grd-estado" class="text-xs font-bold px-2 py-1 rounded border bg-white border-neutral-300 focus:outline-none">
+                      <option value="OK">OK</option>
+                      <option value="Pedir">⚠️ Pedir</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] text-neutral-500 mb-1">Cantidad contada (unidades):</label>
+                    <input type="number" id="audit-insumo-grd-cant" min="0" value="0" placeholder="0" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
+                  </div>
+                </div>
+
+                <!-- Otros Insumos -->
+                <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5 flex flex-col gap-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-neutral-800">📦 Otros Insumos</span>
+                    <select id="audit-insumo-otros-estado" class="text-xs font-bold px-2 py-1 rounded border bg-white border-neutral-300 focus:outline-none">
+                      <option value="OK">OK</option>
+                      <option value="Pedir">⚠️ Pedir</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] text-neutral-500 mb-1">Detalle / Cantidad:</label>
+                    <input type="text" id="audit-insumo-otros-cant" placeholder="Ej: Cinta, rollos posnet (OK/Stock)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs text-neutral-900 focus:outline-none focus:border-black">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BLOQUE 4: ESTADO DEL LOCAL Y PERSONAL -->
+            <div class="border border-neutral-200 rounded-xl p-4 sm:p-5 bg-white shadow-xs">
+              <div class="flex items-center justify-between pb-3 border-b border-neutral-200 mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-bold text-xs">4</div>
+                  <h4 class="font-bold text-neutral-900 text-sm">Estado del Local y Novedades de Personal</h4>
+                </div>
+                <span class="text-xs text-neutral-500">Aperturas, llegadas tarde, mantenimiento</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-semibold text-neutral-700 mb-1">Puntualidad & Personal de la Semana</label>
+                  <textarea id="audit-personal-obs" rows="2" placeholder="Ej: Todo en horario habitual. No hubo llegadas tarde." class="w-full bg-[#FAF9F6] border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 focus:outline-none focus:border-black"></textarea>
+                  <span class="text-[10px] text-neutral-400">Aperturas demoradas, cambios imprevistos de turno o llegadas tarde</span>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-neutral-700 mb-1">Instalaciones, Limpieza y Mantenimiento</label>
+                  <textarea id="audit-instalaciones-obs" rows="2" placeholder="Ej: Luces OK, aire acondicionado OK, posnet funcionando." class="w-full bg-[#FAF9F6] border border-neutral-300 rounded-lg p-2.5 text-xs text-neutral-900 focus:outline-none focus:border-black"></textarea>
+                  <span class="text-[10px] text-neutral-400">Luces, aire, orden de depósito, vidriera, posnet o sistema</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTÓN ACCIÓN FINAL -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-neutral-200 bg-[#FAF9F6] p-4 rounded-xl">
+              <div class="flex items-center gap-2 text-xs text-neutral-600">
+                <i data-lucide="info" class="w-4 h-4 text-neutral-500 shrink-0"></i>
+                <span>Al enviar, se guardará en el historial permanente y se disparará la alerta a Telegram.</span>
+              </div>
+              <button type="submit" id="btn-submit-auditoria" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md transition cursor-pointer">
+                <i data-lucide="send" class="w-4 h-4 text-[#E6D5C3]"></i>
+                <span>Cerrar y Enviar Auditoría del Jueves</span>
+              </button>
+            </div>
+
+          </form>
+        </div>
+
       </div>
 
     </section>
@@ -909,6 +1135,10 @@
         <button id="tab-admin-colaboradoras" onclick="window.app.switchAdminTab('colaboradoras')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
           <i data-lucide="users" class="w-4 h-4"></i>
           <span>6. Padrón</span>
+        </button>
+        <button id="tab-admin-auditorias" onclick="window.app.switchAdminTab('auditorias')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
+          <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+          <span>7. Auditorías Semanales</span>
         </button>
       </div>
 
@@ -1288,6 +1518,49 @@
                 </tr>
               </thead>
               <tbody id="tbody-admin-colaboradoras">
+                <!-- Inyectado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <!-- ===================================================================
+           SUBVISTA ADMIN 7: HISTORIAL DE AUDITORÍAS SEMANALES
+           =================================================================== -->
+      <div id="subview-admin-auditorias" class="hidden flex flex-col gap-6">
+        <div class="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 shadow-sm">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-neutral-200 gap-3">
+            <div>
+              <h3 class="font-bold text-neutral-900 text-sm sm:text-base flex items-center gap-2">
+                Historial de Auditorías de Jueves
+                <span class="text-[10px] font-bold bg-[#E6D5C3] text-neutral-900 px-2 py-0.5 rounded">Control Semanal</span>
+              </h3>
+              <p class="text-xs text-neutral-500 mt-0.5">Control de arqueos de caja, muestreos de stock en 10 artículos, reposición de bolsas y novedades.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-neutral-600">Filtrar:</span>
+              <select id="select-admin-audit-filter" onchange="window.app.renderAdminAuditorias()" class="bg-[#FAF9F6] border border-neutral-200 rounded-lg px-2.5 py-1 text-xs font-bold text-neutral-800 focus:outline-none">
+                <option value="ALL">Todas las sucursales</option>
+                <option value="TOM">TOM</option>
+                <option value="Maschwitz">Maschwitz</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto mt-4">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-neutral-200 text-neutral-500 font-semibold bg-[#FAF9F6]">
+                  <th class="py-2.5 px-3">Fecha & Hora</th>
+                  <th class="py-2.5 px-3">Sucursal</th>
+                  <th class="py-2.5 px-3">Encargada</th>
+                  <th class="py-2.5 px-3 text-right">Efectivo Físico</th>
+                  <th class="py-2.5 px-3 text-center">Dif. Caja</th>
+                  <th class="py-2.5 px-3 text-center">Muestreo Stock</th>
+                  <th class="py-2.5 px-3 text-center">Bolsas / Insumos</th>
+                  <th class="py-2.5 px-3 text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-admin-auditorias">
                 <!-- Inyectado dinámicamente -->
               </tbody>
             </table>
@@ -1689,6 +1962,39 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 7: VISOR DE DETALLE DE AUDITORÍA SEMANAL
+       ========================================================================= -->
+  <div id="modal-view-auditoria" onclick="if(event.target === this) window.app.closeAuditoriaModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 modal-backdrop fade-in">
+    <div class="bg-white border border-neutral-200 rounded-2xl p-5 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-neutral-200 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center font-bold">
+            <i data-lucide="clipboard-check" class="w-4 h-4 text-[#E6D5C3]"></i>
+          </div>
+          <div>
+            <h3 id="modal-audit-title" class="font-bold text-neutral-900 text-sm sm:text-base">Auditoría Semanal</h3>
+            <p id="modal-audit-subtitle" class="text-xs text-neutral-500">Detalle de control de jueves</p>
+          </div>
+        </div>
+        <button onclick="window.app.closeAuditoriaModal()" class="text-neutral-400 hover:text-black text-lg font-bold p-1 cursor-pointer">✕</button>
+      </div>
+
+      <div id="modal-audit-body" class="flex flex-col gap-4 text-xs">
+        <!-- Inyectado dinámicamente -->
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-neutral-200">
+        <button type="button" id="btn-modal-audit-delete" class="text-red-600 hover:text-red-800 text-xs font-bold transition cursor-pointer">
+          Eliminar Registro
+        </button>
+        <button type="button" onclick="window.app.closeAuditoriaModal()" class="px-4 py-2 rounded-lg bg-black hover:bg-neutral-800 text-white text-xs font-bold transition cursor-pointer">
+          Cerrar
+        </button>
+      </div>
     </div>
   </div>
 

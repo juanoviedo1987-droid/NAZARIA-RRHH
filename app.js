@@ -379,6 +379,7 @@
     fechas_especiales: [],
     horarios_notas: {},
     horarios_modificaciones: [],
+    auditorias: [],             // Auditorías semanales de jueves
 
     // Banderas de edición protegida de grillas
     isStoreGridEditable: false,
@@ -486,6 +487,7 @@
     state.horarios_modificaciones = JSON.parse(localStorage.getItem('nazaria_horarios_modificaciones_v2') || JSON.stringify(DEFAULT_HORARIOS_MODIFICACIONES));
     state.retiros = (JSON.parse(localStorage.getItem('nazaria_retiros_v2') || JSON.stringify(DEFAULT_RETIROS))).filter(r => !isIdDeleted(r.id));
     state.novedades = (JSON.parse(localStorage.getItem('nazaria_novedades_v2') || JSON.stringify(DEFAULT_NOVEDADES))).filter(n => !isIdDeleted(n.id));
+    state.auditorias = (JSON.parse(localStorage.getItem('nazaria_auditorias_v2') || '[]')).filter(a => !isIdDeleted(a.id));
   }
 
   // Helper para obtener y guardar la grilla habitual aislada por período y sucursal
@@ -558,6 +560,9 @@
           syncFromSupabase();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'fechas_especiales' }, () => {
+          syncFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'auditorias_semanales' }, () => {
           syncFromSupabase();
         })
         .subscribe();
@@ -844,6 +849,39 @@
         localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
       }
 
+      // 8. Auditorías Semanales de Jueves
+      const { data: remoteAudits, error: errAudit } = await state.supabaseClient
+        .from('auditorias_semanales')
+        .select('*')
+        .order('creado_en', { ascending: false });
+
+      if (!errAudit) {
+        let remoteList = (remoteAudits || []).filter(a => a && !isIdDeleted(a.id));
+
+        const ghostsAudit = (remoteAudits || []).filter(a => a && isIdDeleted(a.id));
+        if (ghostsAudit.length > 0) {
+          ghostsAudit.forEach(g => {
+            state.supabaseClient.from('auditorias_semanales').delete().eq('id', g.id).then(() => {});
+          });
+        }
+
+        const pendingAudit = state.auditorias.filter(a => a && a._pending_sync && !isIdDeleted(a.id));
+        for (const item of pendingAudit) {
+          try {
+            const toInsert = { ...item };
+            delete toInsert._pending_sync;
+            await state.supabaseClient.from('auditorias_semanales').insert(toInsert);
+            item._pending_sync = false;
+            remoteList.unshift(toInsert);
+          } catch(e) {
+            console.warn('Error subiendo auditoria pendiente offline:', e);
+          }
+        }
+
+        state.auditorias = remoteList;
+        localStorage.setItem('nazaria_auditorias_v2', JSON.stringify(state.auditorias));
+      }
+
       // Refrescar vistas si ya están activas (evitar re-renderizar grilla de horarios si el usuario la está editando o escribiendo en inputs)
       const isEditingGrid = state.isAdminGridEditable || state.isStoreGridEditable;
       const isInputActive = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
@@ -855,6 +893,7 @@
         if (state.activeAdminTab === 'novedades') renderAdminNovedades();
         if (state.activeAdminTab === 'retiros') renderAdminRetiros();
         if (state.activeAdminTab === 'colaboradoras') renderAdminColaboradoras();
+        if (state.activeAdminTab === 'auditorias') renderAdminAuditorias();
         updateAdminKPIs();
       } else if (state.currentRole) {
         if (state.activeStoreTab === 'horas') {
@@ -870,6 +909,9 @@
         if (state.activeStoreTab === 'vacaciones') renderStoreVacaciones();
         if (state.activeStoreTab === 'novedades') renderStoreNovedades();
         if (state.activeStoreTab === 'retiros') renderStoreRetiros();
+        if (state.activeStoreTab === 'auditoria') {
+          // No pisar el formulario si se está editando
+        }
       }
     } catch (err) {
       console.warn('Sync from Supabase fallback to local:', err);
@@ -1174,16 +1216,16 @@
   function switchStoreTab(tab) {
     state.activeStoreTab = tab;
 
-    const tabs = ['horas', 'horarios', 'novedades', 'retiros', 'vacaciones'];
+    const tabs = ['horas', 'horarios', 'novedades', 'retiros', 'vacaciones', 'auditoria'];
     tabs.forEach(t => {
       const btn = document.getElementById(`tab-store-${t}`);
       const view = document.getElementById(`subview-store-${t}`);
       if (t === tab) {
-        btn.className = "pb-3 text-xs sm:text-sm font-bold border-b-2 border-black text-neutral-900 flex items-center gap-2 whitespace-nowrap transition";
-        view.classList.remove('hidden');
+        if (btn) btn.className = "pb-3 text-xs sm:text-sm font-bold border-b-2 border-black text-neutral-900 flex items-center gap-2 whitespace-nowrap transition";
+        if (view) view.classList.remove('hidden');
       } else {
-        btn.className = "pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition";
-        view.classList.add('hidden');
+        if (btn) btn.className = "pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition";
+        if (view) view.classList.add('hidden');
       }
     });
 
@@ -1198,6 +1240,7 @@
     if (tab === 'novedades') renderStoreNovedades();
     if (tab === 'retiros') renderStoreRetiros();
     if (tab === 'vacaciones') renderStoreVacaciones();
+    if (tab === 'auditoria') initStoreAuditoriaForm();
 
     initLucideIcons();
   }
@@ -2916,16 +2959,16 @@
 
   function switchAdminTab(tab) {
     state.activeAdminTab = tab;
-    const tabs = ['consolidado', 'horarios', 'vacaciones', 'novedades', 'retiros', 'colaboradoras'];
+    const tabs = ['consolidado', 'horarios', 'vacaciones', 'novedades', 'retiros', 'colaboradoras', 'auditorias'];
     tabs.forEach(t => {
       const btn = document.getElementById(`tab-admin-${t}`);
       const view = document.getElementById(`subview-admin-${t}`);
       if (t === tab) {
-        btn.className = "pb-3 text-xs sm:text-sm font-bold border-b-2 border-black text-neutral-900 flex items-center gap-2 whitespace-nowrap transition";
-        view.classList.remove('hidden');
+        if (btn) btn.className = "pb-3 text-xs sm:text-sm font-bold border-b-2 border-black text-neutral-900 flex items-center gap-2 whitespace-nowrap transition";
+        if (view) view.classList.remove('hidden');
       } else {
-        btn.className = "pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition";
-        view.classList.add('hidden');
+        if (btn) btn.className = "pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition";
+        if (view) view.classList.add('hidden');
       }
     });
 
@@ -2935,6 +2978,7 @@
     if (tab === 'novedades') renderAdminNovedades();
     if (tab === 'retiros') renderAdminRetiros();
     if (tab === 'colaboradoras') renderAdminColaboradoras();
+    if (tab === 'auditorias') renderAdminAuditorias();
 
     initLucideIcons();
 
@@ -4793,6 +4837,615 @@
   }
 
   // ============================================================================
+  // MÓDULO: AUDITORÍA SEMANAL DE JUEVES (ARQUEO, STOCK ROTATIVO, INSUMOS, NOVEDADES)
+  // ============================================================================
+
+  // Artículos sugeridos de muestra para rotación semanal
+  const ARTICULOS_MUESTREO_SUGERIDOS = [
+    { articulo: 'ULHIMARY', talle_color: 'Negro 37' },
+    { articulo: 'SANDALIA RITA', talle_color: 'Suela 38' },
+    { articulo: 'BORCEGO DAKOTA', talle_color: 'Negro 36' },
+    { articulo: 'BOTA TEXAS', talle_color: 'Camel 39' },
+    { articulo: 'ZAPATILLA NAIROBI', talle_color: 'Blanco 37' },
+    { articulo: 'MOCASIN MILAN', talle_color: 'Charol 38' },
+    { articulo: 'SUECO CAPRI', talle_color: 'Beige 36' },
+    { articulo: 'SANDALIA IBIZA', talle_color: 'Plata 39' },
+    { articulo: 'STILETTOS ROMA', talle_color: 'Nude 37' },
+    { articulo: 'BOTA CHELSEA', talle_color: 'Suela 40' }
+  ];
+
+  function initStoreAuditoriaForm() {
+    const storeCode = state.currentRole || 'TOM';
+    const sucursalInput = document.getElementById('audit-sucursal');
+    if (sucursalInput) sucursalInput.value = storeCode;
+
+    // Fecha por defecto: hoy
+    const fechaInput = document.getElementById('audit-fecha');
+    if (fechaInput && !fechaInput.value) {
+      fechaInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    // Encargada por defecto
+    const respInput = document.getElementById('audit-responsable');
+    if (respInput && !respInput.value) {
+      respInput.value = storeCode === 'TOM' ? 'Sofi B.' : 'Flavia G.';
+    }
+
+    // Renderizar las 10 filas de stock iniciales si el tbody está vacío
+    const tbody = document.getElementById('tbody-audit-stock');
+    if (tbody && tbody.children.length === 0) {
+      tbody.innerHTML = '';
+      for (let i = 0; i < 10; i++) {
+        const itemSugerido = ARTICULOS_MUESTREO_SUGERIDOS[i] || { articulo: '', talle_color: '' };
+        renderStockRow(i + 1, itemSugerido.articulo, itemSugerido.talle_color);
+      }
+    }
+
+    calcArqueoDiferencia();
+    initLucideIcons();
+  }
+
+  function renderStockRow(index, artDef = '', talleDef = '', fisDef = '', duxDef = '', obsDef = '') {
+    const tbody = document.getElementById('tbody-audit-stock');
+    if (!tbody) return;
+
+    const tr = document.createElement('tr');
+    tr.id = `audit-stock-row-${index}`;
+    tr.className = "border-b border-neutral-100 hover:bg-[#FAF9F6]/80 transition";
+    tr.innerHTML = `
+      <td class="py-2 px-2 text-center font-mono font-bold text-neutral-400 text-xs">${index}</td>
+      <td class="py-2 px-2">
+        <input type="text" class="audit-stock-art w-full bg-white border border-neutral-300 rounded p-1.5 text-xs font-bold text-neutral-900 focus:outline-none focus:border-black" placeholder="Ej: ULHIMARY" value="${artDef}">
+      </td>
+      <td class="py-2 px-2">
+        <input type="text" class="audit-stock-talle w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-800 focus:outline-none focus:border-black" placeholder="Ej: Negro 37" value="${talleDef}">
+      </td>
+      <td class="py-2 px-2 text-center">
+        <input type="number" min="0" class="audit-stock-fisico w-full bg-white border border-neutral-300 rounded p-1.5 text-xs font-mono font-bold text-center text-neutral-900 focus:outline-none focus:border-black" placeholder="0" value="${fisDef}" oninput="window.app.calcStockDiferencia(${index})">
+      </td>
+      <td class="py-2 px-2 text-center">
+        <input type="number" min="0" class="audit-stock-dux w-full bg-white border border-neutral-300 rounded p-1.5 text-xs font-mono font-bold text-center text-neutral-900 focus:outline-none focus:border-black" placeholder="0" value="${duxDef}" oninput="window.app.calcStockDiferencia(${index})">
+      </td>
+      <td class="py-2 px-2 text-center">
+        <span class="audit-stock-dif inline-block font-mono font-bold text-xs px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200">0</span>
+      </td>
+      <td class="py-2 px-2">
+        <input type="text" class="audit-stock-obs w-full bg-white border border-neutral-300 rounded p-1.5 text-xs text-neutral-700 focus:outline-none focus:border-black" placeholder="Obs..." value="${obsDef}">
+      </td>
+      <td class="py-2 px-2 text-center">
+        <button type="button" onclick="this.closest('tr').remove(); window.app.reindexStockRows();" class="text-neutral-400 hover:text-red-600 transition p-1" title="Eliminar fila">✕</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+    calcStockDiferencia(index);
+  }
+
+  function addAuditoriaStockRow() {
+    const tbody = document.getElementById('tbody-audit-stock');
+    if (!tbody) return;
+    const newIdx = tbody.children.length + 1;
+    renderStockRow(newIdx);
+    initLucideIcons();
+  }
+
+  function reindexStockRows() {
+    const tbody = document.getElementById('tbody-audit-stock');
+    if (!tbody) return;
+    Array.from(tbody.children).forEach((tr, idx) => {
+      const numCell = tr.querySelector('td:first-child');
+      if (numCell) numCell.textContent = idx + 1;
+      tr.id = `audit-stock-row-${idx + 1}`;
+    });
+  }
+
+  function calcStockDiferencia(index) {
+    const tr = document.getElementById(`audit-stock-row-${index}`);
+    if (!tr) return;
+    const fisVal = tr.querySelector('.audit-stock-fisico')?.value;
+    const duxVal = tr.querySelector('.audit-stock-dux')?.value;
+    const difBadge = tr.querySelector('.audit-stock-dif');
+    if (!difBadge) return;
+
+    if (fisVal === '' && duxVal === '') {
+      difBadge.textContent = '0';
+      difBadge.className = 'audit-stock-dif inline-block font-mono font-bold text-xs px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200';
+      return;
+    }
+
+    const fis = parseFloat(fisVal) || 0;
+    const dux = parseFloat(duxVal) || 0;
+    const dif = fis - dux;
+
+    if (dif === 0) {
+      difBadge.textContent = '0 (OK)';
+      difBadge.className = 'audit-stock-dif inline-block font-mono font-bold text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300';
+    } else if (dif > 0) {
+      difBadge.textContent = `+${dif} sobrante`;
+      difBadge.className = 'audit-stock-dif inline-block font-mono font-bold text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300';
+    } else {
+      difBadge.textContent = `${dif} faltante`;
+      difBadge.className = 'audit-stock-dif inline-block font-mono font-bold text-xs px-2 py-0.5 rounded bg-red-100 text-red-800 border border-red-300';
+    }
+  }
+
+  function calcArqueoDiferencia() {
+    const cajon = parseFloat(document.getElementById('audit-caja-cajon')?.value) || 0;
+    const sobres = parseFloat(document.getElementById('audit-caja-sobres')?.value) || 0;
+    const teorico = parseFloat(document.getElementById('audit-caja-teorico-dux')?.value) || 0;
+
+    const totalFisico = cajon + sobres;
+    const totalFisicoInput = document.getElementById('audit-caja-total-fisico');
+    if (totalFisicoInput) {
+      totalFisicoInput.value = formatCurrency(totalFisico);
+    }
+
+    const dif = totalFisico - teorico;
+    const badge = document.getElementById('audit-caja-badge-dif');
+    if (badge) {
+      if (dif === 0) {
+        badge.textContent = `$ 0 (Caja Cuadrada)`;
+        badge.className = "px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300";
+      } else if (dif > 0) {
+        badge.textContent = `+${formatCurrency(dif)} (Sobrante)`;
+        badge.className = "px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300";
+      } else {
+        badge.textContent = `-${formatCurrency(Math.abs(dif))} (Faltante)`;
+        badge.className = "px-3 py-1 rounded-full text-xs font-mono font-bold bg-red-100 text-red-800 border border-red-300";
+      }
+    }
+  }
+
+  async function handleSubmitAuditoria(event) {
+    event.preventDefault();
+
+    const btnSubmit = document.getElementById('btn-submit-auditoria');
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<span>Enviando auditoría...</span>`;
+    }
+
+    try {
+      const sucursal = document.getElementById('audit-sucursal')?.value || state.currentRole || 'TOM';
+      const fecha = document.getElementById('audit-fecha')?.value || new Date().toISOString().split('T')[0];
+      const responsable = document.getElementById('audit-responsable')?.value.trim() || 'Encargada';
+
+      // Bloque 1: Arqueo
+      const cajon = parseFloat(document.getElementById('audit-caja-cajon')?.value) || 0;
+      const sobres = parseFloat(document.getElementById('audit-caja-sobres')?.value) || 0;
+      const totalFisico = cajon + sobres;
+      const teoricoDux = parseFloat(document.getElementById('audit-caja-teorico-dux')?.value) || 0;
+      const diferenciaCaja = totalFisico - teoricoDux;
+      const justificacionCaja = document.getElementById('audit-caja-justificacion')?.value.trim() || '';
+
+      // Bloque 2: Stock
+      const stockItems = [];
+      const stockRows = document.querySelectorAll('#tbody-audit-stock tr');
+      stockRows.forEach(tr => {
+        const art = tr.querySelector('.audit-stock-art')?.value.trim();
+        const talle = tr.querySelector('.audit-stock-talle')?.value.trim();
+        const fis = parseFloat(tr.querySelector('.audit-stock-fisico')?.value) || 0;
+        const dux = parseFloat(tr.querySelector('.audit-stock-dux')?.value) || 0;
+        const obs = tr.querySelector('.audit-stock-obs')?.value.trim() || '';
+        if (art) {
+          stockItems.push({
+            articulo: art,
+            talle_color: talle,
+            fisico: fis,
+            dux: dux,
+            diferencia: fis - dux,
+            observaciones: obs
+          });
+        }
+      });
+
+      // Bloque 3: Insumos
+      const insumos = {
+        bolsas_medianas: {
+          cantidad: parseFloat(document.getElementById('audit-insumo-med-cant')?.value) || 0,
+          estado: document.getElementById('audit-insumo-med-estado')?.value || 'OK'
+        },
+        bolsas_grandes: {
+          cantidad: parseFloat(document.getElementById('audit-insumo-grd-cant')?.value) || 0,
+          estado: document.getElementById('audit-insumo-grd-estado')?.value || 'OK'
+        },
+        otros_insumos: {
+          detalle: document.getElementById('audit-insumo-otros-cant')?.value.trim() || 'Sin detalles',
+          estado: document.getElementById('audit-insumo-otros-estado')?.value || 'OK'
+        }
+      };
+
+      // Bloque 4: Novedades & Estado del local
+      const personalObs = document.getElementById('audit-personal-obs')?.value.trim() || '';
+      const instalacionesObs = document.getElementById('audit-instalaciones-obs')?.value.trim() || '';
+
+      const auditoriaRecord = {
+        id: 'audit-' + Date.now(),
+        sucursal: sucursal,
+        fecha: fecha,
+        responsable: responsable,
+        caja_cajon: cajon,
+        caja_sobres: sobres,
+        caja_total_fisico: totalFisico,
+        caja_teorico_dux: teoricoDux,
+        caja_diferencia: diferenciaCaja,
+        caja_justificacion: justificacionCaja,
+        stock_items: stockItems,
+        insumos: insumos,
+        personal_obs: personalObs,
+        instalaciones_obs: instalacionesObs,
+        creado_en: new Date().toISOString()
+      };
+
+      // Guardar localmente
+      state.auditorias.unshift(auditoriaRecord);
+      localStorage.setItem('nazaria_auditorias_v2', JSON.stringify(state.auditorias));
+
+      // Guardar en Supabase
+      if (state.supabaseClient && state.isSupabaseConnected) {
+        try {
+          await state.supabaseClient.from('auditorias_semanales').insert({
+            id: auditoriaRecord.id,
+            sucursal: auditoriaRecord.sucursal,
+            fecha: auditoriaRecord.fecha,
+            responsable: auditoriaRecord.responsable,
+            caja_cajon: auditoriaRecord.caja_cajon,
+            caja_sobres: auditoriaRecord.caja_sobres,
+            caja_total_fisico: auditoriaRecord.caja_total_fisico,
+            caja_teorico_dux: auditoriaRecord.caja_teorico_dux,
+            caja_diferencia: auditoriaRecord.caja_diferencia,
+            caja_justificacion: auditoriaRecord.caja_justificacion,
+            stock_items: auditoriaRecord.stock_items,
+            insumos: auditoriaRecord.insumos,
+            personal_obs: auditoriaRecord.personal_obs,
+            instalaciones_obs: auditoriaRecord.instalaciones_obs,
+            creado_en: auditoriaRecord.creado_en
+          });
+        } catch (dbErr) {
+          console.warn('Error guardando auditoria en Supabase:', dbErr);
+          auditoriaRecord._pending_sync = true;
+        }
+      } else {
+        auditoriaRecord._pending_sync = true;
+      }
+
+      // Enviar notificación a Telegram (con líneas cortas para celular)
+      const telResult = await sendTelegramAuditAlert(auditoriaRecord);
+
+      showToast('Auditoría del Jueves enviada y registrada con éxito.', 'success');
+
+      if (state.currentRole === 'ADMIN') {
+        renderAdminAuditorias();
+      }
+
+    } catch (err) {
+      console.error('Error procesando auditoria:', err);
+      showToast('Error al enviar la auditoría. Los datos se guardaron localmente.', 'error');
+    } finally {
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `
+          <i data-lucide="send" class="w-4 h-4 text-[#E6D5C3]"></i>
+          <span>Cerrar y Enviar Auditoría del Jueves</span>
+        `;
+        initLucideIcons();
+      }
+    }
+  }
+
+  // --- ENVÍO A TELEGRAM FORMATEADO CON LÍNEAS CORTAS (EVITA SUPERPOSICIÓN EN CELULAR) ---
+  async function sendTelegramAuditAlert(data) {
+    const telConfig = window.APP_CONFIG?.TELEGRAM;
+    const botToken = telConfig?.BOT_TOKEN;
+    const chatId = telConfig?.CHAT_ID;
+    const webhookUrl = telConfig?.WEBHOOK_URL;
+
+    // Resumen de desvíos de stock
+    const stockLines = [];
+    const desviosStock = (data.stock_items || []).filter(item => item.diferencia !== 0);
+    const stockOkCount = (data.stock_items || []).length - desviosStock.length;
+
+    (data.stock_items || []).forEach(item => {
+      const artName = item.articulo.length > 14 ? item.articulo.substring(0, 13) + '…' : item.articulo;
+      const talle = item.talle_color ? ` (${item.talle_color})` : '';
+      const icon = item.diferencia === 0 ? '✅' : (item.diferencia > 0 ? '⚠️+' : '❌');
+      stockLines.push(`• ${artName}${talle}: F:${item.fisico} | D:${item.dux} (${item.diferencia >= 0 ? '+' : ''}${item.diferencia}) ${icon}`);
+    });
+
+    const difCajaSign = data.caja_diferencia > 0 ? `+$${data.caja_diferencia}` : (data.caja_diferencia < 0 ? `-$${Math.abs(data.caja_diferencia)}` : '$0 (OK)');
+    const cajaStatusIcon = data.caja_diferencia === 0 ? '✅' : (data.caja_diferencia > 0 ? '⚠️ Sobrante' : '❌ Faltante');
+
+    // Construcción del mensaje con líneas cortas
+    const lines = [
+      `📋 *AUDITORÍA JUEVES - NAZARIA*`,
+      `🏬 *Sucursal:* ${data.sucursal}`,
+      `📅 *Fecha:* ${formatDateShort(data.fecha)}`,
+      `👤 *Auditora:* ${data.responsable}`,
+      ``,
+      `💵 *1. ARQUEO DE CAJA*`,
+      `• Cajón cambio: $${Number(data.caja_cajon).toLocaleString('es-AR')}`,
+      `• Sobres retiro: $${Number(data.caja_sobres).toLocaleString('es-AR')}`,
+      `• Total físico: $${Number(data.caja_total_fisico).toLocaleString('es-AR')}`,
+      `• Teórico Dux: $${Number(data.caja_teorico_dux).toLocaleString('es-AR')}`,
+      `• *Descalce:* ${difCajaSign} ${cajaStatusIcon}`,
+      data.caja_justificacion ? `• *Motivo:* ${data.caja_justificacion}` : '',
+      ``,
+      `📦 *2. MUESTREO STOCK (10 Arts)*`,
+      `• Resultado: ${stockOkCount} OK | ${desviosStock.length} desvíos`,
+      ...stockLines,
+      ``,
+      `🛍️ *3. INSUMOS & BOLSAS*`,
+      `• Bolsas Med: ${data.insumos.bolsas_medianas.cantidad}u [${data.insumos.bolsas_medianas.estado}]`,
+      `• Bolsas Grd: ${data.insumos.bolsas_grandes.cantidad}u [${data.insumos.bolsas_grandes.estado}]`,
+      `• Otros: ${data.insumos.otros_insumos.detalle} [${data.insumos.otros_insumos.estado}]`,
+      ``,
+      `🚨 *4. ESTADO & NOVEDADES*`,
+      data.personal_obs ? `• Personal: ${data.personal_obs}` : `• Personal: Todo en orden`,
+      data.instalaciones_obs ? `• Local: ${data.instalaciones_obs}` : `• Local: Sin novedades`,
+      ``,
+      `🔗 Web App: https://juanoviedo1987-droid.github.io/NAZARIA-RRHH/`
+    ].filter(l => l !== '');
+
+    const messageText = lines.join('\n');
+
+    // 1. Intentar envío directo a Telegram Bot API si las credenciales están configuradas
+    if (botToken && botToken !== 'TU_BOT_TOKEN_TELEGRAM_AQUI' && chatId && chatId !== 'TU_CHAT_ID_AQUI') {
+      try {
+        const resp = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: messageText,
+            parse_mode: 'Markdown'
+          })
+        });
+        const resJson = await resp.json();
+        if (resJson.ok) {
+          return { ok: true, direct: true };
+        }
+      } catch (e) {
+        console.warn('Error enviando a Telegram Bot API:', e);
+      }
+    }
+
+    // 2. Si hay Webhook (ej: n8n o Antigravity endpoint)
+    if (webhookUrl && webhookUrl !== 'TU_WEBHOOK_N8N_O_MAKE_AQUI') {
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            evento: 'auditoria_semanal',
+            auditoria: data,
+            telegram_text: messageText
+          })
+        });
+        return { ok: true, webhook: true };
+      } catch (e) {
+        console.warn('Error disparando webhook de auditoría:', e);
+      }
+    }
+
+    console.info('Telegram no configurado o offline. Mensaje generado:\n', messageText);
+    return { ok: false, fallback: true };
+  }
+
+  // --- ADMIN: RENDERIZAR TABLA DE HISTORIAL DE AUDITORÍAS ---
+  function renderAdminAuditorias() {
+    const tbody = document.getElementById('tbody-admin-auditorias');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const filter = document.getElementById('select-admin-audit-filter')?.value || 'ALL';
+    let list = [...state.auditorias];
+    if (filter !== 'ALL') {
+      list = list.filter(a => a.sucursal === filter);
+    }
+
+    if (list.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center py-8 text-neutral-400">
+            No hay auditorías registradas ${filter !== 'ALL' ? `para ${filter}` : ''}.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    list.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || '') || (b.creado_en || '').localeCompare(a.creado_en || ''));
+
+    list.forEach(item => {
+      const difCaja = Number(item.caja_diferencia) || 0;
+      let badgeCaja = '<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">$0 OK</span>';
+      if (difCaja > 0) {
+        badgeCaja = `<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-900">+${formatCurrency(difCaja)}</span>`;
+      } else if (difCaja < 0) {
+        badgeCaja = `<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-100 text-red-800">-${formatCurrency(Math.abs(difCaja))}</span>`;
+      }
+
+      const desviosStock = (item.stock_items || []).filter(s => s.diferencia !== 0);
+      const badgeStock = desviosStock.length === 0
+        ? '<span class="text-emerald-700 font-bold text-xs">10/10 OK</span>'
+        : `<span class="text-amber-800 font-bold text-xs">${desviosStock.length} desvío(s)</span>`;
+
+      const medPedir = item.insumos?.bolsas_medianas?.estado === 'Pedir';
+      const grdPedir = item.insumos?.bolsas_grandes?.estado === 'Pedir';
+      const badgeInsumos = (medPedir || grdPedir)
+        ? '<span class="text-amber-700 font-bold text-xs">⚠️ Pedir bolsas</span>'
+        : '<span class="text-emerald-700 font-bold text-xs">Stock OK</span>';
+
+      const tr = document.createElement('tr');
+      tr.className = "border-b border-neutral-100 hover:bg-[#FAF9F6] transition";
+      tr.innerHTML = `
+        <td class="py-2.5 px-3">
+          <div class="font-bold text-neutral-900">${formatDateShort(item.fecha)}</div>
+          <div class="text-[10px] text-neutral-400 font-mono">${item.creado_en ? new Date(item.creado_en).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+        </td>
+        <td class="py-2.5 px-3">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.sucursal === 'TOM' ? 'bg-[#E6D5C3] text-neutral-900' : 'bg-neutral-800 text-white'}">${item.sucursal}</span>
+        </td>
+        <td class="py-2.5 px-3 font-semibold text-neutral-800">${item.responsable || '-'}</td>
+        <td class="py-2.5 px-3 text-right font-mono font-bold text-neutral-900">${formatCurrency(item.caja_total_fisico || 0)}</td>
+        <td class="py-2.5 px-3 text-center">${badgeCaja}</td>
+        <td class="py-2.5 px-3 text-center">${badgeStock}</td>
+        <td class="py-2.5 px-3 text-center">${badgeInsumos}</td>
+        <td class="py-2.5 px-3 text-center">
+          <button type="button" onclick="window.app.viewAuditoriaDetail('${item.id}')" class="px-2.5 py-1 rounded bg-black hover:bg-neutral-800 text-white text-[11px] font-bold transition shadow-2xs cursor-pointer">
+            Ver Detalle
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    initLucideIcons();
+  }
+
+  // --- ADMIN: MODAL DETALLE DE AUDITORÍA ---
+  function viewAuditoriaDetail(id) {
+    const audit = state.auditorias.find(a => a.id === id);
+    if (!audit) return;
+
+    const modal = document.getElementById('modal-view-auditoria');
+    const titleEl = document.getElementById('modal-audit-title');
+    const subEl = document.getElementById('modal-audit-subtitle');
+    const bodyEl = document.getElementById('modal-audit-body');
+    const btnDel = document.getElementById('btn-modal-audit-delete');
+
+    if (titleEl) titleEl.textContent = `Auditoría: ${audit.sucursal} · ${formatDateShort(audit.fecha)}`;
+    if (subEl) subEl.textContent = `Responsable: ${audit.responsable} · Registro: ${audit.creado_en ? new Date(audit.creado_en).toLocaleString() : '-'}`;
+
+    // Construir tabla de stock para el modal
+    let stockRowsHtml = '';
+    (audit.stock_items || []).forEach((s, idx) => {
+      const dif = Number(s.diferencia) || 0;
+      const difBadge = dif === 0
+        ? '<span class="text-emerald-700 font-bold">0 OK</span>'
+        : (dif > 0 ? `<span class="text-amber-800 font-bold">+${dif} sobrante</span>` : `<span class="text-red-700 font-bold">${dif} faltante</span>`);
+      stockRowsHtml += `
+        <tr class="border-b border-neutral-100">
+          <td class="py-1 px-2 text-center text-neutral-400 font-mono">${idx + 1}</td>
+          <td class="py-1 px-2 font-bold text-neutral-900">${s.articulo}</td>
+          <td class="py-1 px-2 text-neutral-600">${s.talle_color || '-'}</td>
+          <td class="py-1 px-2 text-center font-mono font-bold">${s.fisico}</td>
+          <td class="py-1 px-2 text-center font-mono">${s.dux}</td>
+          <td class="py-1 px-2 text-center font-mono">${difBadge}</td>
+          <td class="py-1 px-2 text-neutral-500">${s.observaciones || '-'}</td>
+        </tr>
+      `;
+    });
+
+    if (bodyEl) {
+      bodyEl.innerHTML = `
+        <!-- Bloque Arqueo -->
+        <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5">
+          <h4 class="font-bold text-neutral-900 mb-2 flex items-center gap-1.5">
+            <span>💵 1. Arqueo Físico de Efectivo</span>
+          </h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div><span class="text-neutral-500">Cajón:</span> <b class="font-mono">${formatCurrency(audit.caja_cajon || 0)}</b></div>
+            <div><span class="text-neutral-500">Sobres:</span> <b class="font-mono">${formatCurrency(audit.caja_sobres || 0)}</b></div>
+            <div><span class="text-neutral-500">Total Físico:</span> <b class="font-mono text-neutral-900">${formatCurrency(audit.caja_total_fisico || 0)}</b></div>
+            <div><span class="text-neutral-500">Dux Teórico:</span> <b class="font-mono">${formatCurrency(audit.caja_teorico_dux || 0)}</b></div>
+          </div>
+          <div class="mt-2 pt-2 border-t border-neutral-200 flex items-center justify-between text-xs">
+            <div><span class="text-neutral-500">Diferencia:</span> <b class="font-mono ${audit.caja_diferencia === 0 ? 'text-emerald-700' : 'text-red-700'}">${audit.caja_diferencia >= 0 ? '+' : ''}${formatCurrency(audit.caja_diferencia || 0)}</b></div>
+            ${audit.caja_justificacion ? `<div class="text-neutral-600"><b>Motivo:</b> ${audit.caja_justificacion}</div>` : ''}
+          </div>
+        </div>
+
+        <!-- Bloque Stock -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-3.5">
+          <h4 class="font-bold text-neutral-900 mb-2 flex items-center gap-1.5">
+            <span>📦 2. Muestreo de Stock (10 Artículos)</span>
+          </h4>
+          <div class="overflow-x-auto max-h-48 overflow-y-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-neutral-200 text-neutral-500 bg-[#FAF9F6]">
+                  <th class="py-1 px-2 text-center">#</th>
+                  <th class="py-1 px-2">Artículo</th>
+                  <th class="py-1 px-2">Color / Talle</th>
+                  <th class="py-1 px-2 text-center">Físico</th>
+                  <th class="py-1 px-2 text-center">Dux</th>
+                  <th class="py-1 px-2 text-center">Dif.</th>
+                  <th class="py-1 px-2">Observaciones</th>
+                </tr>
+              </thead>
+              <tbody>${stockRowsHtml}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Bloque Insumos -->
+        <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5">
+          <h4 class="font-bold text-neutral-900 mb-2 flex items-center gap-1.5">
+            <span>🛍️ 3. Control de Insumos</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <div class="bg-white p-2 rounded border border-neutral-200">
+              <span class="text-neutral-500">Bolsas Medianas:</span>
+              <div class="font-bold font-mono text-neutral-900">${audit.insumos?.bolsas_medianas?.cantidad || 0} u (${audit.insumos?.bolsas_medianas?.estado || 'OK'})</div>
+            </div>
+            <div class="bg-white p-2 rounded border border-neutral-200">
+              <span class="text-neutral-500">Bolsas Grandes:</span>
+              <div class="font-bold font-mono text-neutral-900">${audit.insumos?.bolsas_grandes?.cantidad || 0} u (${audit.insumos?.bolsas_grandes?.estado || 'OK'})</div>
+            </div>
+            <div class="bg-white p-2 rounded border border-neutral-200">
+              <span class="text-neutral-500">Otros Insumos:</span>
+              <div class="font-bold text-neutral-900">${audit.insumos?.otros_insumos?.detalle || '-'} (${audit.insumos?.otros_insumos?.estado || 'OK'})</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloque Novedades -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-3.5">
+          <h4 class="font-bold text-neutral-900 mb-2 flex items-center gap-1.5">
+            <span>🚨 4. Novedades de Personal & Local</span>
+          </h4>
+          <div class="flex flex-col gap-2 text-xs">
+            <div><b class="text-neutral-700">Personal & Puntualidad:</b> <span class="text-neutral-600">${audit.personal_obs || 'Sin novedades registradas.'}</span></div>
+            <div><b class="text-neutral-700">Instalaciones & Mantenimiento:</b> <span class="text-neutral-600">${audit.instalaciones_obs || 'Sin observaciones.'}</span></div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (btnDel) {
+      btnDel.onclick = () => handleDeleteAuditoria(audit.id);
+    }
+
+    if (modal) modal.classList.remove('hidden');
+    initLucideIcons();
+  }
+
+  function closeAuditoriaModal() {
+    const modal = document.getElementById('modal-view-auditoria');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  async function handleDeleteAuditoria(id) {
+    if (!confirm('¿Estás seguro de eliminar este registro de auditoría?')) return;
+
+    markIdDeleted(id);
+    state.auditorias = state.auditorias.filter(a => a.id !== id);
+    localStorage.setItem('nazaria_auditorias_v2', JSON.stringify(state.auditorias));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      try {
+        await state.supabaseClient.from('auditorias_semanales').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Error eliminando auditoria de Supabase:', err);
+      }
+    }
+
+    closeAuditoriaModal();
+    renderAdminAuditorias();
+    showToast('Auditoría eliminada.', 'info');
+  }
+
+  // ============================================================================
   // CÁLCULO DE VACACIONES LCT (LEY 20.744)
   // ============================================================================
   function calcularVacacionesLCT(colab, anioFiscal) {
@@ -5730,7 +6383,19 @@
     openInfoModal,
     closeInfoModal,
     showHoverTooltip,
-    hideHoverTooltip
+    hideHoverTooltip,
+
+    // Funciones del módulo Auditoría Semanal de Jueves
+    initStoreAuditoriaForm,
+    addAuditoriaStockRow,
+    reindexStockRows,
+    calcStockDiferencia,
+    calcArqueoDiferencia,
+    handleSubmitAuditoria,
+    renderAdminAuditorias,
+    viewAuditoriaDetail,
+    closeAuditoriaModal,
+    handleDeleteAuditoria
   };
 
   // Inicializar al cargar el DOM

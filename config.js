@@ -11,6 +11,14 @@ window.APP_CONFIG = {
   // Bucket para certificados médicos
   STORAGE_BUCKET: 'certificados',
 
+  // Configuración de Notificaciones Telegram (Opcional si se envía vía Bot directo o Webhook n8n)
+  TELEGRAM: {
+    // Si tenés Bot Token y Chat ID podés ingresarlos acá directamente:
+    BOT_TOKEN: '',   // Ej: '123456789:ABCdef...'
+    CHAT_ID: '',     // Ej: '-100123456789' o tu ID personal
+    WEBHOOK_URL: ''  // Opcional: webhook de n8n o endpoint si preferís proxy
+  },
+
   // PINs personales para acceso seguro (no visibles en la interfaz)
   PINS: {
     TOM: '0145',       // Últimos 4 dígitos DNI Sofia Barrientos (35290145)
