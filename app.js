@@ -1725,7 +1725,8 @@
 
   function handleSaveFechasGrilla(e) {
     e.preventDefault();
-    const activeId = state.activeStoreGridId;
+    const isAdmin = state.currentRole === 'ADMIN';
+    const activeId = isAdmin ? state.activeAdminGridId : state.activeStoreGridId;
     if (activeId === 'habitual') return;
     const spec = state.grillas_especiales.find(g => g.id === activeId);
     if (!spec) return;
@@ -1737,9 +1738,11 @@
     });
 
     localStorage.setItem('nazaria_grillas_especiales_v2', JSON.stringify(state.grillas_especiales));
-    syncGrillasEspecialesToSupabase();
+    const storeCode = isAdmin ? (state.adminSelectedHorariosStore || 'TOM') : state.currentRole;
+    syncGrillasEspecialesToSupabase(storeCode);
     closeEditFechasGrillaModal();
-    renderStoreHorarios();
+    if (isAdmin) renderAdminHorarios();
+    else renderStoreHorarios();
     showToast('Fechas exactas de la grilla guardadas y actualizadas.', 'success');
   }
 
@@ -1801,10 +1804,10 @@
     showToast(`Grilla "${grid.nombre}" eliminada.`, 'info');
   }
 
-  async function syncGrillasEspecialesToSupabase() {
+  async function syncGrillasEspecialesToSupabase(storeCodeOverride) {
     if (!state.supabaseClient || !state.isSupabaseConnected) return;
     try {
-      const storeCode = state.currentRole;
+      const storeCode = storeCodeOverride || (state.currentRole === 'ADMIN' ? (state.adminSelectedHorariosStore || 'TOM') : state.currentRole);
       const periodStr = state.currentPeriod;
       const jsonStr = JSON.stringify(state.grillas_especiales.filter(g => 
         (g.sucursal === storeCode || g.sucursal_codigo === storeCode) &&
@@ -3613,7 +3616,15 @@
       `;
     });
 
-    container.innerHTML = html;
+    const delBtn = document.getElementById('btn-admin-delete-grilla-especial');
+    if (delBtn) {
+      delBtn.classList.toggle('hidden', activeId === 'habitual');
+    }
+
+    const fechasBtn = document.getElementById('btn-admin-edit-fechas-grilla');
+    if (fechasBtn) {
+      fechasBtn.classList.toggle('hidden', activeId === 'habitual');
+    }
 
     const titleEl = document.getElementById('admin-hor-title');
     const subtitleEl = document.getElementById('admin-hor-subtitle');
@@ -3630,6 +3641,75 @@
         subtitleEl.textContent = `Grilla temporal del mes (${formatPeriodLabel(currentPeriod)}) para ${storeLabel}.`;
       }
     }
+  }
+
+  function promptCrearGrillaEspecialAdmin() {
+    const storeCode = state.adminSelectedHorariosStore || 'TOM';
+    const periodLabel = formatPeriodLabel(state.currentPeriod);
+    const storeLabel = storeCode === 'TOM' ? 'TOM' : 'Maschwitz';
+    const nombre = prompt(`Ingresá el nombre de la Grilla Especial para ${storeLabel} en ${periodLabel} (ej: Semana Día de la Madre, Fiestas de Fin de Año):`);
+    if (!nombre || !nombre.trim()) return;
+
+    const baseH = getStoreHorarios(storeCode, state.currentPeriod);
+
+    const newGrid = {
+      id: 'grid-' + Date.now(),
+      sucursal: storeCode,
+      periodo: state.currentPeriod,
+      nombre: nombre.trim(),
+      manana: { ...(baseH.manana || {}) },
+      tarde: { ...(baseH.tarde || {}) }
+    };
+
+    state.grillas_especiales.push(newGrid);
+    localStorage.setItem('nazaria_grillas_especiales_v2', JSON.stringify(state.grillas_especiales));
+    syncGrillasEspecialesToSupabase(storeCode);
+
+    state.activeAdminGridId = newGrid.id;
+    state.isAdminGridEditable = true;
+    renderAdminHorarios();
+    showToast(`Grilla "${newGrid.nombre}" creada para ${storeLabel}. Podés modificar los turnos y guardar.`, 'success');
+  }
+
+  function handleDeleteGrillaEspecialAdmin() {
+    const activeId = state.activeAdminGridId;
+    if (activeId === 'habitual') return;
+
+    const grid = state.grillas_especiales.find(g => g.id === activeId);
+    if (!grid) return;
+
+    if (!confirm(`¿Estás segura de eliminar la grilla especial "${grid.nombre}"?`)) return;
+
+    const storeCode = state.adminSelectedHorariosStore || 'TOM';
+    state.grillas_especiales = state.grillas_especiales.filter(g => g.id !== activeId);
+    localStorage.setItem('nazaria_grillas_especiales_v2', JSON.stringify(state.grillas_especiales));
+    syncGrillasEspecialesToSupabase(storeCode);
+
+    state.activeAdminGridId = 'habitual';
+    state.isAdminGridEditable = false;
+    renderAdminHorarios();
+    showToast(`Grilla "${grid.nombre}" eliminada.`, 'info');
+  }
+
+  function openEditFechasGrillaModalAdmin() {
+    const activeId = state.activeAdminGridId;
+    if (activeId === 'habitual') return;
+    const spec = state.grillas_especiales.find(g => g.id === activeId);
+    if (!spec) return;
+
+    const subEl = document.getElementById('modal-fechas-grilla-sub');
+    if (subEl) subEl.textContent = `Grilla: ${spec.nombre} (${formatPeriodLabel(state.currentPeriod)})`;
+
+    const f = spec.fechas || {};
+    const days = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    days.forEach(d => {
+      const inp = document.getElementById(`cfg-date-${d}`);
+      if (inp) inp.value = f[d] || '';
+    });
+
+    const modal = document.getElementById('modal-edit-fechas-grilla');
+    if (modal) modal.classList.remove('hidden');
+    initLucideIcons();
   }
 
   function renderAdminHorarios() {
@@ -5637,6 +5717,9 @@
     openEditFechasGrillaModal,
     closeEditFechasGrillaModal,
     handleSaveFechasGrilla,
+    promptCrearGrillaEspecialAdmin,
+    handleDeleteGrillaEspecialAdmin,
+    openEditFechasGrillaModalAdmin,
     toggleAdminGridEdit,
     openEditEsquemaModal,
     recalcModalEsquemaDiff,
