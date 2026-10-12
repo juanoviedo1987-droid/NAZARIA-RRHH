@@ -13,10 +13,9 @@ window.APP_CONFIG = {
 
   // Configuración de Notificaciones Telegram (Opcional si se envía vía Bot directo o Webhook n8n)
   TELEGRAM: {
-    // Si tenés Bot Token y Chat ID podés ingresarlos acá directamente:
-    BOT_TOKEN: '',   // Ej: '123456789:ABCdef...'
-    CHAT_ID: '',     // Ej: '-100123456789' o tu ID personal
-    WEBHOOK_URL: ''  // Opcional: webhook de n8n o endpoint si preferís proxy
+    BOT_TOKEN: '8975481719:AAEKYPelUlglDcI45xuyQfEJtlus0iIWA60', // NazariaReportes_bot
+    CHAT_ID: '-1004489717253',                                    // Grupo NAZARIA Socios
+    WEBHOOK_URL: ''
   },
 
   // PINs personales para acceso seguro (no visibles en la interfaz)
