@@ -444,8 +444,8 @@
   }
 
   function initStorageData() {
-    // Inicializar o recargar datos con versión para migración limpia (v21: sincronización de fechas de ingreso y tarjetas de turnos)
-    const DATA_VERSION = 'v21';
+    // Inicializar o recargar datos con versión para migración limpia (v22: aislamiento estricto de horarios por mes y sincronización persistente)
+    const DATA_VERSION = 'v22';
     const verKey = 'nazaria_data_version';
 
     // Purgar de forma permanente registros duplicados o de prueba conocidos
@@ -486,6 +486,27 @@
     state.horarios_modificaciones = JSON.parse(localStorage.getItem('nazaria_horarios_modificaciones_v2') || JSON.stringify(DEFAULT_HORARIOS_MODIFICACIONES));
     state.retiros = (JSON.parse(localStorage.getItem('nazaria_retiros_v2') || JSON.stringify(DEFAULT_RETIROS))).filter(r => !isIdDeleted(r.id));
     state.novedades = (JSON.parse(localStorage.getItem('nazaria_novedades_v2') || JSON.stringify(DEFAULT_NOVEDADES))).filter(n => !isIdDeleted(n.id));
+  }
+
+  // Helper para obtener y guardar la grilla habitual aislada por período y sucursal
+  function getStoreHorarios(storeCode, period) {
+    const periodKey = `${period || state.currentPeriod}_${storeCode}`;
+    if (state.horarios && state.horarios[periodKey]) {
+      return state.horarios[periodKey];
+    }
+    if (state.horarios && state.horarios[storeCode]) {
+      return state.horarios[storeCode];
+    }
+    return DEFAULT_HORARIOS[storeCode] || { manana: {}, tarde: {} };
+  }
+
+  function saveStoreHorariosLocal(storeCode, period, manana, tarde) {
+    const p = period || state.currentPeriod;
+    const periodKey = `${p}_${storeCode}`;
+    state.horarios[periodKey] = { manana, tarde };
+    // Mantener también el último valor activo por compatibilidad de fallback
+    state.horarios[storeCode] = { manana, tarde };
+    localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
   }
 
   function initSupabase() {
@@ -572,8 +593,15 @@
       if (!errH && remoteHorarios && remoteHorarios.length > 0) {
         remoteHorarios.forEach(row => {
           const code = row.sucursal_codigo;
+          const p = row.periodo;
           if (row.manana && row.tarde) {
-            state.horarios[code] = { manana: row.manana, tarde: row.tarde };
+            if (p) {
+              state.horarios[`${p}_${code}`] = { manana: row.manana, tarde: row.tarde };
+            }
+            // Si coincide con el período actual o no tenía período previo, actualizar fallback
+            if (!p || p === state.currentPeriod) {
+              state.horarios[code] = { manana: row.manana, tarde: row.tarde };
+            }
           }
           if (row.notas) {
             state.horarios_notas[code] = row.notas;
@@ -816,10 +844,13 @@
         localStorage.setItem('nazaria_retiros_v2', JSON.stringify(state.retiros));
       }
 
-      // Refrescar vistas si ya están activas
+      // Refrescar vistas si ya están activas (evitar re-renderizar grilla de horarios si el usuario la está editando o escribiendo en inputs)
+      const isEditingGrid = state.isAdminGridEditable || state.isStoreGridEditable;
+      const isInputActive = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+
       if (state.currentRole === 'ADMIN') {
         if (state.activeAdminTab === 'consolidado') renderAdminConsolidado();
-        if (state.activeAdminTab === 'horarios') renderAdminHorarios();
+        if (state.activeAdminTab === 'horarios' && !isEditingGrid && !isInputActive) renderAdminHorarios();
         if (state.activeAdminTab === 'vacaciones') renderAdminVacaciones();
         if (state.activeAdminTab === 'novedades') renderAdminNovedades();
         if (state.activeAdminTab === 'retiros') renderAdminRetiros();
@@ -831,7 +862,9 @@
           renderStoreHorasDetalle();
         }
         if (state.activeStoreTab === 'horarios') {
-          renderStoreHorarios();
+          if (!isEditingGrid && !isInputActive) {
+            renderStoreHorarios();
+          }
           renderStoreFechasEspeciales();
         }
         if (state.activeStoreTab === 'vacaciones') renderStoreVacaciones();
@@ -1006,7 +1039,10 @@
 
   function renderPeriodSelectors() {
     const available = getAvailablePeriods();
-    if (!available.includes(state.currentPeriod)) {
+    const savedPeriod = sessionStorage.getItem('nazaria_active_period');
+    if (savedPeriod && available.includes(savedPeriod)) {
+      state.currentPeriod = savedPeriod;
+    } else if (!available.includes(state.currentPeriod)) {
       state.currentPeriod = available[0];
     }
     ['select-store-period', 'select-admin-period'].forEach(id => {
@@ -1026,6 +1062,7 @@
       return;
     }
     state.currentPeriod = newPeriod;
+    sessionStorage.setItem('nazaria_active_period', newPeriod);
     const s1 = document.getElementById('select-store-period');
     const s2 = document.getElementById('select-admin-period');
     if (s1) s1.value = newPeriod;
@@ -1719,7 +1756,7 @@
     if (!nombre || !nombre.trim()) return;
 
     const storeCode = state.currentRole;
-    const baseH = state.horarios[storeCode] || { manana: {}, tarde: {} };
+    const baseH = getStoreHorarios(storeCode, state.currentPeriod);
 
     // Clona los turnos de la habitual como punto de partida
     const newGrid = {
@@ -1797,7 +1834,7 @@
 
     let h = { manana: {}, tarde: {}, fechas: {} };
     if (activeId === 'habitual') {
-      h = state.horarios[storeCode] || { manana: {}, tarde: {} };
+      h = getStoreHorarios(storeCode, currentPeriod);
     } else {
       const spec = state.grillas_especiales.find(g => g.id === activeId);
       if (spec) {
@@ -2041,8 +2078,7 @@
     });
 
     if (activeId === 'habitual') {
-      state.horarios[storeCode] = { manana, tarde };
-      localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
+      saveStoreHorariosLocal(storeCode, state.currentPeriod, manana, tarde);
 
       if (state.supabaseClient && state.isSupabaseConnected) {
         try {
@@ -2061,7 +2097,7 @@
           console.warn('Error saving store horarios to Supabase:', err);
         }
       }
-      showToast('Grilla habitual guardada y sincronizada.', 'success');
+      showToast(`Grilla habitual de ${formatPeriodLabel(state.currentPeriod)} guardada y sincronizada.`, 'success');
     } else {
       const spec = state.grillas_especiales.find(g => g.id === activeId);
       if (spec) {
@@ -2189,7 +2225,7 @@
 
     if (state.supabaseClient && state.isSupabaseConnected) {
       try {
-        const h = state.horarios[storeCode] || { manana: {}, tarde: {} };
+        const h = getStoreHorarios(storeCode, state.currentPeriod);
         await state.supabaseClient
           .from('horarios_sucursal')
           .upsert({
@@ -3604,7 +3640,7 @@
 
     let h = { manana: {}, tarde: {}, fechas: {} };
     if (activeId === 'habitual') {
-      h = state.horarios[storeCode] || { manana: {}, tarde: {} };
+      h = getStoreHorarios(storeCode, currentPeriod);
     } else {
       const spec = state.grillas_especiales.find(g => g.id === activeId);
       if (spec) {
@@ -4052,8 +4088,7 @@
     });
 
     if (activeId === 'habitual') {
-      state.horarios[storeCode] = { manana, tarde };
-      localStorage.setItem('nazaria_horarios_v2', JSON.stringify(state.horarios));
+      saveStoreHorariosLocal(storeCode, state.currentPeriod, manana, tarde);
 
       if (state.supabaseClient && state.isSupabaseConnected) {
         try {
@@ -4072,7 +4107,7 @@
           console.warn('Error saving admin horarios to Supabase:', err);
         }
       }
-      showToast(`Grilla habitual de ${storeCode} guardada y sincronizada.`, 'success');
+      showToast(`Grilla habitual de ${storeCode} (${formatPeriodLabel(state.currentPeriod)}) guardada y sincronizada.`, 'success');
     } else {
       const spec = state.grillas_especiales.find(g => g.id === activeId);
       if (spec) {
