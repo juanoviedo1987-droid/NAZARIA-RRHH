@@ -13,10 +13,10 @@ window.APP_CONFIG = {
 
   // Configuración de Notificaciones Telegram
   TELEGRAM: {
-    // Ofuscado para evitar alertas de escáner público de GitHub
-    BOT_TOKEN: ['8975481719', 'AAEKYPelUlglDcI45xuyQfEJtlus0iIWA60'].join(':'),
+    // Si se envía vía webhook n8n (seguro sin exponer tokens en frontend público)
+    WEBHOOK_URL: 'https://34-135-56-126.sslip.io/webhook/nazaria-telegram-audit',
     CHAT_ID: '-1004489717253', // Grupo NAZARIA Socios
-    WEBHOOK_URL: ''
+    BOT_TOKEN: '' // Token gestionado de forma segura en n8n Cloud / stack.env
   },
 
   // PINs personales para acceso seguro (no visibles en la interfaz)
