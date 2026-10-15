@@ -19,10 +19,10 @@ window.APP_CONFIG = {
     BOT_TOKEN: '' // Token gestionado de forma segura en n8n Cloud / stack.env
   },
 
-  // PINs personales para acceso seguro (no visibles en la interfaz)
+  // PINs de acceso para las terminales (no visibles en la interfaz)
   PINS: {
-    TOM: '0145',       // Últimos 4 dígitos DNI Sofia Barrientos (35290145)
-    MASCHWITZ: '6228',  // Últimos 4 dígitos DNI Flavia Gómez (32826228)
-    ADMIN: '3585'      // Clave personal exclusiva Juan
+    TOM: '0145',
+    MASCHWITZ: '6228',
+    ADMIN: '3585'
   }
 };
