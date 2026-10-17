@@ -1,0 +1,187 @@
+{
+  "name": "NAZARIA - Cierre Mensual Dux & Proyección de Objetivos",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months",
+              "triggerAtDayOfMonth": 1,
+              "triggerAtHour": 3
+            }
+          ]
+        }
+      },
+      "id": "trigger-cron",
+      "name": "Día 1 de cada Mes (03:00 AM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {},
+      "id": "trigger-manual",
+      "name": "Ejecución Manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 480]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ==============================================================================\n// MOTOR DE EXTRACCIÓN DUX & LIQUIDACIÓN COMERCIAL NAZARIA (MASTER V2.8)\n// ==============================================================================\n\nconst DUX_TOKEN = 'vmkdwI9GaPx96GigvTpUI4gjBFAnQoGyDKRV1HuWO4LNZ3HOyvkA9YtxFVbZSNYo';\nconst ENTERPRISE_ID = 2224;\n\n// Determinar rango de fechas: mes anterior completo\nconst now = new Date();\nlet year = now.getFullYear();\nlet month = now.getMonth(); // 0 a 11 (mes anterior si hoy es día 1)\nif (month === 0) {\n  month = 12;\n  year = year - 1;\n}\nconst targetPeriod = `${year}-${String(month).padStart(2, '0')}`;\nconst fDesde = `${year}-${String(month).padStart(2, '0')}-01`;\nconst lastDay = new Date(year, month, 0).getDate();\nconst fHasta = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;\n\n// Mapeo oficial de Vendedoras por id_vendedor Dux\nconst VEND_MAP = {\n  // TOM (idSucursal: 2)\n  '1705102': { colab_id: 'c-sofi', nombre: 'Sofía Barrientos', rol: 'Encargada', sucursal: 'TOM', hs: 36, isEncargada: true },\n  '2907849': { colab_id: 'c-esme', nombre: 'Esme Galarza', rol: 'Semi-Encargada', sucursal: 'TOM', hs: 42, isSemiEncargada: true },\n  '19950294': { colab_id: 'c-cande', nombre: 'Candela Almiron', rol: 'Vendedora', sucursal: 'TOM', hs: 24 },\n  '19950328': { colab_id: 'c-anto', nombre: 'Antonella Bustamante', rol: 'Vendedora', sucursal: 'TOM', hs: 24 },\n  '8662462': { colab_id: 'c-martu', nombre: 'Martina Pinto', rol: 'Vendedora', sucursal: 'TOM', hs: 12 },\n\n  // MASCHWITZ (idSucursal: 3)\n  '11956305': { colab_id: 'c-flavia', nombre: 'Flavia Gómez', rol: 'Encargada', sucursal: 'MASCHWITZ', hs: 27.5, isEncargada: true },\n  '5171913': { colab_id: 'c-juli', nombre: 'Julieta Vera', rol: 'Vendedora', sucursal: 'MASCHWITZ', hs: 22 },\n  '3988841': { colab_id: 'c-cami', nombre: 'Camila Vera', rol: 'Vendedora', sucursal: 'MASCHWITZ', hs: 22 }\n};\n\nconst delay = ms => new Promise(res => setTimeout(res, ms));\n\nasync function fetchSucursalSales(sucId) {\n  let all = [];\n  let offset = 0;\n  const limit = 50;\n  while (true) {\n    let res = null;\n    let attempts = 0;\n    while (attempts < 3 && !res) {\n      try {\n        res = await helpers.httpRequest({\n          method: 'GET',\n          url: 'https://erp.duxsoftware.com.ar/WSERP/rest/services/facturas',\n          qs: {\n            idEmpresa: ENTERPRISE_ID,\n            idSucursal: sucId,\n            fechaDesde: fDesde,\n            fechaHasta: fHasta,\n            limit,\n            offset\n          },\n          headers: { authorization: DUX_TOKEN },\n          json: true,\n          timeout: 25000\n        });\n      } catch (e) {\n        attempts++;\n        if (attempts < 3) await delay(1500);\n      }\n    }\n    const results = res?.results || [];\n    all.push(...results);\n    if (results.length < limit) break;\n    offset += limit;\n    await delay(300);\n  }\n  return all;\n}\n\n// Extraer facturas\nconst tomFacturas = await fetchSucursalSales(2);\nconst maschFacturas = await fetchSucursalSales(3);\n\n// Procesar comprobantes\nfunction processComprobantes(list, sucCode) {\n  const byVend = {};\n  let totBruto = 0, totNC = 0;\n\n  list.forEach(inv => {\n    if (inv.anulada_boolean === true || inv.anulada === 'S') return;\n    const tipo = (inv.tipo_comp || '').toUpperCase();\n    const total = Number(inv.total) || 0;\n    const esNC = tipo.includes('CREDITO') || tipo.includes('NC');\n    const vId = String(inv.id_vendedor || '');\n\n    if (!byVend[vId]) byVend[vId] = { bruto: 0, nc: 0, neta: 0 };\n    if (esNC) {\n      byVend[vId].nc += total;\n      totNC += total;\n    } else {\n      byVend[vId].bruto += total;\n      totBruto += total;\n    }\n  });\n\n  Object.keys(byVend).forEach(k => {\n    byVend[k].neta = byVend[k].bruto - byVend[k].nc;\n  });\n\n  return { byVend, totBruto, totNC, totNeta: totBruto - totNC };\n}\n\nconst tomProcessed = processComprobantes(tomFacturas, 'TOM');\nconst maschProcessed = processComprobantes(maschFacturas, 'MASCHWITZ');\n\nreturn [{\n  json: {\n    periodo: targetPeriod,\n    fDesde,\n    fHasta,\n    tomProcessed,\n    maschProcessed\n  }\n}];"
+      },
+      "id": "code-dux-extract",
+      "name": "1. Extraer y Depurar Ventas Dux",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 390]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://hlvovocufifroigdlhmv.supabase.co/rest/v1/objetivos_mensuales?periodo=eq.{{ $json.periodo }}&select=*",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsdm92b2N1Zmlmcm9pZ2RsaG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMDM3MjksImV4cCI6MjEwNTY3OTcyOX0.7KGejvoqjyTAZhEGYODz_Jm2DpddYiLUyIKdhhLxsr0"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-get-goals",
+      "name": "2. Leer Objetivos Previstos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 390]
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $('1. Extraer y Depurar Ventas Dux').first().json;\nconst objetivos = $input.all().map(i => i.json);\n\nconst periodo = prev.periodo;\nconst tom = prev.tomProcessed;\nconst masch = prev.maschProcessed;\n\n// Obtener metas locales previstas\nconst objTomLocal = objetivos.find(o => o.sucursal_codigo === 'TOM' && o.colab_id === 'TOTAL_LOCAL') || {};\nconst objMaschLocal = objetivos.find(o => o.sucursal_codigo === 'MASCHWITZ' && o.colab_id === 'TOTAL_LOCAL') || {};\n\nconst metaTomN1 = Number(objTomLocal.objetivo_nivel_1) || 35000000;\nconst metaTomN2 = Number(objTomLocal.objetivo_nivel_2) || 42000000;\nconst metaMaschN1 = Number(objMaschLocal.objetivo_nivel_1) || 18000000;\nconst metaMaschN2 = Number(objMaschLocal.objetivo_nivel_2) || 21600000;\n\nconst liquidaciones = [];\n\n// 1. LIQUIDAR TOM\nconst staffTom = [\n  { vId: '1705102', colab_id: 'c-sofi', nombre: 'Sofía Barrientos', rol: 'Encargada' },\n  { vId: '2907849', colab_id: 'c-esme', nombre: 'Esme Galarza', rol: 'Semi-Encargada' },\n  { vId: '19950294', colab_id: 'c-cande', nombre: 'Candela Almiron', rol: 'Vendedora' },\n  { vId: '19950328', colab_id: 'c-anto', nombre: 'Antonella Bustamante', rol: 'Vendedora' },\n  { vId: '8662462', colab_id: 'c-martu', nombre: 'Martina Pinto', rol: 'Vendedora' }\n];\n\nstaffTom.forEach(s => {\n  const vData = tom.byVend[s.vId] || { bruto: 0, nc: 0, neta: 0 };\n  const obj = objetivos.find(o => o.sucursal_codigo === 'TOM' && o.colab_id === s.colab_id) || {};\n  const metaPrevista = Number(obj.objetivo_nivel_1) || 0;\n  const metaN2 = Number(obj.objetivo_nivel_2) || 0;\n\n  let porcAlcance = metaPrevista > 0 ? (vData.neta / metaPrevista) * 100 : 0;\n  let porcComis = 0;\n  let montoComis = 0;\n  let montoPlusCaja = 0;\n  let montoPozo = 0;\n  let estadoPremio = 'Desempeño estándar';\n\n  if (s.rol === 'Encargada') {\n    // Encargada comisiona sobre el total local\n    const alcLocal = (tom.totNeta / metaTomN1) * 100;\n    porcAlcance = alcLocal;\n    porcComis = tom.totNeta >= metaTomN2 ? 0.30 : (tom.totNeta >= metaTomN1 ? 0.20 : 0.10);\n    montoComis = Math.round(tom.totNeta * (porcComis / 100));\n  } else if (s.rol === 'Semi-Encargada') {\n    // Escala propia s/ venta neta\n    porcComis = vData.neta >= metaN2 ? 0.90 : (vData.neta >= metaPrevista ? 0.60 : 0.30);\n    montoComis = Math.round(vData.neta * (porcComis / 100));\n    // Plus Caja sobre el total local\n    const porcPlus = tom.totNeta >= metaTomN2 ? 0.15 : (tom.totNeta >= metaTomN1 ? 0.10 : 0.05);\n    montoPlusCaja = Math.round(tom.totNeta * (porcPlus / 100));\n  } else {\n    // Vendedora común\n    porcComis = vData.neta >= metaN2 ? 0.90 : (vData.neta >= metaPrevista ? 0.60 : 0.30);\n    montoComis = Math.round(vData.neta * (porcComis / 100));\n  }\n\n  if (porcAlcance >= 95) estadoPremio = `⭐ Estrella del Mes (${Math.round(porcAlcance)}% cumplimiento)`;\n\n  liquidaciones.push({\n    periodo,\n    sucursal_codigo: 'TOM',\n    colab_id: s.colab_id,\n    nombre: s.nombre,\n    rol: s.rol,\n    venta_bruta: vData.bruto,\n    notas_credito: vData.nc,\n    venta_neta: vData.neta,\n    objetivo_previsto: metaPrevista,\n    porc_alcance: Math.round(porcAlcance * 100) / 100,\n    porc_comision: porcComis,\n    monto_comision: montoComis,\n    monto_plus_caja: montoPlusCaja,\n    monto_pozo: montoPozo,\n    total_liquidado: montoComis + montoPlusCaja + montoPozo,\n    estado_premio: estadoPremio,\n    estado: 'borrador'\n  });\n});\n\n// 2. LIQUIDAR MASCHWITZ\nconst staffMasch = [\n  { vId: '11956305', colab_id: 'c-flavia', nombre: 'Flavia Gómez', rol: 'Encargada' },\n  { vId: '5171913', colab_id: 'c-juli', nombre: 'Julieta Vera', rol: 'Vendedora' },\n  { vId: '3988841', colab_id: 'c-cami', nombre: 'Camila Vera', rol: 'Vendedora' },\n  { vId: '8662462', colab_id: 'c-martu_masch', nombre: 'Martina Pinto (Maschwitz)', rol: 'Vendedora' }\n];\n\nstaffMasch.forEach(s => {\n  const vData = masch.byVend[s.vId] || { bruto: 0, nc: 0, neta: 0 };\n  const obj = objetivos.find(o => o.sucursal_codigo === 'MASCHWITZ' && o.colab_id === s.colab_id) || {};\n  const metaPrevista = Number(obj.objetivo_nivel_1) || 0;\n  const metaN2 = Number(obj.objetivo_nivel_2) || 0;\n\n  let porcAlcance = metaPrevista > 0 ? (vData.neta / metaPrevista) * 100 : 0;\n  let porcComis = 0;\n  let montoComis = 0;\n  let estadoPremio = 'Desempeño estándar';\n\n  if (s.rol === 'Encargada') {\n    const alcLocal = (masch.totNeta / metaMaschN1) * 100;\n    porcAlcance = alcLocal;\n    porcComis = masch.totNeta >= metaMaschN2 ? 0.30 : (masch.totNeta >= metaMaschN1 ? 0.20 : 0.10);\n    montoComis = Math.round(masch.totNeta * (porcComis / 100));\n  } else {\n    porcComis = vData.neta >= metaN2 ? 0.90 : (vData.neta >= metaPrevista ? 0.60 : 0.30);\n    montoComis = Math.round(vData.neta * (porcComis / 100));\n  }\n\n  if (porcAlcance >= 90) estadoPremio = `⭐ Estrella del Mes (${Math.round(porcAlcance)}% cumplimiento)`;\n\n  liquidaciones.push({\n    periodo,\n    sucursal_codigo: 'MASCHWITZ',\n    colab_id: s.colab_id,\n    nombre: s.nombre,\n    rol: s.rol,\n    venta_bruta: vData.bruto,\n    notas_credito: vData.nc,\n    venta_neta: vData.neta,\n    objetivo_previsto: metaPrevista,\n    porc_alcance: Math.round(porcAlcance * 100) / 100,\n    porc_comision: porcComis,\n    monto_comision: montoComis,\n    monto_plus_caja: 0,\n    monto_pozo: 0,\n    total_liquidado: montoComis,\n    estado_premio: estadoPremio,\n    estado: 'borrador'\n  });\n});\n\nconst totComisiones = liquidaciones.reduce((acc, l) => acc + l.total_liquidado, 0);\n\n// Mensaje para Telegram\nconst msgTelegram = `📊 <b>CIERRE COMERCIAL DUX — ${periodo}</b>\n\n` +\n`🏢 <b>TOM:</b> $${tom.totNeta.toLocaleString('es-AR')} neto\n` +\n`🏢 <b>MASCHWITZ:</b> $${masch.totNeta.toLocaleString('es-AR')} neto\n` +\n`💰 <b>Total Comisiones a Liquidar:</b> $${totComisiones.toLocaleString('es-AR')}\n\n` +\n`🎯 <i>Los datos y nuevos objetivos quedaron guardados en BORRADOR.</i>\n` +\n`👉 <a href=\"https://juanoviedo1987-droid.github.io/NAZARIA-RRHH/\">Entrá a la App para revisarlos y aprobar</a>`;\n\nreturn [{\n  json: {\n    periodo,\n    liquidaciones,\n    msgTelegram\n  }\n}];"
+      },
+      "id": "code-calc-liq",
+      "name": "3. Motor de Liquidación Comercial",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 390]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hlvovocufifroigdlhmv.supabase.co/rest/v1/liquidaciones_comerciales",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhsdm92b2N1Zmlmcm9pZ2RsaG12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxMDM3MjksImV4cCI6MjEwNTY3OTcyOX0.7KGejvoqjyTAZhEGYODz_Jm2DpddYiLUyIKdhhLxsr0"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.liquidaciones) }}",
+        "options": {}
+      },
+      "id": "http-save-supabase",
+      "name": "4. Guardar Borrador en Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1160, 390]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot8975481719:AAEKYPelUlglDcI45xuyQfEJtlus0iIWA60/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"-1004489717253\",\n  \"text\": $('3. Motor de Liquidación Comercial').first().json.msgTelegram,\n  \"parse_mode\": \"HTML\"\n}",
+        "options": {}
+      },
+      "id": "http-telegram-alert",
+      "name": "5. Enviar Alerta Telegram a Juan",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1400, 390]
+    }
+  ],
+  "connections": {
+    "Día 1 de cada Mes (03:00 AM)": {
+      "main": [
+        [
+          {
+            "node": "1. Extraer y Depurar Ventas Dux",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecución Manual": {
+      "main": [
+        [
+          {
+            "node": "1. Extraer y Depurar Ventas Dux",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Extraer y Depurar Ventas Dux": {
+      "main": [
+        [
+          {
+            "node": "2. Leer Objetivos Previstos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Leer Objetivos Previstos": {
+      "main": [
+        [
+          {
+            "node": "3. Motor de Liquidación Comercial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Motor de Liquidación Comercial": {
+      "main": [
+        [
+          {
+            "node": "4. Guardar Borrador en Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Guardar Borrador en Supabase": {
+      "main": [
+        [
+          {
+            "node": "5. Enviar Alerta Telegram a Juan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
