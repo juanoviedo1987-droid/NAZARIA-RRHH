@@ -488,6 +488,9 @@
     state.retiros = (JSON.parse(localStorage.getItem('nazaria_retiros_v2') || JSON.stringify(DEFAULT_RETIROS))).filter(r => !isIdDeleted(r.id));
     state.novedades = (JSON.parse(localStorage.getItem('nazaria_novedades_v2') || JSON.stringify(DEFAULT_NOVEDADES))).filter(n => !isIdDeleted(n.id));
     state.auditorias = (JSON.parse(localStorage.getItem('nazaria_auditorias_v2') || '[]')).filter(a => !isIdDeleted(a.id));
+    state.objetivos = JSON.parse(localStorage.getItem('nazaria_objetivos_v2') || '[]');
+    state.liquidaciones = JSON.parse(localStorage.getItem('nazaria_liquidaciones_v2') || '[]');
+    state.adminObjSubtab = 'liq'; // 'liq' | 'plan'
   }
 
   // Helper para obtener y guardar la grilla habitual aislada por período y sucursal
@@ -563,6 +566,12 @@
           syncFromSupabase();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'auditorias_semanales' }, () => {
+          syncFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'objetivos_mensuales' }, () => {
+          syncFromSupabase();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'liquidaciones_comerciales' }, () => {
           syncFromSupabase();
         })
         .subscribe();
@@ -882,6 +891,26 @@
         localStorage.setItem('nazaria_auditorias_v2', JSON.stringify(state.auditorias));
       }
 
+      // 9. Objetivos Mensuales
+      const { data: remoteObj, error: errObj } = await state.supabaseClient
+        .from('objetivos_mensuales')
+        .select('*');
+
+      if (!errObj && remoteObj) {
+        state.objetivos = remoteObj;
+        localStorage.setItem('nazaria_objetivos_v2', JSON.stringify(state.objetivos));
+      }
+
+      // 10. Liquidaciones Comerciales (Cierre Oficial)
+      const { data: remoteLiq, error: errLiq } = await state.supabaseClient
+        .from('liquidaciones_comerciales')
+        .select('*');
+
+      if (!errLiq && remoteLiq) {
+        state.liquidaciones = remoteLiq;
+        localStorage.setItem('nazaria_liquidaciones_v2', JSON.stringify(state.liquidaciones));
+      }
+
       // Refrescar vistas si ya están activas (evitar re-renderizar grilla de horarios si el usuario la está editando o escribiendo en inputs)
       const isEditingGrid = state.isAdminGridEditable || state.isStoreGridEditable;
       const isInputActive = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
@@ -894,6 +923,7 @@
         if (state.activeAdminTab === 'retiros') renderAdminRetiros();
         if (state.activeAdminTab === 'colaboradoras') renderAdminColaboradoras();
         if (state.activeAdminTab === 'auditorias') renderAdminAuditorias();
+        if (state.activeAdminTab === 'objetivos') renderAdminObjetivos();
         updateAdminKPIs();
       } else if (state.currentRole) {
         if (state.activeStoreTab === 'horas') {
@@ -909,9 +939,8 @@
         if (state.activeStoreTab === 'vacaciones') renderStoreVacaciones();
         if (state.activeStoreTab === 'novedades') renderStoreNovedades();
         if (state.activeStoreTab === 'retiros') renderStoreRetiros();
-        if (state.activeStoreTab === 'auditoria') {
-          // No pisar el formulario si se está editando
-        }
+        if (state.activeStoreTab === 'auditoria') initStoreAuditoriaForm();
+        if (state.activeStoreTab === 'objetivos') renderStoreObjetivos();
       }
     } catch (err) {
       console.warn('Sync from Supabase fallback to local:', err);
@@ -1216,7 +1245,7 @@
   function switchStoreTab(tab) {
     state.activeStoreTab = tab;
 
-    const tabs = ['horas', 'horarios', 'novedades', 'retiros', 'vacaciones', 'auditoria'];
+    const tabs = ['horas', 'horarios', 'novedades', 'retiros', 'vacaciones', 'auditoria', 'objetivos'];
     tabs.forEach(t => {
       const btn = document.getElementById(`tab-store-${t}`);
       const view = document.getElementById(`subview-store-${t}`);
@@ -1241,6 +1270,7 @@
     if (tab === 'retiros') renderStoreRetiros();
     if (tab === 'vacaciones') renderStoreVacaciones();
     if (tab === 'auditoria') initStoreAuditoriaForm();
+    if (tab === 'objetivos') renderStoreObjetivos();
 
     initLucideIcons();
   }
@@ -2959,7 +2989,7 @@
 
   function switchAdminTab(tab) {
     state.activeAdminTab = tab;
-    const tabs = ['consolidado', 'horarios', 'vacaciones', 'novedades', 'retiros', 'colaboradoras', 'auditorias'];
+    const tabs = ['consolidado', 'horarios', 'vacaciones', 'novedades', 'retiros', 'colaboradoras', 'auditorias', 'objetivos'];
     tabs.forEach(t => {
       const btn = document.getElementById(`tab-admin-${t}`);
       const view = document.getElementById(`subview-admin-${t}`);
@@ -2979,6 +3009,7 @@
     if (tab === 'retiros') renderAdminRetiros();
     if (tab === 'colaboradoras') renderAdminColaboradoras();
     if (tab === 'auditorias') renderAdminAuditorias();
+    if (tab === 'objetivos') renderAdminObjetivos();
 
     initLucideIcons();
 
@@ -6406,8 +6437,434 @@
     renderAdminAuditorias,
     viewAuditoriaDetail,
     closeAuditoriaModal,
-    handleDeleteAuditoria
+    handleDeleteAuditoria,
+
+    // Módulo de Objetivos & Liquidación Comercial Dux
+    renderStoreObjetivos,
+    renderAdminObjetivos,
+    switchAdminObjSubtab,
+    recalcPlanObjetivos,
+    publishPlanObjetivos,
+    approveLiquidacion,
+    exportLiquidacionTSV,
+    triggerDuxSyncModal
   };
+
+  // ==============================================================================
+  // LÓGICA DE NEGOCIO: OBJETIVOS & LIQUIDACIÓN COMERCIAL DUX
+  // ==============================================================================
+
+  // --- SUBVISTA SUCURSAL: OBJETIVOS DEL MES & AVANCE ---
+  function renderStoreObjetivos() {
+    const storeCode = state.currentRole;
+    if (!storeCode || storeCode === 'ADMIN') return;
+
+    const currentPeriod = state.currentPeriod; // ej '2026-10'
+    const badgeSuc = document.getElementById('store-obj-badge-suc');
+    const localLabel = document.getElementById('store-obj-local-label');
+    const n1El = document.getElementById('store-obj-local-n1');
+    const n2El = document.getElementById('store-obj-local-n2');
+    const statusBadge = document.getElementById('store-obj-status-badge');
+    const container = document.getElementById('store-obj-cards-container');
+
+    if (badgeSuc) badgeSuc.textContent = `SUCURSAL ${storeCode}`;
+    if (localLabel) localLabel.textContent = `TOTAL LOCAL ${storeCode} (${formatPeriodLabel(currentPeriod)})`;
+
+    // Buscar objetivos publicados del período y sucursal
+    const storeObjs = (state.objetivos || []).filter(o => o.sucursal_codigo === storeCode && o.periodo === currentPeriod);
+    const localObj = storeObjs.find(o => o.colab_id === 'TOTAL_LOCAL') || {};
+
+    const metaN1 = Number(localObj.objetivo_nivel_1 || 0);
+    const metaN2 = Number(localObj.objetivo_nivel_2 || 0);
+
+    if (n1El) n1El.textContent = metaN1 > 0 ? formatCurrency(metaN1) : 'Pendiente de publicación';
+    if (n2El) n2El.textContent = metaN2 > 0 ? formatCurrency(metaN2) : 'Pendiente de publicación';
+
+    if (statusBadge) {
+      const isPublicado = localObj.estado === 'publicado';
+      statusBadge.className = isPublicado 
+        ? "px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1.5"
+        : "px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 flex items-center gap-1.5";
+      statusBadge.innerHTML = isPublicado
+        ? `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>Metas Oficiales Aprobadas</span>`
+        : `<i data-lucide="clock" class="w-3.5 h-3.5"></i><span>Propuesta en Borrador</span>`;
+    }
+
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Filtrar colaboradoras de esta sucursal (incluye cobertura Martu Masch)
+    const staffObjs = storeObjs.filter(o => o.colab_id !== 'TOTAL_LOCAL');
+
+    if (staffObjs.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full py-8 text-center text-xs text-neutral-400 bg-neutral-50 rounded-xl border border-neutral-200">
+          No hay metas individuales cargadas aún para el período ${formatPeriodLabel(currentPeriod)}.
+        </div>
+      `;
+      initLucideIcons();
+      return;
+    }
+
+    staffObjs.forEach(o => {
+      const colab = state.colaboradoras.find(c => c.id === o.colab_id) || (o.colab_id === 'c-martu_masch' ? getMartuMasch() : null);
+      const shortName = o.nombre_concepto || getColabShortName(o.colab_id, colab?.nombre_completo || 'Colaboradora');
+      const rolTxt = o.rol || colab?.categoria || 'Vendedora';
+
+      const card = document.createElement('div');
+      card.className = "bg-white border border-neutral-200 rounded-xl p-4 shadow-sm flex flex-col gap-3 hover:border-neutral-400 transition";
+      card.innerHTML = `
+        <div class="flex items-center justify-between pb-2 border-b border-neutral-100">
+          <div>
+            <div class="font-bold text-neutral-900 text-sm">${shortName}</div>
+            <div class="text-[11px] text-neutral-400 font-medium">${rolTxt} ${o.horas_semanales ? '· ' + o.horas_semanales + ' hs/sem' : ''}</div>
+          </div>
+          <span class="w-7 h-7 rounded-full bg-neutral-100 flex items-center justify-center font-bold text-xs text-neutral-700">
+            ${shortName.charAt(0)}
+          </span>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between text-xs p-2 rounded-lg bg-[#FAF9F6] border border-neutral-100">
+            <span class="text-neutral-500 font-medium">🎯 Nivel 1 (Meta Base):</span>
+            <span class="font-mono font-bold text-neutral-900">${formatCurrency(o.objetivo_nivel_1 || 0)}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs p-2 rounded-lg bg-amber-50/50 border border-amber-200/60">
+            <span class="text-amber-900 font-medium">🚀 Nivel 2 (Superación):</span>
+            <span class="font-mono font-black text-amber-950">${formatCurrency(o.objetivo_nivel_2 || 0)}</span>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    initLucideIcons();
+  }
+
+  // --- SUBVISTA ADMIN: CONTROL DE LIQUIDACIÓN Y PROYECCIÓN ---
+  function switchAdminObjSubtab(subtab) {
+    state.adminObjSubtab = subtab;
+    const btnLiq = document.getElementById('btn-admin-obj-tab-liq');
+    const btnPlan = document.getElementById('btn-admin-obj-tab-plan');
+    const panelLiq = document.getElementById('admin-obj-subpanel-liq');
+    const panelPlan = document.getElementById('admin-obj-subpanel-plan');
+
+    if (subtab === 'liq') {
+      if (btnLiq) btnLiq.className = "px-3 py-1.5 rounded-md bg-white text-neutral-900 shadow-sm transition";
+      if (btnPlan) btnPlan.className = "px-3 py-1.5 rounded-md text-neutral-500 hover:text-black transition";
+      if (panelLiq) panelLiq.classList.remove('hidden');
+      if (panelPlan) panelPlan.classList.add('hidden');
+      renderAdminLiquidaciones();
+    } else {
+      if (btnLiq) btnLiq.className = "px-3 py-1.5 rounded-md text-neutral-500 hover:text-black transition";
+      if (btnPlan) btnPlan.className = "px-3 py-1.5 rounded-md bg-white text-neutral-900 shadow-sm transition";
+      if (panelLiq) panelLiq.classList.add('hidden');
+      if (panelPlan) panelPlan.classList.remove('hidden');
+      renderAdminPlanObjetivos();
+    }
+  }
+
+  function renderAdminObjetivos() {
+    switchAdminObjSubtab(state.adminObjSubtab || 'liq');
+  }
+
+  function renderAdminLiquidaciones() {
+    const tbody = document.getElementById('tbody-admin-liquidaciones');
+    const badge = document.getElementById('admin-liq-status-badge');
+    const totTomEl = document.getElementById('admin-liq-tot-tom');
+    const comisTomEl = document.getElementById('admin-liq-comis-tom');
+    const totMaschEl = document.getElementById('admin-liq-tot-masch');
+    const comisMaschEl = document.getElementById('admin-liq-comis-masch');
+    const btnApprove = document.getElementById('btn-approve-liq');
+
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const currentPeriod = state.currentPeriod;
+    const list = (state.liquidaciones || []).filter(l => l.periodo === currentPeriod);
+
+    // Calcular totales
+    let totVentaTom = 0, totComisTom = 0;
+    let totVentaMasch = 0, totComisMasch = 0;
+
+    list.forEach(r => {
+      const neta = Number(r.venta_neta || 0);
+      const totalLiq = Number(r.total_liquidado || 0);
+      if (r.sucursal_codigo === 'TOM') {
+        totVentaTom += neta;
+        totComisTom += totalLiq;
+      } else {
+        totVentaMasch += neta;
+        totComisMasch += totalLiq;
+      }
+    });
+
+    if (totTomEl) totTomEl.textContent = formatCurrency(totVentaTom);
+    if (comisTomEl) comisTomEl.textContent = formatCurrency(totComisTom);
+    if (totMaschEl) totMaschEl.textContent = formatCurrency(totVentaMasch);
+    if (comisMaschEl) comisMaschEl.textContent = formatCurrency(totComisMasch);
+
+    const isAllApproved = list.length > 0 && list.every(r => r.estado === 'aprobado');
+    if (badge) {
+      badge.className = isAllApproved
+        ? "px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800"
+        : "px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800";
+      badge.textContent = isAllApproved ? 'Aprobado y Confirmado' : (list.length > 0 ? 'Borrador Dux Pendiente' : 'Sin liquidación');
+    }
+
+    if (btnApprove) {
+      btnApprove.disabled = isAllApproved || list.length === 0;
+      btnApprove.className = isAllApproved || list.length === 0
+        ? "px-3.5 py-1 rounded bg-neutral-200 text-neutral-400 text-xs font-bold flex items-center gap-1.5 cursor-not-allowed"
+        : "px-3.5 py-1 rounded bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer";
+    }
+
+    if (list.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="12" class="py-8 text-center text-xs text-neutral-400">
+            No hay liquidación comercial procesada para el período ${formatPeriodLabel(currentPeriod)}. Podés consultar Dux ERP con el botón superior.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    list.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.className = "border-b border-neutral-100 hover:bg-[#FAF9F6] transition";
+
+      const alc = Number(r.porc_alcance || 0);
+      const alcBadge = alc >= 100 
+        ? `<span class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-100 text-emerald-800">${alc}%</span>`
+        : alc >= 85
+        ? `<span class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-amber-100 text-amber-800">${alc}%</span>`
+        : `<span class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-neutral-100 text-neutral-700">${alc}%</span>`;
+
+      tr.innerHTML = `
+        <td class="py-2 px-2.5 font-bold text-neutral-800 text-xs">${r.sucursal_codigo}</td>
+        <td class="py-2 px-2.5 font-bold text-neutral-900 text-xs">${r.nombre}</td>
+        <td class="py-2 px-2.5 text-neutral-500 text-[11px]">${r.rol}</td>
+        <td class="py-2 px-2.5 text-right font-mono font-bold text-xs text-neutral-900">${formatCurrency(r.venta_neta)}</td>
+        <td class="py-2 px-2.5 text-right font-mono text-xs text-neutral-500">${formatCurrency(r.objetivo_previsto)}</td>
+        <td class="py-2 px-2 text-center">${alcBadge}</td>
+        <td class="py-2 px-2 text-center font-mono text-xs text-neutral-600">${Number(r.porc_comision || 0).toFixed(2)}%</td>
+        <td class="py-2 px-2.5 text-right font-mono text-xs text-neutral-800">${formatCurrency(r.monto_comision)}</td>
+        <td class="py-2 px-2.5 text-right font-mono text-xs text-neutral-800">${Number(r.monto_plus_caja) > 0 ? formatCurrency(r.monto_plus_caja) : '-'}</td>
+        <td class="py-2 px-2 text-right font-mono text-xs text-neutral-800">${Number(r.monto_pozo) > 0 ? formatCurrency(r.monto_pozo) : '-'}</td>
+        <td class="py-2 px-2.5 text-right font-mono font-black text-xs text-emerald-700 bg-emerald-50/50">${formatCurrency(r.total_liquidado)}</td>
+        <td class="py-2 px-3 text-xs">
+          <span class="inline-flex items-center gap-1 font-medium ${r.estado_premio && r.estado_premio.includes('Estrella') ? 'text-amber-800 font-bold' : (r.estado_premio && r.estado_premio.includes('Líder') ? 'text-blue-800 font-bold' : 'text-neutral-600')}">
+            ${r.estado_premio || 'Desempeño estándar'}
+          </span>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // --- REPARTO MATEMÁTICO PONDERADO POR HORAS (PROTOCOLO MASTER V2.8) ---
+  function recalcPlanObjetivos() {
+    const tomN1 = Number(document.getElementById('plan-tom-n1')?.value) || 0;
+    const tomN2 = Number(document.getElementById('plan-tom-n2')?.value) || 0;
+    const maschN1 = Number(document.getElementById('plan-masch-n1')?.value) || 0;
+    const maschN2 = Number(document.getElementById('plan-masch-n2')?.value) || 0;
+
+    const tbody = document.getElementById('tbody-admin-plan-objetivos');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    // LÓGICA TOM:
+    // Sofía (36h): aporta el 65% del equivalente de una vendedora full-time
+    // Ratio Sofi = 36 * 0.65 = 23.4
+    // Esme: 42h, Cande: 24h, Anto: 24h, Martu Pinto: 12h
+    // Suma pesos TOM = 23.4 + 42 + 24 + 24 + 12 = 125.4
+    const pesoSofi = 36 * 0.65;
+    const pesoEsme = 42;
+    const pesoCande = 24;
+    const pesoAnto = 24;
+    const pesoMartuTom = 12;
+    const sumaPesosTom = pesoSofi + pesoEsme + pesoCande + pesoAnto + pesoMartuTom;
+
+    const planTom = [
+      { id: 'TOTAL_LOCAL', sucursal: 'TOM', nombre: 'TOTAL LOCAL', rol: 'Local', hs: 138, n1: tomN1, n2: tomN2, isLocal: true },
+      { id: 'c-esme', sucursal: 'TOM', nombre: 'Esme Galarza', rol: 'Semi-Encargada', hs: 42, n1: Math.round((tomN1 * pesoEsme / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoEsme / sumaPesosTom) / 1000) * 1000 },
+      { id: 'c-anto', sucursal: 'TOM', nombre: 'Antonella Bustamante', rol: 'Vendedora', hs: 24, n1: Math.round((tomN1 * pesoAnto / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoAnto / sumaPesosTom) / 1000) * 1000 },
+      { id: 'c-cande', sucursal: 'TOM', nombre: 'Candela Almiron', rol: 'Vendedora', hs: 24, n1: Math.round((tomN1 * pesoCande / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoCande / sumaPesosTom) / 1000) * 1000 },
+      { id: 'c-sofi', sucursal: 'TOM', nombre: 'Sofía Barrientos', rol: 'Encargada', hs: 36, n1: Math.round((tomN1 * pesoSofi / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoSofi / sumaPesosTom) / 1000) * 1000 },
+      { id: 'c-martu', sucursal: 'TOM', nombre: 'Martina Pinto', rol: 'Vendedora', hs: 12, n1: Math.round((tomN1 * pesoMartuTom / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoMartuTom / sumaPesosTom) / 1000) * 1000 }
+    ];
+
+    // LÓGICA MASCHWITZ:
+    // Reparto proporcional puro: Flavia (27.5h), Cami (22h), Juli (22h), Martu P (5.5h)
+    // Suma pesos Masch = 27.5 + 22 + 22 + 5.5 = 77
+    const sumaPesosMasch = 77;
+    const planMasch = [
+      { id: 'TOTAL_LOCAL', sucursal: 'MASCHWITZ', nombre: 'TOTAL LOCAL', rol: 'Local', hs: 77, n1: maschN1, n2: maschN2, isLocal: true },
+      { id: 'c-flavia', sucursal: 'MASCHWITZ', nombre: 'Flavia Gómez', rol: 'Encargada', hs: 27.5, n1: Math.round((maschN1 * 27.5 / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * 27.5 / sumaPesosMasch) / 1000) * 1000 },
+      { id: 'c-juli', sucursal: 'MASCHWITZ', nombre: 'Julieta Vera', rol: 'Vendedora', hs: 22, n1: Math.round((maschN1 * 22 / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * 22 / sumaPesosMasch) / 1000) * 1000 },
+      { id: 'c-cami', sucursal: 'MASCHWITZ', nombre: 'Camila Vera', rol: 'Vendedora', hs: 22, n1: Math.round((maschN1 * 22 / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * 22 / sumaPesosMasch) / 1000) * 1000 },
+      { id: 'c-martu_masch', sucursal: 'MASCHWITZ', nombre: 'Martina Pinto (Maschwitz)', rol: 'Vendedora', hs: 5.5, n1: Math.round((maschN1 * 5.5 / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * 5.5 / sumaPesosMasch) / 1000) * 1000 }
+    ];
+
+    state._currentPlanPreview = [...planTom, ...planMasch];
+
+    state._currentPlanPreview.forEach((r, idx) => {
+      const tr = document.createElement('tr');
+      tr.className = r.isLocal ? "bg-neutral-100 font-bold border-b border-neutral-200" : "border-b border-neutral-100 hover:bg-[#FAF9F6]";
+      tr.innerHTML = `
+        <td class="py-2.5 px-3 font-bold ${r.isLocal ? 'text-black' : 'text-neutral-700'}">${r.sucursal}</td>
+        <td class="py-2.5 px-3 font-bold ${r.isLocal ? 'text-black' : 'text-neutral-900'}">${r.nombre}</td>
+        <td class="py-2.5 px-3 text-[11px] text-neutral-500">${r.rol}</td>
+        <td class="py-2.5 px-2 text-center font-mono text-neutral-600">${r.hs} hs</td>
+        <td class="py-2.5 px-3 text-right">
+          ${r.isLocal 
+            ? `<span class="font-mono font-bold text-neutral-900">${formatCurrency(r.n1)}</span>`
+            : `<input type="number" step="1000" value="${r.n1}" onchange="window.app._updatePlanItem(${idx}, 'n1', this.value)" class="w-28 text-right font-mono font-bold text-xs border border-neutral-200 rounded px-1.5 py-0.5 focus:border-black">`
+          }
+        </td>
+        <td class="py-2.5 px-3 text-right">
+          ${r.isLocal 
+            ? `<span class="font-mono font-bold text-amber-900">${formatCurrency(r.n2)}</span>`
+            : `<input type="number" step="1000" value="${r.n2}" onchange="window.app._updatePlanItem(${idx}, 'n2', this.value)" class="w-28 text-right font-mono font-bold text-xs border border-neutral-200 rounded px-1.5 py-0.5 focus:border-black text-amber-950">`
+          }
+        </td>
+        <td class="py-2.5 px-3 text-center">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isLocal ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-600'}">Calculado</span>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderAdminPlanObjetivos() {
+    recalcPlanObjetivos();
+  }
+
+  window.app._updatePlanItem = function(idx, field, val) {
+    if (state._currentPlanPreview && state._currentPlanPreview[idx]) {
+      state._currentPlanPreview[idx][field] = Number(val) || 0;
+    }
+  };
+
+  async function publishPlanObjetivos() {
+    if (!state._currentPlanPreview || state._currentPlanPreview.length === 0) {
+      showToast('No hay objetivos calculados para publicar.', 'error');
+      return;
+    }
+
+    const currentPeriod = state.currentPeriod;
+    const rowsToUpsert = state._currentPlanPreview.map(r => ({
+      periodo: currentPeriod,
+      sucursal_codigo: r.sucursal,
+      colab_id: r.id,
+      nombre_concepto: r.nombre,
+      rol: r.rol,
+      horas_semanales: r.hs,
+      objetivo_nivel_1: r.n1,
+      objetivo_nivel_2: r.n2,
+      pozo_grupal: 0,
+      estado: 'publicado',
+      aprobado_por: 'Juan',
+      aprobado_en: new Date().toISOString()
+    }));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      const { error } = await state.supabaseClient
+        .from('objetivos_mensuales')
+        .upsert(rowsToUpsert, { onConflict: 'periodo,sucursal_codigo,colab_id' });
+
+      if (error) {
+        showToast('Error publicando en Supabase: ' + error.message, 'error');
+        return;
+      }
+    }
+
+    // Actualizar estado local
+    state.objetivos = rowsToUpsert;
+    localStorage.setItem('nazaria_objetivos_v2', JSON.stringify(state.objetivos));
+    showToast(`✅ Objetivos de ${formatPeriodLabel(currentPeriod)} publicados con éxito para las sucursales.`, 'success');
+  }
+
+  async function approveLiquidacion() {
+    const currentPeriod = state.currentPeriod;
+    const list = (state.liquidaciones || []).filter(l => l.periodo === currentPeriod);
+
+    if (list.length === 0) {
+      showToast('No hay liquidaciones pendientes para aprobar.', 'error');
+      return;
+    }
+
+    const updated = list.map(l => ({
+      ...l,
+      estado: 'aprobado',
+      aprobado_por: 'Juan',
+      aprobado_en: new Date().toISOString()
+    }));
+
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      const { error } = await state.supabaseClient
+        .from('liquidaciones_comerciales')
+        .upsert(updated, { onConflict: 'periodo,sucursal_codigo,colab_id' });
+
+      if (error) {
+        showToast('Error al aprobar: ' + error.message, 'error');
+        return;
+      }
+    }
+
+    state.liquidaciones = (state.liquidaciones || []).map(item => {
+      if (item.periodo === currentPeriod) {
+        return { ...item, estado: 'aprobado', aprobado_por: 'Juan', aprobado_en: new Date().toISOString() };
+      }
+      return item;
+    });
+    localStorage.setItem('nazaria_liquidaciones_v2', JSON.stringify(state.liquidaciones));
+
+    renderAdminLiquidaciones();
+    showToast(`✅ Liquidación comercial de ${formatPeriodLabel(currentPeriod)} aprobada oficialmente.`, 'success');
+  }
+
+  function exportLiquidacionTSV() {
+    const currentPeriod = state.currentPeriod;
+    const list = (state.liquidaciones || []).filter(l => l.periodo === currentPeriod);
+
+    if (list.length === 0) {
+      showToast('No hay datos de liquidación para exportar.', 'error');
+      return;
+    }
+
+    const headers = [
+      'Sucursal', 'Nombre', 'Rol', 'Venta Neta (Actual)', 'Objetivo (Previsto)',
+      '% Alcance', '% Comis.', '$ Comis.', '$ Plus Caja', '$ Pozo', 'TOTAL', 'Estado / Premios'
+    ];
+
+    const rows = list.map(r => [
+      r.sucursal_codigo,
+      r.nombre,
+      r.rol,
+      r.venta_neta,
+      r.objetivo_previsto,
+      (Number(r.porc_alcance) / 100).toFixed(4),
+      (Number(r.porc_comision) / 100).toFixed(4),
+      r.monto_comision,
+      r.monto_plus_caja,
+      r.monto_pozo,
+      r.total_liquidado,
+      r.estado_premio
+    ]);
+
+    const tsvContent = [headers.join('\t'), ...rows.map(row => row.join('\t'))].join('\n');
+    navigator.clipboard.writeText(tsvContent).then(() => {
+      showToast('Bloque TSV copiado. Podés pegarlo en Google Sheets con Ctrl+V.', 'success');
+    }).catch(() => {
+      showToast('Error copiando al portapapeles.', 'error');
+    });
+  }
+
+  function triggerDuxSyncModal() {
+    showToast('El asistente automático n8n extrae las ventas de Dux y proyecta objetivos en borrador el día 1 de cada mes.', 'info');
+  }
 
   // Inicializar al cargar el DOM
   document.addEventListener('DOMContentLoaded', () => {
