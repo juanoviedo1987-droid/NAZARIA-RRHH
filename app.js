@@ -6738,6 +6738,25 @@
   }
 
   function renderAdminPlanObjetivos() {
+    const currentPeriod = state.currentPeriod;
+    // Si ya existen metas guardadas para el período activo, cargar sus totales
+    const tomTotal = (state.objetivos || []).find(o => o.sucursal_codigo === 'TOM' && o.periodo === currentPeriod && o.colab_id === 'TOTAL_LOCAL');
+    const maschTotal = (state.objetivos || []).find(o => o.sucursal_codigo === 'MASCHWITZ' && o.periodo === currentPeriod && o.colab_id === 'TOTAL_LOCAL');
+
+    const inTomN1 = document.getElementById('plan-tom-n1');
+    const inTomN2 = document.getElementById('plan-tom-n2');
+    const inMaschN1 = document.getElementById('plan-masch-n1');
+    const inMaschN2 = document.getElementById('plan-masch-n2');
+
+    if (tomTotal && inTomN1 && inTomN2) {
+      inTomN1.value = tomTotal.objetivo_nivel_1 || 39093000;
+      inTomN2.value = tomTotal.objetivo_nivel_2 || 46129000;
+    }
+    if (maschTotal && inMaschN1 && inMaschN2) {
+      inMaschN1.value = maschTotal.objetivo_nivel_1 || 19239000;
+      inMaschN2.value = maschTotal.objetivo_nivel_2 || 22703000;
+    }
+
     recalcPlanObjetivos();
   }
 
@@ -6780,8 +6799,9 @@
       }
     }
 
-    // Actualizar estado local
-    state.objetivos = rowsToUpsert;
+    // Actualizar estado local (reemplazar solo el período actual manteniendo los demás)
+    const otherPeriods = (state.objetivos || []).filter(o => o.periodo !== currentPeriod);
+    state.objetivos = [...otherPeriods, ...rowsToUpsert];
     localStorage.setItem('nazaria_objetivos_v2', JSON.stringify(state.objetivos));
     showToast(`✅ Objetivos de ${formatPeriodLabel(currentPeriod)} publicados con éxito para las sucursales.`, 'success');
   }
