@@ -148,7 +148,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.telegram.org/bot8975481719:AAFq6GtqTFU766RZcA665JFnhjH0R1iMlgI/sendMessage",
+        "url": "=https://api.telegram.org/bot{{ $env.TELEGRAM_NAZARIA_BOT_TOKEN || $env.TELEGRAM_BOT_TOKEN }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"chat_id\": \"-1004489717253\",\n  \"text\": $('4. Liquidar y Proyectar Objetivos').first().json.msgTelegram,\n  \"parse_mode\": \"HTML\"\n}",
