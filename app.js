@@ -496,7 +496,7 @@
     state.auditorias = (JSON.parse(localStorage.getItem('nazaria_auditorias_v2') || '[]')).filter(a => !isIdDeleted(a.id));
     state.objetivos = JSON.parse(localStorage.getItem('nazaria_objetivos_v2') || '[]');
     state.liquidaciones = JSON.parse(localStorage.getItem('nazaria_liquidaciones_v2') || '[]');
-    state.adminObjSubtab = 'liq'; // 'liq' | 'plan'
+    state.adminObjSubtab = 'all'; // 'all' | 'liq' | 'plan'
   }
 
   // Helper para obtener y guardar la grilla habitual aislada por período y sucursal
@@ -6589,10 +6589,29 @@
   // LÓGICA DE NEGOCIO: OBJETIVOS & LIQUIDACIÓN COMERCIAL DUX
   // ==============================================================================
 
+  // --- HELPER: RENDERIZAR BOTONES RÁPIDOS DE PERÍODO EN PESTAÑAS DE OBJETIVOS ---
+  function renderObjPeriodPills() {
+    const available = getAvailablePeriods();
+    const current = state.currentPeriod;
+    ['store-obj-period-pills', 'admin-obj-period-pills'].forEach(containerId => {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      el.innerHTML = available.map(p => {
+        const isActive = p === current;
+        const cls = isActive
+          ? "px-2.5 py-1 rounded-md bg-black text-white shadow-2xs transition cursor-pointer"
+          : "px-2.5 py-1 rounded-md text-neutral-600 hover:text-black hover:bg-neutral-200/60 transition cursor-pointer";
+        return `<button type="button" onclick="window.app.changePeriod('${p}')" class="${cls}">📅 ${formatPeriodLabel(p)}</button>`;
+      }).join('');
+    });
+  }
+
   // --- SUBVISTA SUCURSAL: OBJETIVOS DEL MES & AVANCE ---
   function renderStoreObjetivos() {
     const storeCode = state.currentRole;
     if (!storeCode || storeCode === 'ADMIN') return;
+
+    renderObjPeriodPills();
 
     const currentPeriod = state.currentPeriod; // ej '2026-10'
     const badgeSuc = document.getElementById('store-obj-badge-suc');
@@ -6712,29 +6731,41 @@
 
   // --- SUBVISTA ADMIN: CONTROL DE LIQUIDACIÓN Y PROYECCIÓN ---
   function switchAdminObjSubtab(subtab) {
-    state.adminObjSubtab = subtab;
+    state.adminObjSubtab = subtab || 'all';
+    const btnAll = document.getElementById('btn-admin-obj-tab-all');
     const btnLiq = document.getElementById('btn-admin-obj-tab-liq');
     const btnPlan = document.getElementById('btn-admin-obj-tab-plan');
     const panelLiq = document.getElementById('admin-obj-subpanel-liq');
     const panelPlan = document.getElementById('admin-obj-subpanel-plan');
 
-    if (subtab === 'liq') {
-      if (btnLiq) btnLiq.className = "px-3 py-1.5 rounded-md bg-white text-neutral-900 shadow-sm transition";
-      if (btnPlan) btnPlan.className = "px-3 py-1.5 rounded-md text-neutral-500 hover:text-black transition";
+    const activeCls = "px-3 py-1.5 rounded-md bg-white text-neutral-900 shadow-sm transition cursor-pointer";
+    const inactiveCls = "px-3 py-1.5 rounded-md text-neutral-500 hover:text-black transition cursor-pointer";
+
+    if (btnAll) btnAll.className = state.adminObjSubtab === 'all' ? activeCls : inactiveCls;
+    if (btnPlan) btnPlan.className = state.adminObjSubtab === 'plan' ? activeCls : inactiveCls;
+    if (btnLiq) btnLiq.className = state.adminObjSubtab === 'liq' ? activeCls : inactiveCls;
+
+    renderObjPeriodPills();
+
+    if (state.adminObjSubtab === 'liq') {
       if (panelLiq) panelLiq.classList.remove('hidden');
       if (panelPlan) panelPlan.classList.add('hidden');
       renderAdminLiquidaciones();
-    } else {
-      if (btnLiq) btnLiq.className = "px-3 py-1.5 rounded-md text-neutral-500 hover:text-black transition";
-      if (btnPlan) btnPlan.className = "px-3 py-1.5 rounded-md bg-white text-neutral-900 shadow-sm transition";
+    } else if (state.adminObjSubtab === 'plan') {
       if (panelLiq) panelLiq.classList.add('hidden');
       if (panelPlan) panelPlan.classList.remove('hidden');
       renderAdminPlanObjetivos();
+    } else {
+      // 'all': Mostrar tanto Objetivos como Liquidación de Ventas
+      if (panelPlan) panelPlan.classList.remove('hidden');
+      if (panelLiq) panelLiq.classList.remove('hidden');
+      renderAdminPlanObjetivos();
+      renderAdminLiquidaciones();
     }
   }
 
   function renderAdminObjetivos() {
-    switchAdminObjSubtab(state.adminObjSubtab || 'liq');
+    switchAdminObjSubtab(state.adminObjSubtab || 'all');
   }
 
   function renderAdminLiquidaciones() {
@@ -6750,6 +6781,8 @@
     tbody.innerHTML = '';
 
     const currentPeriod = state.currentPeriod;
+    const periodBadgeLiq = document.getElementById('admin-liq-period-badge');
+    if (periodBadgeLiq) periodBadgeLiq.textContent = formatPeriodLabel(currentPeriod);
     const list = (state.liquidaciones || []).filter(l => l.periodo === currentPeriod);
 
     // Calcular totales
@@ -6954,6 +6987,8 @@
 
   function renderAdminPlanObjetivos() {
     const currentPeriod = state.currentPeriod;
+    const periodBadgePlan = document.getElementById('admin-plan-period-badge');
+    if (periodBadgePlan) periodBadgePlan.textContent = formatPeriodLabel(currentPeriod);
     const periodObjs = (state.objetivos || []).filter(o => o.periodo === currentPeriod);
     const tomTotal = periodObjs.find(o => o.sucursal_codigo === 'TOM' && o.colab_id === 'TOTAL_LOCAL');
     const maschTotal = periodObjs.find(o => o.sucursal_codigo === 'MASCHWITZ' && o.colab_id === 'TOTAL_LOCAL');
@@ -7063,6 +7098,8 @@
 
   async function approveLiquidacion() {
     const currentPeriod = state.currentPeriod;
+    const periodBadgeLiq = document.getElementById('admin-liq-period-badge');
+    if (periodBadgeLiq) periodBadgeLiq.textContent = formatPeriodLabel(currentPeriod);
     const list = (state.liquidaciones || []).filter(l => l.periodo === currentPeriod);
 
     if (list.length === 0) {
@@ -7102,6 +7139,8 @@
 
   function exportLiquidacionTSV() {
     const currentPeriod = state.currentPeriod;
+    const periodBadgeLiq = document.getElementById('admin-liq-period-badge');
+    if (periodBadgeLiq) periodBadgeLiq.textContent = formatPeriodLabel(currentPeriod);
     const list = (state.liquidaciones || []).filter(l => l.periodo === currentPeriod);
 
     if (list.length === 0) {

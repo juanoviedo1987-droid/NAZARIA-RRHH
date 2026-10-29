@@ -56,7 +56,7 @@
   <script src="config.js?v=21.0"></script>
 
   <!-- Custom Styles SOPs Theme -->
-  <link rel="stylesheet" href="styles.css?v=24.1">
+  <link rel="stylesheet" href="styles.css?v=24.2">
 </head>
 <body class="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900 font-['Inter'] antialiased">
 
@@ -238,6 +238,7 @@
         <button id="tab-store-auditoria" onclick="window.app.switchStoreTab('auditoria')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
           <i data-lucide="clipboard-check" class="w-4 h-4"></i>
           <span>6. Auditoría Semanal</span>
+          <span class="px-1.5 py-0.5 text-[9px] font-extrabold rounded bg-amber-100 text-amber-900 border border-amber-300 uppercase">Próx.</span>
         </button>
         <button id="tab-store-objetivos" onclick="window.app.switchStoreTab('objetivos')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
           <i data-lucide="target" class="w-4 h-4"></i>
@@ -840,9 +841,55 @@
       </div>
 
       <!-- ===================================================================
-           SUBVISTA LOCAL 6: AUDITORÍA SEMANAL DE JUEVES
+           SUBVISTA LOCAL 6: AUDITORÍA SEMANAL DE JUEVES (PRÓXIMAMENTE)
            =================================================================== -->
       <div id="subview-store-auditoria" class="hidden flex flex-col gap-6">
+
+        <!-- Banner Principal PRÓXIMAMENTE con resumen de arquitectura -->
+        <div class="bg-white border-2 border-[#E6D5C3] rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-neutral-200">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-black">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 text-[10px] font-black rounded-full bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wider">PRÓXIMAMENTE</span>
+                  <h3 class="font-bold text-neutral-900 text-base sm:text-lg">Auditoría Semanal de Jueves</h3>
+                </div>
+                <p class="text-xs text-neutral-500 mt-0.5">Este módulo ya está diseñado y estructurado. Se habilitará próximamente para el control operativo de los jueves.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5">
+              <div class="font-bold text-neutral-900 mb-1">💵 1. Arqueo Físico de Caja</div>
+              <p class="text-[11px] text-neutral-500">Recuento de cajón de cambio + sobres de retiro vs saldo teórico en Dux ERP.</p>
+            </div>
+            <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5">
+              <div class="font-bold text-neutral-900 mb-1">📦 2. Muestreo de 10 Artículos</div>
+              <p class="text-[11px] text-neutral-500">Control selectivo rotativo de pares físicos en estantería contra stock Dux.</p>
+            </div>
+            <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5">
+              <div class="font-bold text-neutral-900 mb-1">🛍️ 3. Insumos y Bolsas</div>
+              <p class="text-[11px] text-neutral-500">Conteo de bolsas medianas, grandes y rollos posnet con alerta de reposición.</p>
+            </div>
+            <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5">
+              <div class="font-bold text-neutral-900 mb-1">🚨 4. Estado del Local</div>
+              <p class="text-[11px] text-neutral-500">Novedades de puntualidad, aperturas, mantenimiento e instalaciones con envío a Telegram.</p>
+            </div>
+          </div>
+
+          <details class="group border border-neutral-200 rounded-xl bg-[#FAF9F6] overflow-hidden">
+            <summary class="px-4 py-3 text-xs font-bold text-neutral-800 cursor-pointer flex items-center justify-between hover:bg-neutral-100 transition select-none">
+              <span class="flex items-center gap-2">
+                <i data-lucide="eye" class="w-4 h-4 text-neutral-600"></i>
+                <span>Ver formulario y estructura técnica ya armada (Vista Previa)</span>
+              </span>
+              <span class="text-[11px] text-neutral-500 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div class="p-4 bg-white border-t border-neutral-200 flex flex-col gap-6">
         
         <!-- Tarjeta Cabecera de Auditoría -->
         <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm">
@@ -1092,6 +1139,9 @@
             </table>
           </div>
         </div>
+            </div>
+          </details>
+        </div>
 
       </div>
 
@@ -1106,11 +1156,14 @@
             <div>
               <div class="flex items-center gap-2">
                 <span id="store-obj-badge-suc" class="px-2 py-0.5 text-[10px] font-bold rounded bg-black text-white uppercase tracking-wider">SUCURSAL</span>
-                <h3 class="font-bold text-neutral-900 text-base sm:text-lg">Objetivos del Mes & Escala Comercial</h3>
+                <h3 class="font-bold text-neutral-900 text-base sm:text-lg">Objetivos del Mes & Ventas Logradas</h3>
               </div>
-              <p class="text-xs text-neutral-500 mt-1">Metas Nivel 1 y Nivel 2 proyectadas para el local y seguimiento individual.</p>
+              <p class="text-xs text-neutral-500 mt-1">Metas Nivel 1 y Nivel 2 proyectadas para el local y seguimiento individual por período.</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+              <div id="store-obj-period-pills" class="inline-flex p-1 bg-neutral-100 rounded-lg text-xs font-bold gap-1">
+                <!-- Botones rápidos de mes inyectados dinámicamente -->
+              </div>
               <span id="store-obj-status-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1.5">
                 <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
                 <span>Metas Oficiales Aprobadas</span>
@@ -1274,6 +1327,7 @@
         <button id="tab-admin-auditorias" onclick="window.app.switchAdminTab('auditorias')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
           <i data-lucide="clipboard-check" class="w-4 h-4"></i>
           <span>7. Auditorías Semanales</span>
+          <span class="px-1.5 py-0.5 text-[9px] font-extrabold rounded bg-amber-100 text-amber-900 border border-amber-300 uppercase">Próx.</span>
         </button>
         <button id="tab-admin-objetivos" onclick="window.app.switchAdminTab('objetivos')" class="pb-3 text-xs sm:text-sm font-semibold text-neutral-500 hover:text-black flex items-center gap-2 whitespace-nowrap transition tap-active">
           <i data-lucide="target" class="w-4 h-4"></i>
@@ -1665,71 +1719,124 @@
       </div>
 
       <!-- ===================================================================
-           SUBVISTA ADMIN 7: HISTORIAL DE AUDITORÍAS SEMANALES
+           SUBVISTA ADMIN 7: HISTORIAL DE AUDITORÍAS SEMANALES (PRÓXIMAMENTE)
            =================================================================== -->
       <div id="subview-admin-auditorias" class="hidden flex flex-col gap-6">
-        <div class="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 shadow-sm">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-neutral-200 gap-3">
-            <div>
-              <h3 class="font-bold text-neutral-900 text-sm sm:text-base flex items-center gap-2">
-                Historial de Auditorías de Jueves
-                <span class="text-[10px] font-bold bg-[#E6D5C3] text-neutral-900 px-2 py-0.5 rounded">Control Semanal</span>
-              </h3>
-              <p class="text-xs text-neutral-500 mt-0.5">Control de arqueos de caja, muestreos de stock en 10 artículos, reposición de bolsas y novedades.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-neutral-600">Filtrar:</span>
-              <select id="select-admin-audit-filter" onchange="window.app.renderAdminAuditorias()" class="bg-[#FAF9F6] border border-neutral-200 rounded-lg px-2.5 py-1 text-xs font-bold text-neutral-800 focus:outline-none">
-                <option value="ALL">Todas las sucursales</option>
-                <option value="TOM">TOM</option>
-                <option value="MASCHWITZ">Maschwitz</option>
-              </select>
+        <div class="bg-white border-2 border-[#E6D5C3] rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-neutral-200">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-[#E6D5C3] text-neutral-900 flex items-center justify-center font-black">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 text-[10px] font-black rounded-full bg-amber-100 text-amber-900 border border-amber-300 uppercase tracking-wider">PRÓXIMAMENTE</span>
+                  <h3 class="font-bold text-neutral-900 text-base sm:text-lg">Control de Auditorías Semanales de Jueves</h3>
+                </div>
+                <p class="text-xs text-neutral-500 mt-0.5">El módulo y su base de datos están listos y preservados para activarse cuando inicie la rutina de los jueves.</p>
+              </div>
             </div>
           </div>
 
-          <div class="overflow-x-auto mt-4">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr class="border-b border-neutral-200 text-neutral-500 font-semibold bg-[#FAF9F6]">
-                  <th class="py-2.5 px-3">Fecha & Hora</th>
-                  <th class="py-2.5 px-3">Sucursal</th>
-                  <th class="py-2.5 px-3">Encargada</th>
-                  <th class="py-2.5 px-3 text-right">Efectivo Físico</th>
-                  <th class="py-2.5 px-3 text-center">Dif. Caja</th>
-                  <th class="py-2.5 px-3 text-center">Muestreo Stock</th>
-                  <th class="py-2.5 px-3 text-center">Bolsas / Insumos</th>
-                  <th class="py-2.5 px-3 text-center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-admin-auditorias">
-                <!-- Inyectado dinámicamente -->
-              </tbody>
-            </table>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5">
+              <div class="font-bold text-neutral-900 mb-1">💵 1. Arqueo Físico vs Dux</div>
+              <p class="text-[11px] text-neutral-500">Efectivo en cajón + sobres de retiro comparado con el saldo teórico en Dux y justificación de desvíos.</p>
+            </div>
+            <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5">
+              <div class="font-bold text-neutral-900 mb-1">📦 2. Muestreo 10 Artículos</div>
+              <p class="text-[11px] text-neutral-500">Conteo rotativo semanal de 10 modelos en estantería/depósito contra stock de sistema.</p>
+            </div>
+            <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5">
+              <div class="font-bold text-neutral-900 mb-1">🛍️ 3. Insumos y Bolsas</div>
+              <p class="text-[11px] text-neutral-500">Stock exacto de bolsas medianas, grandes y otros insumos con estado [OK / Pedir].</p>
+            </div>
+            <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-3.5">
+              <div class="font-bold text-neutral-900 mb-1">📲 4. Alerta Telegram + Nube</div>
+              <p class="text-[11px] text-neutral-500">Guardado automático en tabla `auditorias_semanales` y resumen ejecutivo al grupo de Telegram.</p>
+            </div>
           </div>
+
+          <details class="group border border-neutral-200 rounded-xl bg-[#FAF9F6] overflow-hidden">
+            <summary class="px-4 py-3 text-xs font-bold text-neutral-800 cursor-pointer flex items-center justify-between hover:bg-neutral-100 transition select-none">
+              <span class="flex items-center gap-2">
+                <i data-lucide="eye" class="w-4 h-4 text-neutral-600"></i>
+                <span>Ver panel de historial y estructura armada (Vista Previa)</span>
+              </span>
+              <span class="text-[11px] text-neutral-500 group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div class="p-4 bg-white border-t border-neutral-200">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-neutral-200 gap-3">
+                <div>
+                  <h3 class="font-bold text-neutral-900 text-sm sm:text-base flex items-center gap-2">
+                    Historial de Auditorías de Jueves
+                    <span class="text-[10px] font-bold bg-[#E6D5C3] text-neutral-900 px-2 py-0.5 rounded">Control Semanal</span>
+                  </h3>
+                  <p class="text-xs text-neutral-500 mt-0.5">Control de arqueos de caja, muestreos de stock en 10 artículos, reposición de bolsas y novedades.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-neutral-600">Filtrar:</span>
+                  <select id="select-admin-audit-filter" onchange="window.app.renderAdminAuditorias()" class="bg-[#FAF9F6] border border-neutral-200 rounded-lg px-2.5 py-1 text-xs font-bold text-neutral-800 focus:outline-none">
+                    <option value="ALL">Todas las sucursales</option>
+                    <option value="TOM">TOM</option>
+                    <option value="MASCHWITZ">Maschwitz</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto mt-4">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="border-b border-neutral-200 text-neutral-500 font-semibold bg-[#FAF9F6]">
+                      <th class="py-2.5 px-3">Fecha & Hora</th>
+                      <th class="py-2.5 px-3">Sucursal</th>
+                      <th class="py-2.5 px-3">Encargada</th>
+                      <th class="py-2.5 px-3 text-right">Efectivo Físico</th>
+                      <th class="py-2.5 px-3 text-center">Dif. Caja</th>
+                      <th class="py-2.5 px-3 text-center">Muestreo Stock</th>
+                      <th class="py-2.5 px-3 text-center">Bolsas / Insumos</th>
+                      <th class="py-2.5 px-3 text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-admin-auditorias">
+                    <!-- Inyectado dinámicamente -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
 
       <!-- SUBVISTA ADMIN 8: OBJETIVOS & CIERRES COMERCIALES DUX -->
       <div id="subview-admin-objetivos" class="hidden flex flex-col gap-6">
         
-        <!-- Header con Acciones y Selector de Período -->
-        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <!-- Header con Acciones y Selector Rápido de Período -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-2">
               <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-black text-white uppercase tracking-wider">GESTIÓN COMERCIAL</span>
-              <h3 class="font-bold text-neutral-900 text-base sm:text-lg">Cierre de Ventas Dux & Proyección de Objetivos</h3>
+              <h3 class="font-bold text-neutral-900 text-base sm:text-lg">Objetivos Mensuales & Cierre de Ventas Dux</h3>
             </div>
-            <p class="text-xs text-neutral-500 mt-1">Liquidación oficial de 12 columnas (0,3%/0,6%/0,9%, Plus Caja y Pozo) y proyección ponderada por horas.</p>
+            <p class="text-xs text-neutral-500 mt-1">Seleccioná el mes para ver o publicar los objetivos por vendedora y controlar la liquidación de ventas y comisiones.</p>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2.5">
+          <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-between lg:justify-end">
+            <!-- Selector Rápido de Período dentro de Objetivos -->
+            <div id="admin-obj-period-pills" class="inline-flex p-1 bg-[#FAF9F6] border border-neutral-200 rounded-lg text-xs font-bold gap-1">
+              <!-- Inyectado dinámicamente (Septiembre 2026 | Octubre 2026) -->
+            </div>
+
             <!-- Selector de Sub-pestaña interna -->
             <div class="inline-flex p-1 bg-neutral-100 rounded-lg text-xs font-bold">
-              <button id="btn-admin-obj-tab-liq" onclick="window.app.switchAdminObjSubtab('liq')" class="px-3 py-1.5 rounded-md bg-white text-neutral-900 shadow-sm transition">
-                1. Liquidación de Ventas
+              <button id="btn-admin-obj-tab-all" onclick="window.app.switchAdminObjSubtab('all')" class="px-3 py-1.5 rounded-md bg-white text-neutral-900 shadow-sm transition">
+                Vista Completa
               </button>
               <button id="btn-admin-obj-tab-plan" onclick="window.app.switchAdminObjSubtab('plan')" class="px-3 py-1.5 rounded-md text-neutral-500 hover:text-black transition">
-                2. Planificar Nuevos Objetivos
+                1. Objetivos del Mes
+              </button>
+              <button id="btn-admin-obj-tab-liq" onclick="window.app.switchAdminObjSubtab('liq')" class="px-3 py-1.5 rounded-md text-neutral-500 hover:text-black transition">
+                2. Liquidación Ventas
               </button>
             </div>
 
@@ -1745,8 +1852,9 @@
         <div id="admin-obj-subpanel-liq" class="flex flex-col gap-6">
           <div class="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col gap-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-neutral-200 gap-2">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-neutral-700 uppercase tracking-wider">Tabla Oficial de Liquidación (Cierre del Mes)</span>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-bold text-neutral-700 uppercase tracking-wider">Cierre de Ventas & Liquidación Comercial</span>
+                <span id="admin-liq-period-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E6D5C3] text-neutral-900">Período</span>
                 <span id="admin-liq-status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-700">Estado</span>
               </div>
               <div class="flex items-center gap-2">
@@ -1813,12 +1921,15 @@
         </div>
 
         <!-- PANEL B: PLANIFICACIÓN Y PROYECCIÓN DE NUEVOS OBJETIVOS -->
-        <div id="admin-obj-subpanel-plan" class="hidden flex flex-col gap-6">
+        <div id="admin-obj-subpanel-plan" class="flex flex-col gap-6">
           <div class="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col gap-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-neutral-200 gap-2">
               <div>
-                <h4 class="text-xs font-bold text-neutral-800 uppercase tracking-wider">Definición de Metas para el Nuevo Mes</h4>
-                <p class="text-[11px] text-neutral-500">Ajustá la meta global por tienda y la app reparte proporcional a la carga horaria.</p>
+                <div class="flex items-center gap-2">
+                  <h4 class="text-xs font-bold text-neutral-800 uppercase tracking-wider">Metas y Objetivos del Mes por Vendedora</h4>
+                  <span id="admin-plan-period-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E6D5C3] text-neutral-900">Período</span>
+                </div>
+                <p class="text-[11px] text-neutral-500 mt-0.5">Metas Nivel 1 y Nivel 2 asignadas proporcionalmente según horas reales trabajadas.</p>
               </div>
               <div class="flex items-center gap-2">
                 <button onclick="window.app.recalcPlanObjetivos()" class="px-3 py-1 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold flex items-center gap-1 transition cursor-pointer">
@@ -2341,6 +2452,6 @@
   <div id="floating-info-tooltip" class="hidden fixed z-[9999] pointer-events-none transition-opacity duration-150 bg-white border border-neutral-900 rounded-xl p-3.5 shadow-2xl text-xs text-neutral-900 max-w-xs"></div>
 
   <!-- Scripts -->
-  <script src="app.js?v=24.1"></script>
+  <script src="app.js?v=24.2"></script>
 </body>
 </html>
