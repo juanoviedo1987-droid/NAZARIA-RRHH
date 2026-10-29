@@ -35,7 +35,10 @@ async function checkAll() {
     'retiros_calzado',
     'horarios_sucursal',
     'horarios_modificaciones',
-    'fechas_especiales'
+    'fechas_especiales',
+    'auditorias_semanales',
+    'objetivos_mensuales',
+    'liquidaciones_comerciales'
   ];
 
   console.log('=== CONSULTANDO SUPABASE EN TIEMPO REAL ===\n');

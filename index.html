@@ -56,7 +56,7 @@
   <script src="config.js?v=21.0"></script>
 
   <!-- Custom Styles SOPs Theme -->
-  <link rel="stylesheet" href="styles.css?v=24.0">
+  <link rel="stylesheet" href="styles.css?v=24.1">
 </head>
 <body class="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900 font-['Inter'] antialiased">
 
@@ -1061,6 +1061,38 @@
           </form>
         </div>
 
+        <!-- Historial de Auditorías Enviadas por esta Sucursal -->
+        <div class="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 shadow-sm">
+          <div class="flex items-center justify-between pb-3 border-b border-neutral-200">
+            <div>
+              <h4 class="font-bold text-neutral-900 text-sm">Auditorías Enviadas de la Sucursal</h4>
+              <p class="text-xs text-neutral-500">Registro histórico de los controles semanales enviados desde este local.</p>
+            </div>
+            <span class="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-medium">
+              <i data-lucide="cloud-check" class="w-3 h-3 text-emerald-600"></i> Sincronizado
+            </span>
+          </div>
+
+          <div class="overflow-x-auto mt-3">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-neutral-200 text-neutral-500 font-semibold bg-[#FAF9F6]">
+                  <th class="py-2 px-3">Fecha & Hora</th>
+                  <th class="py-2 px-3">Auditora</th>
+                  <th class="py-2 px-3 text-right">Efectivo Físico</th>
+                  <th class="py-2 px-3 text-center">Dif. Caja</th>
+                  <th class="py-2 px-3 text-center">Stock</th>
+                  <th class="py-2 px-3 text-center">Insumos</th>
+                  <th class="py-2 px-3 text-center">Detalle</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-store-auditorias-historial">
+                <!-- Inyectado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
       <!-- ===================================================================
@@ -1650,7 +1682,7 @@
               <select id="select-admin-audit-filter" onchange="window.app.renderAdminAuditorias()" class="bg-[#FAF9F6] border border-neutral-200 rounded-lg px-2.5 py-1 text-xs font-bold text-neutral-800 focus:outline-none">
                 <option value="ALL">Todas las sucursales</option>
                 <option value="TOM">TOM</option>
-                <option value="Maschwitz">Maschwitz</option>
+                <option value="MASCHWITZ">Maschwitz</option>
               </select>
             </div>
           </div>
@@ -2309,6 +2341,6 @@
   <div id="floating-info-tooltip" class="hidden fixed z-[9999] pointer-events-none transition-opacity duration-150 bg-white border border-neutral-900 rounded-xl p-3.5 shadow-2xl text-xs text-neutral-900 max-w-xs"></div>
 
   <!-- Scripts -->
-  <script src="app.js?v=24.0"></script>
+  <script src="app.js?v=24.1"></script>
 </body>
 </html>

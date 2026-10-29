@@ -651,7 +651,7 @@
                 });
               }
             } catch(e) {}
-          } else {
+          } else if (r.sucursal_codigo !== 'WEB' && r.evento !== 'CUPON_RULETA') {
             regularFechas.push({
               id: r.id,
               sucursal: r.sucursal_codigo,
@@ -4930,6 +4930,7 @@
     }
 
     calcArqueoDiferencia();
+    renderStoreAuditoriasHistorial();
     initLucideIcons();
   }
 
@@ -4980,9 +4981,14 @@
     const tbody = document.getElementById('tbody-audit-stock');
     if (!tbody) return;
     Array.from(tbody.children).forEach((tr, idx) => {
+      const rowNum = idx + 1;
       const numCell = tr.querySelector('td:first-child');
-      if (numCell) numCell.textContent = idx + 1;
-      tr.id = `audit-stock-row-${idx + 1}`;
+      if (numCell) numCell.textContent = rowNum;
+      tr.id = `audit-stock-row-${rowNum}`;
+      const fisIn = tr.querySelector('.audit-stock-fisico');
+      const duxIn = tr.querySelector('.audit-stock-dux');
+      if (fisIn) fisIn.setAttribute('oninput', `window.app.calcStockDiferencia(${rowNum})`);
+      if (duxIn) duxIn.setAttribute('oninput', `window.app.calcStockDiferencia(${rowNum})`);
     });
   }
 
@@ -5161,6 +5167,7 @@
 
       showToast('Auditoría del Jueves enviada y registrada con éxito.', 'success');
 
+      renderStoreAuditoriasHistorial();
       if (state.currentRole === 'ADMIN') {
         renderAdminAuditorias();
       }
@@ -5289,6 +5296,70 @@
     return { ok: false, fallback: true };
   }
 
+  // --- SUCURSAL: RENDERIZAR HISTORIAL DE AUDITORÍAS DEL LOCAL ---
+  function renderStoreAuditoriasHistorial() {
+    const tbody = document.getElementById('tbody-store-auditorias-historial');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const storeCode = (state.currentRole || 'TOM').toUpperCase();
+    const list = [...(state.auditorias || [])].filter(a => (a.sucursal || '').toUpperCase() === storeCode);
+
+    if (list.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-6 text-neutral-400">
+            Aún no hay auditorías semanales enviadas desde ${storeCode}.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    list.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || '') || (b.creado_en || '').localeCompare(a.creado_en || ''));
+
+    list.forEach(item => {
+      const difCaja = Number(item.caja_diferencia) || 0;
+      let badgeCaja = '<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800">$0 OK</span>';
+      if (difCaja > 0) {
+        badgeCaja = `<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-100 text-amber-900">+${formatCurrency(difCaja)}</span>`;
+      } else if (difCaja < 0) {
+        badgeCaja = `<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-100 text-red-800">-${formatCurrency(Math.abs(difCaja))}</span>`;
+      }
+
+      const desviosStock = (item.stock_items || []).filter(s => s.diferencia !== 0);
+      const badgeStock = desviosStock.length === 0
+        ? '<span class="text-emerald-700 font-bold text-xs">OK</span>'
+        : `<span class="text-amber-800 font-bold text-xs">${desviosStock.length} desvío(s)</span>`;
+
+      const medPedir = item.insumos?.bolsas_medianas?.estado === 'Pedir';
+      const grdPedir = item.insumos?.bolsas_grandes?.estado === 'Pedir';
+      const badgeInsumos = (medPedir || grdPedir)
+        ? '<span class="text-amber-700 font-bold text-xs">⚠️ Pedir</span>'
+        : '<span class="text-emerald-700 font-bold text-xs">OK</span>';
+
+      const tr = document.createElement('tr');
+      tr.className = "border-b border-neutral-100 hover:bg-[#FAF9F6] transition";
+      tr.innerHTML = `
+        <td class="py-2.5 px-3">
+          <div class="font-bold text-neutral-900">${formatDateShort(item.fecha)}</div>
+          <div class="text-[10px] text-neutral-400 font-mono">${item.creado_en ? new Date(item.creado_en).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+        </td>
+        <td class="py-2.5 px-3 font-semibold text-neutral-800">${item.responsable || '-'}</td>
+        <td class="py-2.5 px-3 text-right font-mono font-bold text-neutral-900">${formatCurrency(item.caja_total_fisico || 0)}</td>
+        <td class="py-2.5 px-3 text-center">${badgeCaja}</td>
+        <td class="py-2.5 px-3 text-center">${badgeStock}</td>
+        <td class="py-2.5 px-3 text-center">${badgeInsumos}</td>
+        <td class="py-2.5 px-3 text-center">
+          <button type="button" onclick="window.app.viewAuditoriaDetail('${item.id}')" class="px-2.5 py-1 rounded bg-black hover:bg-neutral-800 text-white text-[11px] font-bold transition cursor-pointer">
+            Ver Detalle
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
   // --- ADMIN: RENDERIZAR TABLA DE HISTORIAL DE AUDITORÍAS ---
   function renderAdminAuditorias() {
     const tbody = document.getElementById('tbody-admin-auditorias');
@@ -5298,7 +5369,7 @@
     const filter = document.getElementById('select-admin-audit-filter')?.value || 'ALL';
     let list = [...state.auditorias];
     if (filter !== 'ALL') {
-      list = list.filter(a => a.sucursal === filter);
+      list = list.filter(a => (a.sucursal || '').toUpperCase() === filter.toUpperCase());
     }
 
     if (list.length === 0) {
@@ -5472,7 +5543,12 @@
     }
 
     if (btnDel) {
-      btnDel.onclick = () => handleDeleteAuditoria(audit.id);
+      if (state.currentRole === 'ADMIN') {
+        btnDel.classList.remove('hidden');
+        btnDel.onclick = () => handleDeleteAuditoria(audit.id);
+      } else {
+        btnDel.classList.add('hidden');
+      }
     }
 
     if (modal) modal.classList.remove('hidden');
@@ -6532,6 +6608,8 @@
     // Buscar ÚNICAMENTE objetivos aprobados y publicados ('publicado') del período y sucursal (Human-in-the-Loop)
     const storeObjs = (state.objetivos || []).filter(o => o.sucursal_codigo === storeCode && o.periodo === currentPeriod && o.estado === 'publicado');
     const localObj = storeObjs.find(o => o.colab_id === 'TOTAL_LOCAL') || {};
+    const storeLiqs = (state.liquidaciones || []).filter(l => l.sucursal_codigo === storeCode && l.periodo === currentPeriod && l.estado === 'aprobado');
+    const totalVentaRealLocal = storeLiqs.reduce((acc, l) => acc + Number(l.venta_neta || 0), 0);
 
     const metaN1 = Number(localObj.objetivo_nivel_1 || 0);
     const metaN2 = Number(localObj.objetivo_nivel_2 || 0);
@@ -6539,14 +6617,26 @@
     if (n1El) n1El.textContent = metaN1 > 0 ? formatCurrency(metaN1) : 'Pendiente de publicación';
     if (n2El) n2El.textContent = metaN2 > 0 ? formatCurrency(metaN2) : 'Pendiente de publicación';
 
+    if (localLabel) {
+      if (totalVentaRealLocal > 0 && metaN1 > 0) {
+        const porcLocal = ((totalVentaRealLocal / metaN1) * 100).toFixed(1);
+        localLabel.innerHTML = `TOTAL LOCAL ${storeCode} (${formatPeriodLabel(currentPeriod)}) · <span class="text-emerald-700">Venta Real: ${formatCurrency(totalVentaRealLocal)} (${porcLocal}%)</span>`;
+      } else {
+        localLabel.textContent = `TOTAL LOCAL ${storeCode} (${formatPeriodLabel(currentPeriod)})`;
+      }
+    }
+
     if (statusBadge) {
       const isPublicado = localObj.estado === 'publicado' && metaN1 > 0;
+      const isCerrado = storeLiqs.length > 0;
       statusBadge.className = isPublicado 
         ? "px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1.5"
         : "px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 flex items-center gap-1.5";
-      statusBadge.innerHTML = isPublicado
-        ? `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>Metas Oficiales Aprobadas</span>`
-        : `<i data-lucide="clock" class="w-3.5 h-3.5"></i><span>Pendiente de Aprobación</span>`;
+      statusBadge.innerHTML = isCerrado
+        ? `<i data-lucide="award" class="w-3.5 h-3.5"></i><span>Mes Cerrado & Liquidado</span>`
+        : (isPublicado
+          ? `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>Metas Oficiales Aprobadas</span>`
+          : `<i data-lucide="clock" class="w-3.5 h-3.5"></i><span>Pendiente de Aprobación</span>`);
     }
 
     if (!container) return;
@@ -6569,6 +6659,25 @@
       const colab = state.colaboradoras.find(c => c.id === o.colab_id) || (o.colab_id === 'c-martu_masch' ? getMartuMasch() : null);
       const shortName = o.nombre_concepto || getColabShortName(o.colab_id, colab?.nombre_completo || 'Colaboradora');
       const rolTxt = o.rol || colab?.categoria || 'Vendedora';
+      const liqColab = storeLiqs.find(l => l.colab_id === o.colab_id);
+
+      let cumplimientoHtml = '';
+      if (liqColab) {
+        const alc = Number(liqColab.porc_alcance || 0);
+        const alcColor = alc >= 95 ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-neutral-50 border-neutral-200 text-neutral-800';
+        cumplimientoHtml = `
+          <div class="mt-1 pt-2 border-t border-dashed border-neutral-200 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg border ${alcColor}">
+              <span class="font-bold">✅ Venta Lograda:</span>
+              <span class="font-mono font-black">${formatCurrency(liqColab.venta_neta || 0)} (${alc}%)</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] px-1 text-neutral-600">
+              <span>${liqColab.estado_premio || 'Cierre mensual'}</span>
+              <span class="font-mono font-bold text-emerald-700">Premio: ${formatCurrency(liqColab.total_liquidado || 0)}</span>
+            </div>
+          </div>
+        `;
+      }
 
       const card = document.createElement('div');
       card.className = "bg-white border border-neutral-200 rounded-xl p-4 shadow-sm flex flex-col gap-3 hover:border-neutral-400 transition";
@@ -6592,6 +6701,7 @@
             <span class="text-amber-900 font-medium">🚀 Nivel 2 (Superación):</span>
             <span class="font-mono font-black text-amber-950">${formatCurrency(o.objetivo_nivel_2 || 0)}</span>
           </div>
+          ${cumplimientoHtml}
         </div>
       `;
       container.appendChild(card);
@@ -6679,10 +6789,18 @@
     }
 
     if (list.length === 0) {
+      const prevP = getPrevPeriodString(currentPeriod);
+      const hasPrevLiq = (state.liquidaciones || []).some(l => l.periodo === prevP);
       tbody.innerHTML = `
         <tr>
-          <td colspan="12" class="py-8 text-center text-xs text-neutral-400">
-            No hay liquidación comercial procesada para el período ${formatPeriodLabel(currentPeriod)}. Podés consultar Dux ERP con el botón superior.
+          <td colspan="12" class="py-8 text-center text-xs text-neutral-500">
+            <div class="flex flex-col items-center gap-3">
+              <span>El período <strong>${formatPeriodLabel(currentPeriod)}</strong> está en curso y aún no tiene liquidación de cierre procesada.</span>
+              <div class="flex flex-wrap items-center justify-center gap-2">
+                ${hasPrevLiq ? `<button type="button" onclick="window.app.changePeriod('${prevP}')" class="px-3.5 py-2 rounded-lg bg-[#E6D5C3] hover:bg-[#d8c2ad] text-neutral-900 font-bold text-xs transition cursor-pointer">📊 Ver Liquidación Cerrada de ${formatPeriodLabel(prevP)}</button>` : ''}
+                <button type="button" onclick="window.app.switchAdminObjSubtab('plan')" class="px-3.5 py-2 rounded-lg bg-black hover:bg-neutral-800 text-white font-bold text-xs transition cursor-pointer">🎯 Ver / Editar Objetivos de ${formatPeriodLabel(currentPeriod)}</button>
+              </div>
+            </div>
           </td>
         </tr>
       `;
@@ -6788,9 +6906,12 @@
     const currentPeriod = state.currentPeriod;
 
     // LÓGICA TOM ponderada con horas reales trabajadas en el mes anterior (Planilla de la App):
+    const colabCande = state.colaboradoras.find(c => c.id === 'c-cande');
+    const candeActiva = currentPeriod === '2026-09' && (!colabCande || isColaboradoraActivaEnPeriodo(colabCande, currentPeriod));
+
     const hsSofi = getRealWeeklyHoursFromPrevMonth('c-sofi', currentPeriod, 36);
     const hsEsme = getRealWeeklyHoursFromPrevMonth('c-esme', currentPeriod, 42);
-    const hsCande = getRealWeeklyHoursFromPrevMonth('c-cande', currentPeriod, 24);
+    const hsCande = candeActiva ? getRealWeeklyHoursFromPrevMonth('c-cande', currentPeriod, 24) : 0;
     const hsAnto = getRealWeeklyHoursFromPrevMonth('c-anto', currentPeriod, 24);
     const hsMartuTom = getRealWeeklyHoursFromPrevMonth('c-martu', currentPeriod, 12);
     const totHsTom = Math.round((hsSofi + hsEsme + hsCande + hsAnto + hsMartuTom) * 10) / 10;
@@ -6807,7 +6928,7 @@
       { id: 'TOTAL_LOCAL', sucursal: 'TOM', nombre: 'TOTAL LOCAL', rol: 'Local', hs: totHsTom, n1: tomN1, n2: tomN2, isLocal: true, estado: 'borrador' },
       { id: 'c-esme', sucursal: 'TOM', nombre: 'Esme Galarza', rol: 'Semi-Encargada', hs: hsEsme, n1: Math.round((tomN1 * pesoEsme / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoEsme / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
       { id: 'c-anto', sucursal: 'TOM', nombre: 'Antonella Bustamante', rol: 'Vendedora', hs: hsAnto, n1: Math.round((tomN1 * pesoAnto / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoAnto / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
-      { id: 'c-cande', sucursal: 'TOM', nombre: 'Candela Almiron', rol: 'Vendedora', hs: hsCande, n1: Math.round((tomN1 * pesoCande / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoCande / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
+      ...(candeActiva ? [{ id: 'c-cande', sucursal: 'TOM', nombre: 'Candela Almiron', rol: 'Vendedora', hs: hsCande, n1: Math.round((tomN1 * pesoCande / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoCande / sumaPesosTom) / 1000) * 1000, estado: 'borrador' }] : []),
       { id: 'c-sofi', sucursal: 'TOM', nombre: 'Sofía Barrientos', rol: 'Encargada', hs: hsSofi, n1: Math.round((tomN1 * pesoSofi / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoSofi / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
       { id: 'c-martu', sucursal: 'TOM', nombre: 'Martina Pinto', rol: 'Vendedora', hs: hsMartuTom, n1: Math.round((tomN1 * pesoMartuTom / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoMartuTom / sumaPesosTom) / 1000) * 1000, estado: 'borrador' }
     ];
