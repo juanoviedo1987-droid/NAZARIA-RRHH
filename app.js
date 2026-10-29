@@ -6579,6 +6579,7 @@
     renderAdminObjetivos,
     switchAdminObjSubtab,
     recalcPlanObjetivos,
+    onChangeLocalMetaInput,
     publishPlanObjetivos,
     approveLiquidacion,
     exportLiquidacionTSV,
@@ -6886,12 +6887,59 @@
     const prevPeriod = getPrevPeriodString(periodStr);
     const rec = state.cierres && state.cierres[`${prevPeriod}_${colabId}`];
     if (!rec) return defaultWeeklyHs;
-    const base = Number(rec.horas_base || 0);
+    // Usamos las horas físicas de salón base (defaultWeeklyHs * 4) menos vacaciones más adicionales del mes anterior
+    const physicalBaseMes = defaultWeeklyHs * 4;
     const vac = Number(rec.vacaciones_hs || 0);
     const adic = Number(rec.adicional_hs || 0);
-    const netaMes = Math.max(0, base - vac + adic);
-    if (netaMes <= 0) return defaultWeeklyHs;
-    return Math.round((netaMes / 4.33) * 10) / 10;
+    const netaSalonMes = Math.max(0, physicalBaseMes - vac + adic);
+    if (netaSalonMes <= 0) return defaultWeeklyHs;
+    return Math.round((netaSalonMes / 4) * 10) / 10;
+  }
+
+  function redistributeBranchFromCurrentHours(sucursal) {
+    if (!state._currentPlanPreview) return;
+    const isTom = sucursal === 'TOM';
+    const localN1 = Number(document.getElementById(isTom ? 'plan-tom-n1' : 'plan-masch-n1')?.value) || 0;
+    const localN2 = Number(document.getElementById(isTom ? 'plan-tom-n2' : 'plan-masch-n2')?.value) || 0;
+
+    const branchRows = state._currentPlanPreview.filter(r => r.sucursal === sucursal);
+    const localRow = branchRows.find(r => r.isLocal);
+    const staffRows = branchRows.filter(r => !r.isLocal);
+
+    const totalHs = Math.round(staffRows.reduce((s, r) => s + Number(r.hs || 0), 0) * 10) / 10;
+    const totalPeso = staffRows.reduce((s, r) => {
+      const h = Number(r.hs || 0);
+      return s + (r.id === 'c-sofi' ? h * 0.65 : h);
+    }, 0);
+
+    if (localRow) {
+      localRow.hs = totalHs;
+      localRow.n1 = localN1;
+      localRow.n2 = localN2;
+      localRow.estado = 'borrador';
+    }
+
+    if (totalPeso > 0) {
+      staffRows.forEach(r => {
+        const peso = r.id === 'c-sofi' ? Number(r.hs || 0) * 0.65 : Number(r.hs || 0);
+        r.n1 = Math.round((localN1 * peso / totalPeso) / 1000) * 1000;
+        r.n2 = Math.round((localN2 * peso / totalPeso) / 1000) * 1000;
+        r.estado = 'borrador';
+      });
+    }
+    renderPlanPreviewRows();
+  }
+
+  function onChangeLocalMetaInput(sucursal, field, val) {
+    const numVal = Number(val) || 0;
+    const isTom = sucursal === 'TOM';
+    if (field === 'n1') {
+      const n2El = document.getElementById(isTom ? 'plan-tom-n2' : 'plan-masch-n2');
+      if (n2El) {
+        n2El.value = Math.round((numVal * 1.18) / 1000) * 1000;
+      }
+    }
+    redistributeBranchFromCurrentHours(sucursal);
   }
 
   function renderPlanPreviewRows() {
@@ -6910,7 +6958,12 @@
         <td class="py-2.5 px-3 font-bold ${r.isLocal ? 'text-black' : 'text-neutral-700'}">${r.sucursal}</td>
         <td class="py-2.5 px-3 font-bold ${r.isLocal ? 'text-black' : 'text-neutral-900'}">${r.nombre}</td>
         <td class="py-2.5 px-3 text-[11px] text-neutral-500">${r.rol}</td>
-        <td class="py-2.5 px-2 text-center font-mono text-neutral-600">${r.hs} hs</td>
+        <td class="py-2.5 px-2 text-center font-mono text-neutral-600">
+          ${r.isLocal
+            ? `<span class="font-bold text-neutral-900">${r.hs} hs</span>`
+            : `<input type="number" step="0.5" min="0" value="${r.hs}" onchange="window.app._updatePlanItem(${idx}, 'hs', this.value)" class="w-16 text-center font-mono font-bold text-xs border border-neutral-200 rounded px-1 py-1 focus:border-black"> <span class="text-[10px] text-neutral-400">hs</span>`
+          }
+        </td>
         <td class="py-2.5 px-3 text-right">
           ${r.isLocal 
             ? `<span class="font-mono font-bold text-neutral-900">${formatCurrency(r.n1)}</span>`
@@ -6931,22 +6984,23 @@
     });
   }
 
-  function recalcPlanObjetivos() {
+  function recalcPlanObjetivos(mode = 'real') {
     const tomN1 = Number(document.getElementById('plan-tom-n1')?.value) || 0;
     const tomN2 = Number(document.getElementById('plan-tom-n2')?.value) || 0;
     const maschN1 = Number(document.getElementById('plan-masch-n1')?.value) || 0;
     const maschN2 = Number(document.getElementById('plan-masch-n2')?.value) || 0;
     const currentPeriod = state.currentPeriod;
+    const useReal = mode !== 'base';
 
-    // LÓGICA TOM ponderada con horas reales trabajadas en el mes anterior (Planilla de la App):
+    // LÓGICA TOM ponderada con horas reales trabajadas en el mes anterior o horas base de esquema:
     const colabCande = state.colaboradoras.find(c => c.id === 'c-cande');
     const candeActiva = currentPeriod === '2026-09' && (!colabCande || isColaboradoraActivaEnPeriodo(colabCande, currentPeriod));
 
-    const hsSofi = getRealWeeklyHoursFromPrevMonth('c-sofi', currentPeriod, 36);
-    const hsEsme = getRealWeeklyHoursFromPrevMonth('c-esme', currentPeriod, 42);
-    const hsCande = candeActiva ? getRealWeeklyHoursFromPrevMonth('c-cande', currentPeriod, 24) : 0;
-    const hsAnto = getRealWeeklyHoursFromPrevMonth('c-anto', currentPeriod, 24);
-    const hsMartuTom = getRealWeeklyHoursFromPrevMonth('c-martu', currentPeriod, 12);
+    const hsSofi = useReal ? getRealWeeklyHoursFromPrevMonth('c-sofi', currentPeriod, 36) : 36;
+    const hsEsme = useReal ? getRealWeeklyHoursFromPrevMonth('c-esme', currentPeriod, 40) : 42;
+    const hsCande = candeActiva ? (useReal ? getRealWeeklyHoursFromPrevMonth('c-cande', currentPeriod, 24) : 24) : 0;
+    const hsAnto = useReal ? getRealWeeklyHoursFromPrevMonth('c-anto', currentPeriod, 24) : 24;
+    const hsMartuTom = useReal ? getRealWeeklyHoursFromPrevMonth('c-martu', currentPeriod, 12) : 12;
     const totHsTom = Math.round((hsSofi + hsEsme + hsCande + hsAnto + hsMartuTom) * 10) / 10;
 
     // Sofía (Encargada TOM) pondera al 65% de sus horas frente a vendedora de salón
@@ -6959,18 +7013,18 @@
 
     const planTom = [
       { id: 'TOTAL_LOCAL', sucursal: 'TOM', nombre: 'TOTAL LOCAL', rol: 'Local', hs: totHsTom, n1: tomN1, n2: tomN2, isLocal: true, estado: 'borrador' },
-      { id: 'c-esme', sucursal: 'TOM', nombre: 'Esme Galarza', rol: 'Semi-Encargada', hs: hsEsme, n1: Math.round((tomN1 * pesoEsme / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoEsme / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
+      { id: 'c-esme', sucursal: 'TOM', nombre: 'Esmeralda Galarza', rol: 'Semi-Encargada', hs: hsEsme, n1: Math.round((tomN1 * pesoEsme / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoEsme / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
       { id: 'c-anto', sucursal: 'TOM', nombre: 'Antonella Bustamante', rol: 'Vendedora', hs: hsAnto, n1: Math.round((tomN1 * pesoAnto / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoAnto / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
       ...(candeActiva ? [{ id: 'c-cande', sucursal: 'TOM', nombre: 'Candela Almiron', rol: 'Vendedora', hs: hsCande, n1: Math.round((tomN1 * pesoCande / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoCande / sumaPesosTom) / 1000) * 1000, estado: 'borrador' }] : []),
       { id: 'c-sofi', sucursal: 'TOM', nombre: 'Sofía Barrientos', rol: 'Encargada', hs: hsSofi, n1: Math.round((tomN1 * pesoSofi / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoSofi / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
       { id: 'c-martu', sucursal: 'TOM', nombre: 'Martina Pinto', rol: 'Vendedora', hs: hsMartuTom, n1: Math.round((tomN1 * pesoMartuTom / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoMartuTom / sumaPesosTom) / 1000) * 1000, estado: 'borrador' }
     ];
 
-    // LÓGICA MASCHWITZ ponderada con horas reales trabajadas en el mes anterior:
-    const hsFlavia = getRealWeeklyHoursFromPrevMonth('c-flavia', currentPeriod, 27.5);
-    const hsJuli = getRealWeeklyHoursFromPrevMonth('c-juli', currentPeriod, 22);
-    const hsCami = getRealWeeklyHoursFromPrevMonth('c-cami', currentPeriod, 22);
-    const hsMartuMasch = getRealWeeklyHoursFromPrevMonth('c-martu_masch', currentPeriod, 5.5);
+    // LÓGICA MASCHWITZ ponderada con horas reales trabajadas en el mes anterior o horas base:
+    const hsFlavia = useReal ? getRealWeeklyHoursFromPrevMonth('c-flavia', currentPeriod, 27.5) : 27.5;
+    const hsJuli = useReal ? getRealWeeklyHoursFromPrevMonth('c-juli', currentPeriod, 22) : 22;
+    const hsCami = useReal ? getRealWeeklyHoursFromPrevMonth('c-cami', currentPeriod, 22) : 22;
+    const hsMartuMasch = useReal ? getRealWeeklyHoursFromPrevMonth('c-martu_masch', currentPeriod, 5.5) : 5.5;
     const sumaPesosMasch = Math.round((hsFlavia + hsJuli + hsCami + hsMartuMasch) * 10) / 10;
 
     const planMasch = [
@@ -6983,6 +7037,7 @@
 
     state._currentPlanPreview = [...planTom, ...planMasch];
     renderPlanPreviewRows();
+    showToast(useReal ? 'Reparto recalculado según horas reales del mes anterior.' : 'Reparto recalculado según horas semanales de esquema base.', 'info');
   }
 
   function renderAdminPlanObjetivos() {
@@ -7051,7 +7106,17 @@
 
   window.app._updatePlanItem = function(idx, field, val) {
     if (state._currentPlanPreview && state._currentPlanPreview[idx]) {
-      state._currentPlanPreview[idx][field] = Number(val) || 0;
+      const item = state._currentPlanPreview[idx];
+      item[field] = Number(val) || 0;
+      item.estado = 'borrador';
+      if (field === 'hs') {
+        redistributeBranchFromCurrentHours(item.sucursal);
+      } else if (field === 'n1') {
+        item.n2 = Math.round((item.n1 * 1.18) / 1000) * 1000;
+        renderPlanPreviewRows();
+      } else {
+        renderPlanPreviewRows();
+      }
     }
   };
 

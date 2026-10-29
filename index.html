@@ -56,7 +56,7 @@
   <script src="config.js?v=21.0"></script>
 
   <!-- Custom Styles SOPs Theme -->
-  <link rel="stylesheet" href="styles.css?v=24.2">
+  <link rel="stylesheet" href="styles.css?v=24.3">
 </head>
 <body class="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900 font-['Inter'] antialiased">
 
@@ -1848,12 +1848,108 @@
           </div>
         </div>
 
-        <!-- PANEL A: LIQUIDACIÓN OFICIAL DE VENTAS (12 COLUMNAS) -->
+        <!-- PANEL B (PASO 1): PLANIFICACIÓN Y PROYECCIÓN DE OBJETIVOS DEL MES -->
+        <div id="admin-obj-subpanel-plan" class="flex flex-col gap-6">
+          <div class="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-neutral-200 gap-2">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-black bg-black text-white uppercase">PASO 1</span>
+                  <h4 class="text-xs font-bold text-neutral-800 uppercase tracking-wider">Metas y Objetivos del Mes por Vendedora</h4>
+                  <span id="admin-plan-period-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E6D5C3] text-neutral-900">Período</span>
+                </div>
+                <p class="text-[11px] text-neutral-500 mt-0.5">Definí o ajustá las metas Nivel 1 y Nivel 2 de cada sucursal y vendedora. Al tocar "Publicar en Sucursales", quedan visibles para las encargadas.</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button onclick="window.app.recalcPlanObjetivos('real')" class="px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold flex items-center gap-1 transition cursor-pointer" title="Repartir según las horas reales cumplidas el mes anterior (descontando vacaciones y sumando adicionales)">
+                  <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
+                  <span>Repartir x Hs Reales</span>
+                </button>
+                <button onclick="window.app.recalcPlanObjetivos('base')" class="px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold flex items-center gap-1 transition cursor-pointer" title="Repartir según las horas semanales de esquema fijo">
+                  <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                  <span>Repartir x Hs Base</span>
+                </button>
+                <button id="btn-publish-plan-obj" onclick="window.app.publishPlanObjetivos()" class="px-4 py-1.5 rounded-lg bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
+                  <i data-lucide="send" class="w-3.5 h-3.5 text-[#E6D5C3]"></i>
+                  <span>Publicar en Sucursales</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Inputs de Metas Globales -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Bloque TOM -->
+              <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-neutral-900"></span>
+                    <span>TORTUGAS OPEN MALL (TOM)</span>
+                  </span>
+                  <span class="text-[10px] text-neutral-500 font-mono">Sofía pondera al 65%</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-[10px] font-bold text-neutral-600 mb-1">Meta Nivel 1 ($) *</label>
+                    <input type="number" id="plan-tom-n1" value="39093000" oninput="window.app.onChangeLocalMetaInput('TOM', 'n1', this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-neutral-600 mb-1">Meta Nivel 2 (+18%) ($) *</label>
+                    <input type="number" id="plan-tom-n2" value="46129000" oninput="window.app.onChangeLocalMetaInput('TOM', 'n2', this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bloque Maschwitz -->
+              <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-neutral-900"></span>
+                    <span>MASCHWITZ MALL</span>
+                  </span>
+                  <span class="text-[10px] text-neutral-500 font-mono">Reparto directo por hs</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-[10px] font-bold text-neutral-600 mb-1">Meta Nivel 1 ($) *</label>
+                    <input type="number" id="plan-masch-n1" value="19239000" oninput="window.app.onChangeLocalMetaInput('MASCHWITZ', 'n1', this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-neutral-600 mb-1">Meta Nivel 2 (+18%) ($) *</label>
+                    <input type="number" id="plan-masch-n2" value="22703000" oninput="window.app.onChangeLocalMetaInput('MASCHWITZ', 'n2', this.value)" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de Previsualización de Metas Repartidas -->
+            <div class="overflow-x-auto mt-2">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="border-b border-neutral-200 text-neutral-500 font-semibold bg-[#FAF9F6]">
+                    <th class="py-2 px-3">Sucursal</th>
+                    <th class="py-2 px-3">Nombre</th>
+                    <th class="py-2 px-3">Rol</th>
+                    <th class="py-2 px-2 text-center">Horas Sem.</th>
+                    <th class="py-2 px-3 text-right">Objetivo Nivel 1</th>
+                    <th class="py-2 px-3 text-right">Objetivo Nivel 2</th>
+                    <th class="py-2 px-3 text-center">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-admin-plan-objetivos">
+                  <!-- Inyectado dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL A (PASO 2): LIQUIDACIÓN OFICIAL DE VENTAS (12 COLUMNAS) -->
         <div id="admin-obj-subpanel-liq" class="flex flex-col gap-6">
           <div class="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col gap-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-neutral-200 gap-2">
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-xs font-bold text-neutral-700 uppercase tracking-wider">Cierre de Ventas & Liquidación Comercial</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-black bg-[#E6D5C3] text-neutral-900 uppercase">PASO 2</span>
+                <span class="text-xs font-bold text-neutral-700 uppercase tracking-wider">Cierre de Ventas & Liquidación Comercial (Dux)</span>
                 <span id="admin-liq-period-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E6D5C3] text-neutral-900">Período</span>
                 <span id="admin-liq-status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-100 text-neutral-700">Estado</span>
               </div>
@@ -1913,96 +2009,6 @@
                   </tr>
                 </thead>
                 <tbody id="tbody-admin-liquidaciones">
-                  <!-- Inyectado dinámicamente -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- PANEL B: PLANIFICACIÓN Y PROYECCIÓN DE NUEVOS OBJETIVOS -->
-        <div id="admin-obj-subpanel-plan" class="flex flex-col gap-6">
-          <div class="bg-white border border-neutral-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col gap-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-neutral-200 gap-2">
-              <div>
-                <div class="flex items-center gap-2">
-                  <h4 class="text-xs font-bold text-neutral-800 uppercase tracking-wider">Metas y Objetivos del Mes por Vendedora</h4>
-                  <span id="admin-plan-period-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E6D5C3] text-neutral-900">Período</span>
-                </div>
-                <p class="text-[11px] text-neutral-500 mt-0.5">Metas Nivel 1 y Nivel 2 asignadas proporcionalmente según horas reales trabajadas.</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <button onclick="window.app.recalcPlanObjetivos()" class="px-3 py-1 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold flex items-center gap-1 transition cursor-pointer">
-                  <i data-lucide="calculator" class="w-3 h-3"></i>
-                  <span>Recalcular Reparto</span>
-                </button>
-                <button id="btn-publish-plan-obj" onclick="window.app.publishPlanObjetivos()" class="px-4 py-1.5 rounded-lg bg-black hover:bg-neutral-800 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer">
-                  <i data-lucide="send" class="w-3.5 h-3.5 text-[#E6D5C3]"></i>
-                  <span>Publicar en Sucursales</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Inputs de Metas Globales -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- Bloque TOM -->
-              <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-4 flex flex-col gap-3">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-neutral-900"></span>
-                    <span>TORTUGAS OPEN MALL (TOM)</span>
-                  </span>
-                  <span class="text-[10px] text-neutral-500 font-mono">138 hs sem. staff</span>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <label class="block text-[10px] font-bold text-neutral-600 mb-1">Meta Nivel 1 ($) *</label>
-                    <input type="number" id="plan-tom-n1" value="39093000" oninput="window.app.recalcPlanObjetivos()" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
-                  </div>
-                  <div>
-                    <label class="block text-[10px] font-bold text-neutral-600 mb-1">Meta Nivel 2 ($) *</label>
-                    <input type="number" id="plan-tom-n2" value="46129000" oninput="window.app.recalcPlanObjetivos()" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Bloque Maschwitz -->
-              <div class="bg-[#FAF9F6] border border-neutral-200 rounded-xl p-4 flex flex-col gap-3">
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-neutral-900"></span>
-                    <span>MASCHWITZ MALL</span>
-                  </span>
-                  <span class="text-[10px] text-neutral-500 font-mono">77 hs sem. staff</span>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <label class="block text-[10px] font-bold text-neutral-600 mb-1">Meta Nivel 1 ($) *</label>
-                    <input type="number" id="plan-masch-n1" value="19239000" oninput="window.app.recalcPlanObjetivos()" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
-                  </div>
-                  <div>
-                    <label class="block text-[10px] font-bold text-neutral-600 mb-1">Meta Nivel 2 ($) *</label>
-                    <input type="number" id="plan-masch-n2" value="22703000" oninput="window.app.recalcPlanObjetivos()" class="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:outline-none focus:border-black">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tabla de Previsualización de Metas Repartidas -->
-            <div class="overflow-x-auto mt-2">
-              <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr class="border-b border-neutral-200 text-neutral-500 font-semibold bg-[#FAF9F6]">
-                    <th class="py-2 px-3">Sucursal</th>
-                    <th class="py-2 px-3">Nombre</th>
-                    <th class="py-2 px-3">Rol</th>
-                    <th class="py-2 px-2 text-center">Horas Sem.</th>
-                    <th class="py-2 px-3 text-right">Objetivo Nivel 1</th>
-                    <th class="py-2 px-3 text-right">Objetivo Nivel 2</th>
-                    <th class="py-2 px-3 text-center">Estado</th>
-                  </tr>
-                </thead>
-                <tbody id="tbody-admin-plan-objetivos">
                   <!-- Inyectado dinámicamente -->
                 </tbody>
               </table>
@@ -2452,6 +2458,6 @@
   <div id="floating-info-tooltip" class="hidden fixed z-[9999] pointer-events-none transition-opacity duration-150 bg-white border border-neutral-900 rounded-xl p-3.5 shadow-2xl text-xs text-neutral-900 max-w-xs"></div>
 
   <!-- Scripts -->
-  <script src="app.js?v=24.2"></script>
+  <script src="app.js?v=24.3"></script>
 </body>
 </html>
