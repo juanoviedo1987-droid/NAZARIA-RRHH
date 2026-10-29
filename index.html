@@ -56,7 +56,7 @@
   <script src="config.js?v=21.0"></script>
 
   <!-- Custom Styles SOPs Theme -->
-  <link rel="stylesheet" href="styles.css?v=17.7">
+  <link rel="stylesheet" href="styles.css?v=24.0">
 </head>
 <body class="min-h-screen flex flex-col bg-[#FAF9F6] text-neutral-900 font-['Inter'] antialiased">
 
@@ -548,7 +548,7 @@
               </select>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-bold text-neutral-700 mb-1">Fecha Inicio *</label>
                 <input type="date" id="nov-fecha-inicio" onchange="window.app.calcNovDaysAuto()" required class="w-full bg-[#FAF9F6] border border-neutral-200 rounded-lg px-3 py-2 text-xs text-neutral-900 font-mono focus:outline-none focus:border-black">
@@ -675,7 +675,7 @@
               </select>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-bold text-neutral-700 mb-1">Tipo *</label>
                 <select id="ret-tipo" required class="w-full bg-[#FAF9F6] border border-neutral-200 rounded-lg px-3 py-2 text-xs font-medium text-neutral-900 focus:outline-none focus:border-black">
@@ -2309,6 +2309,6 @@
   <div id="floating-info-tooltip" class="hidden fixed z-[9999] pointer-events-none transition-opacity duration-150 bg-white border border-neutral-900 rounded-xl p-3.5 shadow-2xl text-xs text-neutral-900 max-w-xs"></div>
 
   <!-- Scripts -->
-  <script src="app.js?v=23.0"></script>
+  <script src="app.js?v=24.0"></script>
 </body>
 </html>

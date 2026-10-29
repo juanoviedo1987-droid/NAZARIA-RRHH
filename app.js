@@ -19,7 +19,7 @@
       cuil: '***',
       fecha_ingreso: '2024-12-01',
       fecha_antiguedad_reconocida: null,
-      categoria: 'Vendedora',
+      categoria: 'Encargada de Sucursal',
       esquema_jornada: '5 días / 5,5 hs (paga 8 hs)',
       horas_base_mes: 160.0,
       recibo_hs_base: 22.0,
@@ -51,7 +51,7 @@
       cuil: '***',
       fecha_ingreso: '2023-02-17',
       fecha_antiguedad_reconocida: null,
-      categoria: 'Encargada de Sucursal',
+      categoria: 'Vendedora',
       esquema_jornada: '4 días / 5,5 hs',
       horas_base_mes: 88.0,
       recibo_hs_base: 64.0,
@@ -468,6 +468,12 @@
     }
 
     state.colaboradoras = JSON.parse(localStorage.getItem('nazaria_colaboradoras_v2') || JSON.stringify(DEFAULT_COLABORADORAS));
+    // Normalizar categorías oficiales de Flavia (Encargada) y Cami (Vendedora)
+    state.colaboradoras.forEach(c => {
+      if (c.id === 'c-flavia') c.categoria = 'Encargada de Sucursal';
+      if (c.id === 'c-cami') c.categoria = 'Vendedora';
+    });
+    localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(state.colaboradoras));
     state.martuMasch = JSON.parse(localStorage.getItem('nazaria_martu_masch_v2') || JSON.stringify(DEFAULT_MARTU_MASCH));
     state.cierres = JSON.parse(localStorage.getItem('nazaria_cierres_v2') || JSON.stringify(DEFAULT_CIERRES));
     // Limpieza de texto de cobertura residual en observaciones
@@ -580,12 +586,12 @@
     }
   }
 
-  // Polling automático de respaldo cada 12 segundos y al volver a la pestaña activa
+  // Polling automático de respaldo cada 45 segundos (Realtime WebSockets ya maneja cambios instantáneos)
   setInterval(() => {
     if (state.supabaseClient && state.isSupabaseConnected && !document.hidden) {
       syncFromSupabase();
     }
-  }, 12000);
+  }, 45000);
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && state.supabaseClient && state.isSupabaseConnected) {
@@ -911,22 +917,23 @@
         localStorage.setItem('nazaria_liquidaciones_v2', JSON.stringify(state.liquidaciones));
       }
 
-      // Refrescar vistas si ya están activas (evitar re-renderizar grilla de horarios si el usuario la está editando o escribiendo en inputs)
+      // Refrescar vistas si ya están activas (evitar re-renderizar si el usuario está escribiendo o editando un formulario)
       const isEditingGrid = state.isAdminGridEditable || state.isStoreGridEditable;
-      const isInputActive = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+      const activeTag = document.activeElement ? document.activeElement.tagName : '';
+      const isInputActive = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT';
 
       if (state.currentRole === 'ADMIN') {
-        if (state.activeAdminTab === 'consolidado') renderAdminConsolidado();
+        if (state.activeAdminTab === 'consolidado' && !isInputActive) renderAdminConsolidado();
         if (state.activeAdminTab === 'horarios' && !isEditingGrid && !isInputActive) renderAdminHorarios();
-        if (state.activeAdminTab === 'vacaciones') renderAdminVacaciones();
-        if (state.activeAdminTab === 'novedades') renderAdminNovedades();
-        if (state.activeAdminTab === 'retiros') renderAdminRetiros();
-        if (state.activeAdminTab === 'colaboradoras') renderAdminColaboradoras();
-        if (state.activeAdminTab === 'auditorias') renderAdminAuditorias();
-        if (state.activeAdminTab === 'objetivos') renderAdminObjetivos();
+        if (state.activeAdminTab === 'vacaciones' && !isInputActive) renderAdminVacaciones();
+        if (state.activeAdminTab === 'novedades' && !isInputActive) renderAdminNovedades();
+        if (state.activeAdminTab === 'retiros' && !isInputActive) renderAdminRetiros();
+        if (state.activeAdminTab === 'colaboradoras' && !isInputActive) renderAdminColaboradoras();
+        if (state.activeAdminTab === 'auditorias' && !isInputActive) renderAdminAuditorias();
+        if (state.activeAdminTab === 'objetivos' && !isInputActive) renderAdminObjetivos();
         updateAdminKPIs();
       } else if (state.currentRole) {
-        if (state.activeStoreTab === 'horas') {
+        if (state.activeStoreTab === 'horas' && !isInputActive) {
           renderStoreHoras();
           renderStoreHorasDetalle();
         }
@@ -934,13 +941,13 @@
           if (!isEditingGrid && !isInputActive) {
             renderStoreHorarios();
           }
-          renderStoreFechasEspeciales();
+          if (!isInputActive) renderStoreFechasEspeciales();
         }
-        if (state.activeStoreTab === 'vacaciones') renderStoreVacaciones();
-        if (state.activeStoreTab === 'novedades') renderStoreNovedades();
-        if (state.activeStoreTab === 'retiros') renderStoreRetiros();
-        if (state.activeStoreTab === 'auditoria') initStoreAuditoriaForm();
-        if (state.activeStoreTab === 'objetivos') renderStoreObjetivos();
+        if (state.activeStoreTab === 'vacaciones' && !isInputActive) renderStoreVacaciones();
+        if (state.activeStoreTab === 'novedades' && !isInputActive) renderStoreNovedades();
+        if (state.activeStoreTab === 'retiros' && !isInputActive) renderStoreRetiros();
+        if (state.activeStoreTab === 'auditoria' && !isInputActive) initStoreAuditoriaForm();
+        if (state.activeStoreTab === 'objetivos' && !isInputActive) renderStoreObjetivos();
       }
     } catch (err) {
       console.warn('Sync from Supabase fallback to local:', err);
@@ -1520,8 +1527,9 @@
     tbody.innerHTML = '';
     const storeCode = state.currentRole;
 
-    // Filtrar y ordenar cronológicamente por fecha, luego por colaboradora
-    const list = state.horas_detalle.filter(h => h.sucursal === storeCode);
+    // Filtrar por sucursal y período activo, luego ordenar cronológicamente por fecha y colaboradora
+    const currentPeriod = state.currentPeriod;
+    const list = state.horas_detalle.filter(h => h.sucursal === storeCode && (!h.fecha || h.fecha.startsWith(currentPeriod)));
     list.sort((a, b) => {
       const cmpDate = (a.fecha || '').localeCompare(b.fecha || '');
       if (cmpDate !== 0) return cmpDate;
@@ -2848,11 +2856,13 @@
     state.novedades.push(newVac);
     localStorage.setItem('nazaria_novedades_v2', JSON.stringify(state.novedades));
 
-    // Descontar automáticamente las horas de vacaciones del período activo si coincide
+    // Descontar automáticamente las horas de vacaciones según los turnos laborables (ej: 5 turnos x 6hs = 30hs por cada 7 días corridos)
     const periodStr = state.currentPeriod; // Ej: 2026-09 o 2026-10
     const colab = colabId === 'c-martu_masch' ? getMartuMasch() : state.colaboradoras.find(c => c.id === colabId);
     const storeCode = colab?.codigo_sucursal || state.currentRole;
     const hsPorDia = storeCode === 'MASCHWITZ' ? 5.5 : 6.0;
+    const diasSem = parseInt(colab?.esquema_jornada, 10) || (storeCode === 'MASCHWITZ' ? 4 : 5);
+    const turnosLaborables = dias >= 5 ? Math.round((dias / 7) * diasSem) : Math.min(dias, diasSem);
 
     // Si el tramo cae o solapa con el período activo, sumar a vacaciones_hs
     if (desde.startsWith(periodStr) || hasta.startsWith(periodStr)) {
@@ -2874,7 +2884,7 @@
         };
       }
       
-      const hsDescontadas = Math.round(dias * hsPorDia * 10) / 10;
+      const hsDescontadas = Math.round(turnosLaborables * hsPorDia * 10) / 10;
       state.cierres[key].vacaciones_hs = (Number(state.cierres[key].vacaciones_hs) || 0) + hsDescontadas;
       if (!state.cierres[key].observaciones) {
         state.cierres[key].observaciones = `Vacaciones ${formatDateShort(desde)} al ${formatDateShort(hasta)} (${dias}d)`;
@@ -4857,6 +4867,13 @@
     }
 
     localStorage.setItem('nazaria_colaboradoras_v2', JSON.stringify(state.colaboradoras));
+    if (state.supabaseClient && state.isSupabaseConnected) {
+      state.supabaseClient
+        .from('colaboradoras')
+        .update({ activa: colab.estado === 'activa' })
+        .eq('id', colab.id)
+        .then(() => {});
+    }
     renderAdminColaboradoras();
     renderAdminConsolidado();
     updateAdminKPIs();
@@ -6139,26 +6156,68 @@
   }
 
   function processFile(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target.result;
-      state.currentSelectedFile = { name: file.name, type: file.type, dataUrl: dataUrl };
+    const applyFileToState = (dataUrl, finalType) => {
+      state.currentSelectedFile = { name: file.name, type: finalType || file.type, dataUrl: dataUrl };
 
       const empty = document.getElementById('dropzone-empty');
       const preview = document.getElementById('dropzone-preview');
       const previewImg = document.getElementById('preview-img');
       const filename = document.getElementById('preview-filename');
 
-      empty.classList.add('hidden');
-      preview.classList.remove('hidden');
-      preview.classList.add('flex');
-      filename.textContent = file.name;
+      if (empty) empty.classList.add('hidden');
+      if (preview) {
+        preview.classList.remove('hidden');
+        preview.classList.add('flex');
+      }
+      if (filename) filename.textContent = file.name;
 
-      if (file.type.startsWith('image/')) {
-        previewImg.src = dataUrl;
-        previewImg.classList.remove('hidden');
-      } else {
+      if ((finalType || file.type).startsWith('image/')) {
+        if (previewImg) {
+          previewImg.src = dataUrl;
+          previewImg.classList.remove('hidden');
+        }
+      } else if (previewImg) {
         previewImg.classList.add('hidden');
+      }
+    };
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const rawDataUrl = e.target.result;
+      // Comprimir imágenes automáticamente con Canvas (máx 1200px, JPEG calidad 0.72) para proteger localStorage y Supabase
+      if (file.type.startsWith('image/')) {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const MAX_DIM = 1200;
+            let width = img.width;
+            let height = img.height;
+            if (width > MAX_DIM || height > MAX_DIM) {
+              if (width > height) {
+                height = Math.round((height * MAX_DIM) / width);
+                width = MAX_DIM;
+              } else {
+                width = Math.round((width * MAX_DIM) / height);
+                height = MAX_DIM;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.72);
+            applyFileToState(compressedDataUrl, 'image/jpeg');
+          } catch (err) {
+            applyFileToState(rawDataUrl, file.type);
+          }
+        };
+        img.onerror = () => applyFileToState(rawDataUrl, file.type);
+        img.src = rawDataUrl;
+      } else {
+        applyFileToState(rawDataUrl, file.type);
       }
     };
     reader.readAsDataURL(file);
@@ -6470,8 +6529,8 @@
     if (badgeSuc) badgeSuc.textContent = `SUCURSAL ${storeCode}`;
     if (localLabel) localLabel.textContent = `TOTAL LOCAL ${storeCode} (${formatPeriodLabel(currentPeriod)})`;
 
-    // Buscar objetivos publicados del período y sucursal
-    const storeObjs = (state.objetivos || []).filter(o => o.sucursal_codigo === storeCode && o.periodo === currentPeriod);
+    // Buscar ÚNICAMENTE objetivos aprobados y publicados ('publicado') del período y sucursal (Human-in-the-Loop)
+    const storeObjs = (state.objetivos || []).filter(o => o.sucursal_codigo === storeCode && o.periodo === currentPeriod && o.estado === 'publicado');
     const localObj = storeObjs.find(o => o.colab_id === 'TOTAL_LOCAL') || {};
 
     const metaN1 = Number(localObj.objetivo_nivel_1 || 0);
@@ -6481,13 +6540,13 @@
     if (n2El) n2El.textContent = metaN2 > 0 ? formatCurrency(metaN2) : 'Pendiente de publicación';
 
     if (statusBadge) {
-      const isPublicado = localObj.estado === 'publicado';
+      const isPublicado = localObj.estado === 'publicado' && metaN1 > 0;
       statusBadge.className = isPublicado 
         ? "px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1.5"
         : "px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 flex items-center gap-1.5";
       statusBadge.innerHTML = isPublicado
         ? `<i data-lucide="check-circle" class="w-3.5 h-3.5"></i><span>Metas Oficiales Aprobadas</span>`
-        : `<i data-lucide="clock" class="w-3.5 h-3.5"></i><span>Propuesta en Borrador</span>`;
+        : `<i data-lucide="clock" class="w-3.5 h-3.5"></i><span>Pendiente de Aprobación</span>`;
     }
 
     if (!container) return;
@@ -6498,8 +6557,8 @@
 
     if (staffObjs.length === 0) {
       container.innerHTML = `
-        <div class="col-span-full py-8 text-center text-xs text-neutral-400 bg-neutral-50 rounded-xl border border-neutral-200">
-          No hay metas individuales cargadas aún para el período ${formatPeriodLabel(currentPeriod)}.
+        <div class="col-span-full py-8 text-center text-xs text-neutral-500 bg-neutral-50 rounded-xl border border-neutral-200">
+          Las metas individuales del período <strong>${formatPeriodLabel(currentPeriod)}</strong> se encuentran en revisión y serán publicadas por Administración.
         </div>
       `;
       initLucideIcons();
@@ -6663,55 +6722,39 @@
     });
   }
 
-  // --- REPARTO MATEMÁTICO PONDERADO POR HORAS (PROTOCOLO MASTER V2.8) ---
-  function recalcPlanObjetivos() {
-    const tomN1 = Number(document.getElementById('plan-tom-n1')?.value) || 0;
-    const tomN2 = Number(document.getElementById('plan-tom-n2')?.value) || 0;
-    const maschN1 = Number(document.getElementById('plan-masch-n1')?.value) || 0;
-    const maschN2 = Number(document.getElementById('plan-masch-n2')?.value) || 0;
+  // --- REPARTO MATEMÁTICO PONDERADO POR HORAS REALES (PROTOCOLO MASTER V2.8) ---
+  function getPrevPeriodString(periodStr) {
+    const parts = (periodStr || '2026-10').split('-');
+    let y = parseInt(parts[0], 10);
+    let m = parseInt(parts[1], 10) - 1;
+    if (m <= 0) { m = 12; y -= 1; }
+    return `${y}-${String(m).padStart(2, '0')}`;
+  }
 
+  function getRealWeeklyHoursFromPrevMonth(colabId, periodStr, defaultWeeklyHs) {
+    const prevPeriod = getPrevPeriodString(periodStr);
+    const rec = state.cierres && state.cierres[`${prevPeriod}_${colabId}`];
+    if (!rec) return defaultWeeklyHs;
+    const base = Number(rec.horas_base || 0);
+    const vac = Number(rec.vacaciones_hs || 0);
+    const adic = Number(rec.adicional_hs || 0);
+    const netaMes = Math.max(0, base - vac + adic);
+    if (netaMes <= 0) return defaultWeeklyHs;
+    return Math.round((netaMes / 4.33) * 10) / 10;
+  }
+
+  function renderPlanPreviewRows() {
     const tbody = document.getElementById('tbody-admin-plan-objetivos');
-    if (!tbody) return;
+    if (!tbody || !state._currentPlanPreview) return;
     tbody.innerHTML = '';
-
-    // LÓGICA TOM:
-    // Sofía (36h): aporta el 65% del equivalente de una vendedora full-time
-    // Ratio Sofi = 36 * 0.65 = 23.4
-    // Esme: 42h, Cande: 24h, Anto: 24h, Martu Pinto: 12h
-    // Suma pesos TOM = 23.4 + 42 + 24 + 24 + 12 = 125.4
-    const pesoSofi = 36 * 0.65;
-    const pesoEsme = 42;
-    const pesoCande = 24;
-    const pesoAnto = 24;
-    const pesoMartuTom = 12;
-    const sumaPesosTom = pesoSofi + pesoEsme + pesoCande + pesoAnto + pesoMartuTom;
-
-    const planTom = [
-      { id: 'TOTAL_LOCAL', sucursal: 'TOM', nombre: 'TOTAL LOCAL', rol: 'Local', hs: 138, n1: tomN1, n2: tomN2, isLocal: true },
-      { id: 'c-esme', sucursal: 'TOM', nombre: 'Esme Galarza', rol: 'Semi-Encargada', hs: 42, n1: Math.round((tomN1 * pesoEsme / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoEsme / sumaPesosTom) / 1000) * 1000 },
-      { id: 'c-anto', sucursal: 'TOM', nombre: 'Antonella Bustamante', rol: 'Vendedora', hs: 24, n1: Math.round((tomN1 * pesoAnto / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoAnto / sumaPesosTom) / 1000) * 1000 },
-      { id: 'c-cande', sucursal: 'TOM', nombre: 'Candela Almiron', rol: 'Vendedora', hs: 24, n1: Math.round((tomN1 * pesoCande / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoCande / sumaPesosTom) / 1000) * 1000 },
-      { id: 'c-sofi', sucursal: 'TOM', nombre: 'Sofía Barrientos', rol: 'Encargada', hs: 36, n1: Math.round((tomN1 * pesoSofi / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoSofi / sumaPesosTom) / 1000) * 1000 },
-      { id: 'c-martu', sucursal: 'TOM', nombre: 'Martina Pinto', rol: 'Vendedora', hs: 12, n1: Math.round((tomN1 * pesoMartuTom / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoMartuTom / sumaPesosTom) / 1000) * 1000 }
-    ];
-
-    // LÓGICA MASCHWITZ:
-    // Reparto proporcional puro: Flavia (27.5h), Cami (22h), Juli (22h), Martu P (5.5h)
-    // Suma pesos Masch = 27.5 + 22 + 22 + 5.5 = 77
-    const sumaPesosMasch = 77;
-    const planMasch = [
-      { id: 'TOTAL_LOCAL', sucursal: 'MASCHWITZ', nombre: 'TOTAL LOCAL', rol: 'Local', hs: 77, n1: maschN1, n2: maschN2, isLocal: true },
-      { id: 'c-flavia', sucursal: 'MASCHWITZ', nombre: 'Flavia Gómez', rol: 'Encargada', hs: 27.5, n1: Math.round((maschN1 * 27.5 / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * 27.5 / sumaPesosMasch) / 1000) * 1000 },
-      { id: 'c-juli', sucursal: 'MASCHWITZ', nombre: 'Julieta Vera', rol: 'Vendedora', hs: 22, n1: Math.round((maschN1 * 22 / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * 22 / sumaPesosMasch) / 1000) * 1000 },
-      { id: 'c-cami', sucursal: 'MASCHWITZ', nombre: 'Camila Vera', rol: 'Vendedora', hs: 22, n1: Math.round((maschN1 * 22 / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * 22 / sumaPesosMasch) / 1000) * 1000 },
-      { id: 'c-martu_masch', sucursal: 'MASCHWITZ', nombre: 'Martina Pinto (Maschwitz)', rol: 'Vendedora', hs: 5.5, n1: Math.round((maschN1 * 5.5 / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * 5.5 / sumaPesosMasch) / 1000) * 1000 }
-    ];
-
-    state._currentPlanPreview = [...planTom, ...planMasch];
 
     state._currentPlanPreview.forEach((r, idx) => {
       const tr = document.createElement('tr');
       tr.className = r.isLocal ? "bg-neutral-100 font-bold border-b border-neutral-200" : "border-b border-neutral-100 hover:bg-[#FAF9F6]";
+      const badgeEstado = r.estado === 'publicado'
+        ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">Publicado</span>`
+        : `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isLocal ? 'bg-black text-white' : 'bg-amber-100 text-amber-800'}">${r.estado === 'borrador' ? 'Borrador' : 'Calculado'}</span>`;
+
       tr.innerHTML = `
         <td class="py-2.5 px-3 font-bold ${r.isLocal ? 'text-black' : 'text-neutral-700'}">${r.sucursal}</td>
         <td class="py-2.5 px-3 font-bold ${r.isLocal ? 'text-black' : 'text-neutral-900'}">${r.nombre}</td>
@@ -6720,28 +6763,79 @@
         <td class="py-2.5 px-3 text-right">
           ${r.isLocal 
             ? `<span class="font-mono font-bold text-neutral-900">${formatCurrency(r.n1)}</span>`
-            : `<input type="number" step="1000" value="${r.n1}" onchange="window.app._updatePlanItem(${idx}, 'n1', this.value)" class="w-28 text-right font-mono font-bold text-xs border border-neutral-200 rounded px-1.5 py-0.5 focus:border-black">`
+            : `<input type="number" step="1000" value="${r.n1}" onchange="window.app._updatePlanItem(${idx}, 'n1', this.value)" class="w-28 text-right font-mono font-bold text-xs border border-neutral-200 rounded px-1.5 py-1 focus:border-black">`
           }
         </td>
         <td class="py-2.5 px-3 text-right">
           ${r.isLocal 
             ? `<span class="font-mono font-bold text-amber-900">${formatCurrency(r.n2)}</span>`
-            : `<input type="number" step="1000" value="${r.n2}" onchange="window.app._updatePlanItem(${idx}, 'n2', this.value)" class="w-28 text-right font-mono font-bold text-xs border border-neutral-200 rounded px-1.5 py-0.5 focus:border-black text-amber-950">`
+            : `<input type="number" step="1000" value="${r.n2}" onchange="window.app._updatePlanItem(${idx}, 'n2', this.value)" class="w-28 text-right font-mono font-bold text-xs border border-neutral-200 rounded px-1.5 py-1 focus:border-black text-amber-950">`
           }
         </td>
         <td class="py-2.5 px-3 text-center">
-          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.isLocal ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-600'}">Calculado</span>
+          ${badgeEstado}
         </td>
       `;
       tbody.appendChild(tr);
     });
   }
 
+  function recalcPlanObjetivos() {
+    const tomN1 = Number(document.getElementById('plan-tom-n1')?.value) || 0;
+    const tomN2 = Number(document.getElementById('plan-tom-n2')?.value) || 0;
+    const maschN1 = Number(document.getElementById('plan-masch-n1')?.value) || 0;
+    const maschN2 = Number(document.getElementById('plan-masch-n2')?.value) || 0;
+    const currentPeriod = state.currentPeriod;
+
+    // LÓGICA TOM ponderada con horas reales trabajadas en el mes anterior (Planilla de la App):
+    const hsSofi = getRealWeeklyHoursFromPrevMonth('c-sofi', currentPeriod, 36);
+    const hsEsme = getRealWeeklyHoursFromPrevMonth('c-esme', currentPeriod, 42);
+    const hsCande = getRealWeeklyHoursFromPrevMonth('c-cande', currentPeriod, 24);
+    const hsAnto = getRealWeeklyHoursFromPrevMonth('c-anto', currentPeriod, 24);
+    const hsMartuTom = getRealWeeklyHoursFromPrevMonth('c-martu', currentPeriod, 12);
+    const totHsTom = Math.round((hsSofi + hsEsme + hsCande + hsAnto + hsMartuTom) * 10) / 10;
+
+    // Sofía (Encargada TOM) pondera al 65% de sus horas frente a vendedora de salón
+    const pesoSofi = hsSofi * 0.65;
+    const pesoEsme = hsEsme;
+    const pesoCande = hsCande;
+    const pesoAnto = hsAnto;
+    const pesoMartuTom = hsMartuTom;
+    const sumaPesosTom = pesoSofi + pesoEsme + pesoCande + pesoAnto + pesoMartuTom;
+
+    const planTom = [
+      { id: 'TOTAL_LOCAL', sucursal: 'TOM', nombre: 'TOTAL LOCAL', rol: 'Local', hs: totHsTom, n1: tomN1, n2: tomN2, isLocal: true, estado: 'borrador' },
+      { id: 'c-esme', sucursal: 'TOM', nombre: 'Esme Galarza', rol: 'Semi-Encargada', hs: hsEsme, n1: Math.round((tomN1 * pesoEsme / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoEsme / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
+      { id: 'c-anto', sucursal: 'TOM', nombre: 'Antonella Bustamante', rol: 'Vendedora', hs: hsAnto, n1: Math.round((tomN1 * pesoAnto / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoAnto / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
+      { id: 'c-cande', sucursal: 'TOM', nombre: 'Candela Almiron', rol: 'Vendedora', hs: hsCande, n1: Math.round((tomN1 * pesoCande / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoCande / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
+      { id: 'c-sofi', sucursal: 'TOM', nombre: 'Sofía Barrientos', rol: 'Encargada', hs: hsSofi, n1: Math.round((tomN1 * pesoSofi / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoSofi / sumaPesosTom) / 1000) * 1000, estado: 'borrador' },
+      { id: 'c-martu', sucursal: 'TOM', nombre: 'Martina Pinto', rol: 'Vendedora', hs: hsMartuTom, n1: Math.round((tomN1 * pesoMartuTom / sumaPesosTom) / 1000) * 1000, n2: Math.round((tomN2 * pesoMartuTom / sumaPesosTom) / 1000) * 1000, estado: 'borrador' }
+    ];
+
+    // LÓGICA MASCHWITZ ponderada con horas reales trabajadas en el mes anterior:
+    const hsFlavia = getRealWeeklyHoursFromPrevMonth('c-flavia', currentPeriod, 27.5);
+    const hsJuli = getRealWeeklyHoursFromPrevMonth('c-juli', currentPeriod, 22);
+    const hsCami = getRealWeeklyHoursFromPrevMonth('c-cami', currentPeriod, 22);
+    const hsMartuMasch = getRealWeeklyHoursFromPrevMonth('c-martu_masch', currentPeriod, 5.5);
+    const sumaPesosMasch = Math.round((hsFlavia + hsJuli + hsCami + hsMartuMasch) * 10) / 10;
+
+    const planMasch = [
+      { id: 'TOTAL_LOCAL', sucursal: 'MASCHWITZ', nombre: 'TOTAL LOCAL', rol: 'Local', hs: sumaPesosMasch, n1: maschN1, n2: maschN2, isLocal: true, estado: 'borrador' },
+      { id: 'c-flavia', sucursal: 'MASCHWITZ', nombre: 'Flavia Gómez', rol: 'Encargada', hs: hsFlavia, n1: Math.round((maschN1 * hsFlavia / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * hsFlavia / sumaPesosMasch) / 1000) * 1000, estado: 'borrador' },
+      { id: 'c-juli', sucursal: 'MASCHWITZ', nombre: 'Julieta Vera', rol: 'Vendedora', hs: hsJuli, n1: Math.round((maschN1 * hsJuli / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * hsJuli / sumaPesosMasch) / 1000) * 1000, estado: 'borrador' },
+      { id: 'c-cami', sucursal: 'MASCHWITZ', nombre: 'Camila Vera', rol: 'Vendedora', hs: hsCami, n1: Math.round((maschN1 * hsCami / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * hsCami / sumaPesosMasch) / 1000) * 1000, estado: 'borrador' },
+      { id: 'c-martu_masch', sucursal: 'MASCHWITZ', nombre: 'Martina Pinto (Maschwitz)', rol: 'Vendedora', hs: hsMartuMasch, n1: Math.round((maschN1 * hsMartuMasch / sumaPesosMasch) / 1000) * 1000, n2: Math.round((maschN2 * hsMartuMasch / sumaPesosMasch) / 1000) * 1000, estado: 'borrador' }
+    ];
+
+    state._currentPlanPreview = [...planTom, ...planMasch];
+    renderPlanPreviewRows();
+  }
+
   function renderAdminPlanObjetivos() {
     const currentPeriod = state.currentPeriod;
-    // Si ya existen metas guardadas para el período activo, cargar sus totales
-    const tomTotal = (state.objetivos || []).find(o => o.sucursal_codigo === 'TOM' && o.periodo === currentPeriod && o.colab_id === 'TOTAL_LOCAL');
-    const maschTotal = (state.objetivos || []).find(o => o.sucursal_codigo === 'MASCHWITZ' && o.periodo === currentPeriod && o.colab_id === 'TOTAL_LOCAL');
+    const periodObjs = (state.objetivos || []).filter(o => o.periodo === currentPeriod);
+    const tomTotal = periodObjs.find(o => o.sucursal_codigo === 'TOM' && o.colab_id === 'TOTAL_LOCAL');
+    const maschTotal = periodObjs.find(o => o.sucursal_codigo === 'MASCHWITZ' && o.colab_id === 'TOTAL_LOCAL');
 
     const inTomN1 = document.getElementById('plan-tom-n1');
     const inTomN2 = document.getElementById('plan-tom-n2');
@@ -6757,7 +6851,46 @@
       inMaschN2.value = maschTotal.objetivo_nivel_2 || 22703000;
     }
 
-    recalcPlanObjetivos();
+    // Si ya hay filas guardadas en la nube para este período (publicadas o borrador de n8n), mostrarlas respetando sus valores reales
+    if (periodObjs.length > 0) {
+      const orderTom = ['TOTAL_LOCAL', 'c-esme', 'c-anto', 'c-cande', 'c-sofi', 'c-martu'];
+      const orderMasch = ['TOTAL_LOCAL', 'c-flavia', 'c-juli', 'c-cami', 'c-martu_masch'];
+
+      const rowsTom = orderTom
+        .map(cid => periodObjs.find(o => o.sucursal_codigo === 'TOM' && o.colab_id === cid))
+        .filter(Boolean)
+        .map(o => ({
+          id: o.colab_id,
+          sucursal: 'TOM',
+          nombre: o.nombre_concepto,
+          rol: o.rol,
+          hs: Number(o.horas_semanales || 0),
+          n1: Number(o.objetivo_nivel_1 || 0),
+          n2: Number(o.objetivo_nivel_2 || 0),
+          isLocal: o.colab_id === 'TOTAL_LOCAL',
+          estado: o.estado || 'borrador'
+        }));
+
+      const rowsMasch = orderMasch
+        .map(cid => periodObjs.find(o => o.sucursal_codigo === 'MASCHWITZ' && o.colab_id === cid))
+        .filter(Boolean)
+        .map(o => ({
+          id: o.colab_id,
+          sucursal: 'MASCHWITZ',
+          nombre: o.nombre_concepto,
+          rol: o.rol,
+          hs: Number(o.horas_semanales || 0),
+          n1: Number(o.objetivo_nivel_1 || 0),
+          n2: Number(o.objetivo_nivel_2 || 0),
+          isLocal: o.colab_id === 'TOTAL_LOCAL',
+          estado: o.estado || 'borrador'
+        }));
+
+      state._currentPlanPreview = [...rowsTom, ...rowsMasch];
+      renderPlanPreviewRows();
+    } else {
+      recalcPlanObjetivos();
+    }
   }
 
   window.app._updatePlanItem = function(idx, field, val) {
@@ -6803,6 +6936,7 @@
     const otherPeriods = (state.objetivos || []).filter(o => o.periodo !== currentPeriod);
     state.objetivos = [...otherPeriods, ...rowsToUpsert];
     localStorage.setItem('nazaria_objetivos_v2', JSON.stringify(state.objetivos));
+    renderAdminPlanObjetivos();
     showToast(`✅ Objetivos de ${formatPeriodLabel(currentPeriod)} publicados con éxito para las sucursales.`, 'success');
   }
 

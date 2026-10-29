@@ -138,19 +138,29 @@ input[type=number] {
    ADAPTACIONES MOBILE (CELULARES & PANTALLAS TÁCTILES)
    ============================================================================== */
 
-/* Inputs en formularios móviles a 16px para evitar auto-zoom de Safari */
+/* Inputs en formularios móviles a 16px para evitar auto-zoom de Safari y zona táctil >= 44px */
 @media (max-width: 640px) {
   form input,
   form select,
-  form textarea {
+  form textarea,
+  form button[type="submit"] {
     font-size: 16px;
+    min-height: 44px;
   }
   
   /* En tablas de datos, mantener tamaños compactos y táctiles */
   .table-sop input[type="number"],
   .table-sop input[type="text"] {
     font-size: 13px !important;
-    min-height: 34px;
+    min-height: 40px;
+  }
+
+  .table-sop button {
+    min-height: 38px;
+    min-width: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

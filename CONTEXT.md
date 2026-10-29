@@ -23,11 +23,11 @@ Este documento es la **Fuente Central de Verdad y Memoria (SSOT)** del proyecto.
 
 ### Sucursal Maschwitz (3 Colaboradoras)
 1. **Gómez Flavia Marianela** (Alias: *Flavia G.*)
-   * Sucursal: Maschwitz — Ingreso: `01/12/2024` — Categoría: Vendedora
+   * Sucursal: Maschwitz — Ingreso: `01/12/2024` — Categoría: Encargada de Sucursal
 2. **Vera Julieta Agustina** (Alias: *Juli Vera*)
    * Sucursal: Maschwitz — Ingreso: `01/11/2023` — Categoría: Vendedora
 3. **Vera Camila Abril** (Alias: *Cami Vera*)
-   * Sucursal: Maschwitz — Ingreso: `17/02/2023` — Categoría: Encargada de Sucursal
+   * Sucursal: Maschwitz — Ingreso: `17/02/2023` — Categoría: Vendedora
 
 ### Sucursal TOM (5 Colaboradoras)
 4. **Barrientos Sofia** (Alias: *Sofi*)
@@ -60,7 +60,7 @@ Este documento es la **Fuente Central de Verdad y Memoria (SSOT)** del proyecto.
 ## 4. Terminales, Credenciales de Acceso y Períodos
 * **Seguridad y Privacidad:** Las claves son personales y **no se exhiben en la pantalla de bienvenida**.
 * **Credenciales Oficiales:**
-  * **TOM:** PIN personal de Sofia Barrientos (`4816` — últimos 4 dígitos de su DNI).
+  * **TOM:** PIN personal de Sofia Barrientos (`0145`).
   * **Maschwitz:** PIN personal de Flavia Gómez (`6228` — últimos 4 dígitos de su DNI `32.826.228`).
   * **Administración (Dueño / Juan):** PIN privado `3585`.
 * **Habilitación Automática de Períodos:**
